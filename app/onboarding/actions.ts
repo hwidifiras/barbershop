@@ -2,10 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import DOMPurify from 'isomorphic-dompurify'
-
+// Onboarding fields are plain text and are rendered through React's escaped
+// text output. Keep this sanitizer dependency-free so the server action can
+// run on Vercel's Node runtime without pulling jsdom's incompatible ESM chain.
 function sanitize(s: string): string {
-  return DOMPurify.sanitize(s, { ALLOWED_TAGS: [] }).trim()
+  return s
+    .replace(/[<>]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .trim()
 }
 
 export async function completeOnboarding(data: {
@@ -70,7 +74,13 @@ export async function completeOnboarding(data: {
 
   if (!chosenSlug || chosenSlug === business.slug) {
     const { error } = await supabase.from('businesses').update(basePatch).eq('id', business.id)
-    if (error) throw new Error(error.message)
+    if (error) {
+      console.error('[onboarding] business update failed', {
+        code: error.code,
+        message: error.message,
+      })
+      throw new Error(error.message)
+    }
   } else {
     let applied = false
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -85,7 +95,13 @@ export async function completeOnboarding(data: {
         break
       }
       // Anything other than a unique violation is a real failure.
-      if (error.code !== '23505') throw new Error(error.message)
+      if (error.code !== '23505') {
+        console.error('[onboarding] business slug update failed', {
+          code: error.code,
+          message: error.message,
+        })
+        throw new Error(error.message)
+      }
     }
     if (!applied) {
       throw new Error('Could not assign a unique web address for your business — please pick a different name.')
@@ -101,9 +117,11 @@ export async function completeOnboarding(data: {
     })
   }
 
-  // If NEXT_PUBLIC_ROOT_DOMAIN is set we're running in SaaS mode → go to subdomain
+  // Only SaaS deployments use tenant subdomains. A self-hosted deployment
+  // may still have NEXT_PUBLIC_ROOT_DOMAIN configured for other reasons.
+  const isSaas = process.env.NEXT_PUBLIC_DEPLOYMENT_MODE === 'saas'
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
-  if (rootDomain && finalSlug) {
+  if (isSaas && rootDomain && finalSlug) {
     redirect(`https://${finalSlug}.${rootDomain}/dashboard`)
   }
 
