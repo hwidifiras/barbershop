@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 function sanitize(s: string): string {
   return s
     .replace(/[<>]/g, '')
-    .replace(/[\\u0000-\\u001F\\u007F]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
     .trim()
 }
 
