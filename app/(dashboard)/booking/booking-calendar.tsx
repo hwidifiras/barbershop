@@ -190,7 +190,6 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
   }, [businessHours, appointments, timezone])
   const [showForm, setShowForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
   const is12h = uses12HourClock(locale)
 
   // hour/minute always stored in 24h internally; period only used when is12h
