@@ -476,7 +476,11 @@
       "cancel": "Annuler",
       "saving": "Enregistrement…",
       "save": "Enregistrer",
-      "closedDayError": "Cette journée est marquée comme fermée dans les horaires d'ouverture. Modifiez d'abord votre planning dans les paramètres."
+      "closedDayError": "Cette journée est marquée comme fermée dans les horaires d'ouverture. Modifiez d'abord votre planning dans les paramètres.",
+      "noStaffAvailable": "Aucun membre du personnel actif n'est disponible pour cette réservation. Ajoutez un employé dans les paramètres ou sélectionnez un employé précis.",
+      "slotAlreadyBooked": "Ce créneau est déjà réservé pour l'employé sélectionné. Veuillez en choisir un autre.",
+      "saveError": "Impossible d'enregistrer le rendez-vous. Veuillez réessayer.",
+      "assignError": "Impossible de mettre à jour l'employé. Veuillez réessayer."
     },
     "detail": {
       "statusLabel": "État",
