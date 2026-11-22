@@ -514,7 +514,11 @@
       "upgrade": "Upgrade →",
       "currentPlan": "Current plan",
       "successMessage": "Subscription activated! Thank you for upgrading.",
-      "errorMessage": "Something went wrong. Please try again or contact support."
+      "errorMessage": "Something went wrong. Please try again or contact support.",
+      "selfHostedDescription": "You are running the self-hosted version of Pronto. All features are available without a subscription.",
+      "selfHostedHeading": "Self-hosted — All features unlocked",
+      "selfHostedFeaturesDescription": "All Pro and Agency features are available to you at no charge.",
+      "selfHostedManageHint": "Manage your instance via Docker Compose."
     },
     "account": {
       "heading": "My account",
@@ -533,7 +537,8 @@
       "pwNoMatch": "Passwords do not match",
       "pwSuccess": "Password updated successfully",
       "emailInvalid": "Enter a valid email address",
-      "emailConfirmSent": "Confirmation sent to {email}. Click the link in the email to complete the change."
+      "emailConfirmSent": "Confirmation sent to {email}. Click the link in the email to complete the change.",
+      "newPasswordPlaceholder": "Min. 8 characters"
     },
     "workingHours": {
       "heading": "Working Hours",
@@ -600,7 +605,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · max 2MB",
       "logoProOnly": "Available on Pro plan →",
       "logoErrorRemove": "Failed to remove logo.",
-      "logoErrorNetwork": "Network error: {message}"
+      "logoErrorNetwork": "Network error: {message}",
+      "otherCurrency": "✏️ Other (enter manually)"
     },
     "services": {
       "empty": "No services yet",
@@ -745,7 +751,8 @@
         "birthday": "Birthday template name",
         "birthdayPlaceholder": "e.g. happy_birthday",
         "language": "Template language"
-      }
+      },
+      "unknownError": "Unknown error"
     },
     "modules": {
       "heading": "Feature Modules",
