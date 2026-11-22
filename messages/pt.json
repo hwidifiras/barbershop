@@ -514,7 +514,11 @@
       "upgrade": "Fazer upgrade →",
       "currentPlan": "Plano atual",
       "successMessage": "Assinatura ativada! Obrigado por fazer o upgrade.",
-      "errorMessage": "Algo deu errado. Por favor tente novamente ou entre em contato com o suporte."
+      "errorMessage": "Algo deu errado. Por favor tente novamente ou entre em contato com o suporte.",
+      "selfHostedDescription": "Você está usando a versão auto-hospedada do Pronto. Todos os recursos estão disponíveis sem assinatura.",
+      "selfHostedHeading": "Auto-hospedado — Todos os recursos desbloqueados",
+      "selfHostedFeaturesDescription": "Todos os recursos dos planos Pro e Agency estão disponíveis gratuitamente.",
+      "selfHostedManageHint": "Gerencie sua instância pelo Docker Compose."
     },
     "account": {
       "heading": "Minha conta",
@@ -533,7 +537,8 @@
       "pwNoMatch": "As senhas não coincidem",
       "pwSuccess": "Senha atualizada com sucesso",
       "emailInvalid": "Digite um endereço de e-mail válido",
-      "emailConfirmSent": "Confirmação enviada para {email}. Clique no link do e-mail para concluir a alteração."
+      "emailConfirmSent": "Confirmação enviada para {email}. Clique no link do e-mail para concluir a alteração.",
+      "newPasswordPlaceholder": "Mínimo de 8 caracteres"
     },
     "workingHours": {
       "heading": "Horário de funcionamento",
@@ -600,7 +605,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · máx 2MB",
       "logoProOnly": "Disponível no plano Pro →",
       "logoErrorRemove": "Falha ao remover o logo.",
-      "logoErrorNetwork": "Erro de rede: {message}"
+      "logoErrorNetwork": "Erro de rede: {message}",
+      "otherCurrency": "✏️ Outra (inserir manualmente)"
     },
     "services": {
       "empty": "Nenhum serviço ainda",
@@ -745,7 +751,8 @@
         "birthday": "Nome do template de aniversário",
         "birthdayPlaceholder": "ex. happy_birthday",
         "language": "Idioma do template"
-      }
+      },
+      "unknownError": "Erro desconhecido"
     },
     "modules": {
       "heading": "Módulos de funcionalidades",
