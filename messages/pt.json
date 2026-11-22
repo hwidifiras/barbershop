@@ -476,7 +476,11 @@
       "cancel": "Cancelar",
       "saving": "Salvando…",
       "save": "Salvar",
-      "closedDayError": "Este dia está marcado como fechado no Horário de funcionamento. Atualize sua agenda em Configurações primeiro."
+      "closedDayError": "Este dia está marcado como fechado no Horário de funcionamento. Atualize sua agenda em Configurações primeiro.",
+      "noStaffAvailable": "Não há funcionários ativos disponíveis para esta reserva. Adicione um funcionário em Configurações ou selecione um funcionário específico.",
+      "slotAlreadyBooked": "Este horário já está reservado para o funcionário selecionado. Escolha outro horário.",
+      "saveError": "Não foi possível salvar o agendamento. Tente novamente.",
+      "assignError": "Não foi possível atualizar o funcionário. Tente novamente."
     },
     "detail": {
       "statusLabel": "Status",
