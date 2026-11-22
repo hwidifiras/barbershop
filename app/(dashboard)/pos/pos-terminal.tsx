@@ -180,7 +180,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
       const remaining = await getPendingCount()
       setPendingCount(remaining)
     } catch {
-      setSyncError('Sync failed. Will retry automatically.')
+      setSyncError(t('offlineSyncError'))
     } finally {
       setSyncing(false)
     }
@@ -339,31 +339,31 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
           {showSaveModal && (
             <Card>
               <CardContent className="pt-5 pb-5">
-                <p className="text-sm font-semibold text-gray-900 mb-3">Save this customer to your client base?</p>
+                <p className="text-sm font-semibold text-gray-900 mb-3">{t('saveClientPrompt')}</p>
                 <div className="space-y-2">
                   <input
                     type="text"
-                    placeholder="Name *"
+                    placeholder={t('saveClientNamePlaceholder')}
                     value={saveForm.name}
                     onChange={(e) => setSaveForm((f) => ({ ...f, name: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="tel"
-                    placeholder="Phone"
+                    placeholder={t('saveClientPhonePlaceholder')}
                     value={saveForm.phone}
                     onChange={(e) => setSaveForm((f) => ({ ...f, phone: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder={t('saveClientEmailPlaceholder')}
                     value={saveForm.email}
                     onChange={(e) => setSaveForm((f) => ({ ...f, email: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <textarea
-                    placeholder="Notes"
+                    placeholder={t('saveClientNotesPlaceholder')}
                     value={saveForm.notes}
                     onChange={(e) => setSaveForm((f) => ({ ...f, notes: e.target.value }))}
                     rows={2}
@@ -382,7 +382,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                     disabled={!saveForm.name.trim() || savingClient}
                     className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
-                    {savingClient ? '…' : 'Save client'}
+                    {savingClient ? '…' : t('saveClientSave')}
                   </button>
                 </div>
               </CardContent>
@@ -400,7 +400,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
       {!isOnline && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-orange-800 text-sm">
           <WifiOff className="w-4 h-4 shrink-0" />
-          <span className="font-medium">Offline mode</span>
+          <span className="font-medium">{t('offlineMode')}</span>
           <span className="text-orange-600">— Sales will sync automatically when you reconnect.</span>
           {pendingCount > 0 && (
             <span className="ml-auto font-semibold">{pendingCount} pending</span>
@@ -604,7 +604,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                 ? t('processing')
                 : isOnline
                   ? t('chargeButton')
-                  : `Save offline · ${formatCurrency(total, currency, locale)}`}
+                  : `${t('offlineSaveButton')} · ${formatCurrency(total, currency, locale)}`}
             </Button>
           </div>
         </div>
