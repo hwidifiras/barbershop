@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-const PRESET_UNITS = ['pcs', 'g', 'kg', 'ml', 'l', 'bottle', 'box', 'pack']
+const PRESET_UNITS = ['pcs', 'g', 'kg', 'ml', 'l', 'bottle', 'box', 'pack'] as const
 
 interface Props {
   value: string
@@ -26,7 +26,7 @@ export function UnitSelect({ value, onChange, className = '' }: Props) {
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
       >
         {PRESET_UNITS.map((u) => (
-          <option key={u} value={u}>{t(u as keyof typeof PRESET_UNITS)}</option>
+          <option key={u} value={u}>{t(u)}</option>
         ))}
         <option value="other">{t('other')}</option>
       </select>
