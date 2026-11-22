@@ -514,7 +514,11 @@
       "upgrade": "Passer à l'offre supérieure →",
       "currentPlan": "Offre actuelle",
       "successMessage": "Abonnement activé ! Merci d'avoir choisi une offre supérieure.",
-      "errorMessage": "Une erreur s'est produite. Veuillez réessayer ou contacter l'assistance."
+      "errorMessage": "Une erreur s'est produite. Veuillez réessayer ou contacter l'assistance.",
+      "selfHostedDescription": "Vous utilisez la version auto-hébergée de Pronto. Toutes les fonctionnalités sont disponibles sans abonnement.",
+      "selfHostedHeading": "Auto-hébergé — Toutes les fonctionnalités sont débloquées",
+      "selfHostedFeaturesDescription": "Toutes les fonctionnalités des offres Pro et Agency sont disponibles gratuitement.",
+      "selfHostedManageHint": "Gérez votre instance avec Docker Compose."
     },
     "account": {
       "heading": "Mon compte",
@@ -533,7 +537,8 @@
       "pwNoMatch": "Les mots de passe ne correspondent pas",
       "pwSuccess": "Mot de passe mis à jour avec succès",
       "emailInvalid": "Saisissez une adresse e-mail valide",
-      "emailConfirmSent": "Un e-mail de confirmation a été envoyé à {email}. Cliquez sur le lien reçu pour terminer la modification."
+      "emailConfirmSent": "Un e-mail de confirmation a été envoyé à {email}. Cliquez sur le lien reçu pour terminer la modification.",
+      "newPasswordPlaceholder": "8 caractères minimum"
     },
     "workingHours": {
       "heading": "Horaires d'ouverture",
@@ -600,7 +605,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · 2 Mo maximum",
       "logoProOnly": "Disponible avec l'offre Pro →",
       "logoErrorRemove": "Impossible de supprimer le logo.",
-      "logoErrorNetwork": "Erreur réseau : {message}"
+      "logoErrorNetwork": "Erreur réseau : {message}",
+      "otherCurrency": "✏️ Autre (saisir manuellement)"
     },
     "services": {
       "empty": "Aucun service pour le moment",
@@ -745,7 +751,8 @@
         "birthday": "Nom du modèle d'anniversaire",
         "birthdayPlaceholder": "ex. happy_birthday",
         "language": "Langue du modèle"
-      }
+      },
+      "unknownError": "Erreur inconnue"
     },
     "modules": {
       "heading": "Modules fonctionnels",
