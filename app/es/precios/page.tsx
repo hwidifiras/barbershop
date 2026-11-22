@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     languages: {
       en: 'https://trypronto.app',
       es: 'https://trypronto.app/es/precios',
+      fr: 'https://trypronto.app/fr/prix',
       'x-default': 'https://trypronto.app',
     },
   },
@@ -208,6 +209,9 @@ export default function EsPreciosPage() {
           </Link>
           <Link href="/" className={`${styles.navLink} lang-switcher`}>
             EN
+          </Link>
+          <Link href="/fr/prix" className={`${styles.navLink} lang-switcher`}>
+            FR
           </Link>
           <Link href="/register" className={styles.btnNav}>
             Empezar gratis
