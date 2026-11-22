@@ -231,7 +231,7 @@ export default function FrenchPricingPage() {
           <Link href="/fr/prix">Tarifs</Link>
           <Link href="/terms">Conditions</Link>
           <Link href="/privacy">Confidentialité</Link>
-          <a href="https://github.com/SGrappelli/barbershop" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/SGrappelli/pronto" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
       </footer>
     </div>
