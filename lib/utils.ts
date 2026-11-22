@@ -10,7 +10,7 @@ export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: currency === 'TND' ? 3 : 2,
   }).format(amount)
 }
 
