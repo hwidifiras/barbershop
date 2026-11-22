@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/layout/header'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { HistoryFilters } from './history-filters'
 import { redirect } from 'next/navigation'
@@ -16,6 +16,7 @@ export default async function TransactionHistoryPage(
   const searchParams = await props.searchParams;
   const supabase = await createClient()
   const t = await getTranslations('transactions')
+  const locale = await getLocale()
   const user = await getAuthUser()
 
   const business = await getBusinessForOwner(user!.id)
@@ -94,7 +95,7 @@ export default async function TransactionHistoryPage(
         {transactions && transactions.length > 0 && (
           <div className="flex justify-end">
             <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm font-semibold text-green-700">
-              {t('total')} {formatCurrency(total, business.currency)}
+              {t('total')} {formatCurrency(total, business.currency, locale)}
             </div>
           </div>
         )}
@@ -147,11 +148,11 @@ export default async function TransactionHistoryPage(
                         <span className="capitalize text-gray-600">{tx.payment_method}</span>
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {formatCurrency(tx.amount, business.currency)}
+                        {formatCurrency(tx.amount, business.currency, locale)}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-500 hidden md:table-cell">
-                        <div>{formatInBusinessTimezone(tx.created_at, business.timezone)}</div>
-                        <div className="text-xs">{formatInBusinessTimezone(tx.created_at, business.timezone, 'time')}</div>
+                        <div>{formatInBusinessTimezone(tx.created_at, business.timezone, 'date', locale)}</div>
+                        <div className="text-xs">{formatInBusinessTimezone(tx.created_at, business.timezone, 'time', locale)}</div>
                       </td>
                     </tr>
                   )
