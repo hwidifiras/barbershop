@@ -921,7 +921,8 @@
     },
     "fileParseError": "Le fichier est vide ou n'a pas pu être analysé.",
     "fileReadError": "Impossible de lire le fichier.",
-    "networkError": "Erreur réseau. Veuillez réessayer."
+    "networkError": "Erreur réseau. Veuillez réessayer.",
+    "importFailed": "L'importation a échoué. Veuillez réessayer."
   },
   "datePicker": {
     "today": "Aujourd'hui",
