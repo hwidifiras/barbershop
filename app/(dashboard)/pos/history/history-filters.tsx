@@ -17,6 +17,7 @@ interface Props {
 export function HistoryFilters({ from, to, method, client, methods }: Props) {
   const router = useRouter()
   const t = useTranslations('transactions.filters')
+  const tTable = useTranslations('transactions.table')
   const [fromVal, setFromVal] = useState(from)
   const [toVal, setToVal] = useState(to)
   const [methodVal, setMethodVal] = useState(method)
@@ -44,7 +45,7 @@ export function HistoryFilters({ from, to, method, client, methods }: Props) {
   return (
     <div className="flex flex-wrap gap-3 items-end bg-white rounded-xl border border-gray-200 p-4">
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">{t('clientPlaceholder')}</label>
+        <label className="block text-xs font-medium text-gray-500 mb-1">{tTable('client')}</label>
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
@@ -81,14 +82,14 @@ export function HistoryFilters({ from, to, method, client, methods }: Props) {
         onClick={apply}
         className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
       >
-        Apply
+        {t('apply')}
       </button>
       {hasFilters && (
         <button
           onClick={clear}
           className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
         >
-          Clear
+          {t('clear')}
         </button>
       )}
     </div>
