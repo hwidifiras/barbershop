@@ -17,7 +17,7 @@ import {
   CloudOff,
   CalendarDays,
 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import {
   cacheData,
   getCachedData,
@@ -57,6 +57,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('pos')
+  const locale = useLocale()
 
   // ─── POS state ────────────────────────────────────────────────────────────
   const [cart, setCart] = useState<CartItem[]>([])
@@ -329,7 +330,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                   Saved offline. Will sync when internet is restored.
                 </p>
               )}
-              <p className="text-2xl font-bold text-gray-900 mb-6">{formatCurrency(successAmount, currency)}</p>
+              <p className="text-2xl font-bold text-gray-900 mb-6">{formatCurrency(successAmount, currency, locale)}</p>
               <Button onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full">{t('success.newSale')}</Button>
             </CardContent>
           </Card>
@@ -472,7 +473,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                       className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all"
                     >
                       <div className="font-medium text-gray-900 text-sm mb-1">{s.name}</div>
-                      <div className="text-blue-600 font-semibold">{formatCurrency(s.price, currency)}</div>
+                      <div className="text-blue-600 font-semibold">{formatCurrency(s.price, currency, locale)}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{s.duration_min} min</div>
                     </button>
                   ))}
@@ -539,7 +540,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                 <div key={item.service.id} className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">{item.service.name}</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(item.service.price, currency)}</div>
+                    <div className="text-xs text-gray-500">{formatCurrency(item.service.price, currency, locale)}</div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => updateQty(item.service.id, -1)} className="p-1 rounded hover:bg-gray-100">
@@ -592,7 +593,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{t('totalLabel')}</span>
-              <span className="text-xl font-bold text-gray-900">{formatCurrency(total, currency)}</span>
+              <span className="text-xl font-bold text-gray-900">{formatCurrency(total, currency, locale)}</span>
             </div>
             <Button
               onClick={checkout}
@@ -603,7 +604,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                 ? t('processing')
                 : isOnline
                   ? t('chargeButton')
-                  : `Save offline · ${formatCurrency(total, currency)}`}
+                  : `Save offline · ${formatCurrency(total, currency, locale)}`}
             </Button>
           </div>
         </div>
