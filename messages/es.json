@@ -347,7 +347,11 @@
       "result": "Importación completa",
       "imported": "{count} importado{count, plural, one {} other {s}}",
       "skipped": "{count} omitido{count, plural, one {} other {s}} (duplicados o sin nombre)",
-      "limitReached": "Límite del plan alcanzado. Actualiza tu plan para importar más productos."
+      "limitReached": "Límite del plan alcanzado. Actualiza tu plan para importar más productos.",
+      "fileParseError": "El archivo está vacío o no se pudo procesar.",
+      "missingNameColumn": "No se encontró la columna \"name\". Comprueba los encabezados del archivo.",
+      "fileReadError": "No se pudo leer el archivo.",
+      "networkError": "Error de red. Inténtalo de nuevo."
     },
     "searchPlaceholder": "Buscar por nombre, SKU o código de barras...",
     "itemsTotal": "{count} productos en total",
@@ -914,7 +918,10 @@
       "mindbody": "Reports → Clients → Mailing Lists → Export → CSV",
       "square": "Customers → Customer Directory → Export",
       "other": "Exporta tu lista de clientes como CSV con columnas: name, phone, email"
-    }
+    },
+    "fileParseError": "El archivo está vacío o no se pudo procesar.",
+    "fileReadError": "No se pudo leer el archivo.",
+    "networkError": "Error de red. Inténtalo de nuevo."
   },
   "datePicker": {
     "today": "Hoy",
