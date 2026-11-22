@@ -34,7 +34,7 @@ function fmt(n: number, currency: string, locale: string) {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: currency === 'TND' ? 3 : 2,
   }).format(n)
 }
 
