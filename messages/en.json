@@ -921,7 +921,8 @@
     },
     "fileParseError": "File appears empty or could not be parsed.",
     "fileReadError": "Failed to read file.",
-    "networkError": "Network error. Please try again."
+    "networkError": "Network error. Please try again.",
+    "importFailed": "Import failed. Please try again."
   },
   "datePicker": {
     "today": "Today",
