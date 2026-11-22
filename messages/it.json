@@ -347,7 +347,11 @@
       "result": "Importazione completata",
       "imported": "{count} importati",
       "skipped": "{count} ignorati (duplicati o senza nome)",
-      "limitReached": "Limite del piano raggiunto. Passa al piano superiore per importare altri prodotti."
+      "limitReached": "Limite del piano raggiunto. Passa al piano superiore per importare altri prodotti.",
+      "fileParseError": "Il file è vuoto o non è stato possibile analizzarlo.",
+      "missingNameColumn": "Colonna \"name\" non trovata. Controlla le intestazioni del file.",
+      "fileReadError": "Impossibile leggere il file.",
+      "networkError": "Errore di rete. Riprova."
     },
     "searchPlaceholder": "Cerca per nome, SKU o codice a barre...",
     "itemsTotal": "{count} articoli in totale",
@@ -914,7 +918,10 @@
       "mindbody": "Report → Clienti → Mailing list → Esporta → CSV",
       "square": "Clienti → Elenco clienti → Esporta",
       "other": "Esporta il tuo elenco clienti in formato CSV con le colonne: nome, telefono, email"
-    }
+    },
+    "fileParseError": "Il file è vuoto o non è stato possibile analizzarlo.",
+    "fileReadError": "Impossibile leggere il file.",
+    "networkError": "Errore di rete. Riprova."
   },
   "datePicker": {
     "today": "Oggi",
