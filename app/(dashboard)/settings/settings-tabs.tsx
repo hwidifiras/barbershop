@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2, Check, Loader2, CheckCircle2, AlertCircle, Users, Eye, EyeOff } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { MODULES, ModuleKey } from '@/lib/modules'
 
 const clean = (s: string, max = 500) => s?.trim().slice(0, max) ?? ''
@@ -60,6 +60,9 @@ export function SettingsTabs({ business: initial, services: initServices, employ
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('settings')
+  const locale = useLocale()
+  const currencyNames = new Intl.DisplayNames([locale], { type: 'currency' })
+  const currencyLabel = (code: string, fallback: string) => currencyNames.of(code) ?? fallback
   const searchParams = useSearchParams()
   const initialTab = (['general', 'services', 'employees', 'notifications', 'billing', 'modules'].includes(searchParams.get('tab') ?? '')
     ? searchParams.get('tab')
@@ -333,7 +336,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
       const json = await res.json().catch(() => ({}))
       if (!res.ok || !json.url) {
         set(null)
-        setLinkError((e) => ({ ...e, [ch]: json.error ?? 'Unknown error' }))
+        setLinkError((e) => ({ ...e, [ch]: json.error ?? t('notifications.unknownError') }))
         return
       }
       setLinkError((e) => ({ ...e, [ch]: '' }))
@@ -344,7 +347,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
       )
     } catch {
       set(null)
-      setLinkError((e) => ({ ...e, [ch]: 'Unknown error' }))
+      setLinkError((e) => ({ ...e, [ch]: t('notifications.unknownError') }))
     }
   }
 
@@ -429,28 +432,29 @@ export function SettingsTabs({ business: initial, services: initServices, employ
   ]
 
   const CURRENCIES: { value: string; label: string }[] = [
-    { value: 'USD', label: '🇺🇸 USD — US Dollar' },
-    { value: 'AUD', label: '🇦🇺 AUD — Australian Dollar' },
-    { value: 'NZD', label: '🇳🇿 NZD — New Zealand Dollar' },
-    { value: 'EUR', label: '🇪🇺 EUR — Euro' },
-    { value: 'GBP', label: '🇬🇧 GBP — British Pound' },
-    { value: 'AED', label: '🇦🇪 AED — UAE Dirham' },
-    { value: 'SAR', label: '🇸🇦 SAR — Saudi Riyal' },
-    { value: 'TRY', label: '🇹🇷 TRY — Turkish Lira' },
-    { value: 'UAH', label: '🇺🇦 UAH — Ukrainian Hryvnia' },
-    { value: 'RUB', label: '🇷🇺 RUB — Russian Ruble' },
-    { value: 'KZT', label: '🇰🇿 KZT — Kazakhstani Tenge' },
-    { value: 'GEL', label: '🇬🇪 GEL — Georgian Lari' },
-    { value: 'BRL', label: '🇧🇷 BRL — Brazilian Real' },
-    { value: 'MXN', label: '🇲🇽 MXN — Mexican Peso' },
-    { value: 'INR', label: '🇮🇳 INR — Indian Rupee' },
-    { value: 'THB', label: '🇹🇭 THB — Thai Baht' },
-    { value: 'JPY', label: '🇯🇵 JPY — Japanese Yen' },
-    { value: 'CNY', label: '🇨🇳 CNY — Chinese Yuan' },
-    { value: 'PLN', label: '🇵🇱 PLN — Polish Złoty' },
-    { value: 'RON', label: '🇷🇴 RON — Romanian Leu' },
-    { value: 'ARS', label: '🇦🇷 ARS — Argentine Peso' },
-    { value: 'other', label: '✏️ Other (enter manually)' },
+    { value: 'USD', label: `🇺🇸 USD — ${currencyLabel('USD', 'US Dollar')}` },
+    { value: 'TND', label: `🇹🇳 TND — ${currencyLabel('TND', 'Tunisian Dinar')}` },
+    { value: 'AUD', label: `🇦🇺 AUD — ${currencyLabel('AUD', 'Australian Dollar')}` },
+    { value: 'NZD', label: `🇳🇿 NZD — ${currencyLabel('NZD', 'New Zealand Dollar')}` },
+    { value: 'EUR', label: `🇪🇺 EUR — ${currencyLabel('EUR', 'Euro')}` },
+    { value: 'GBP', label: `🇬🇧 GBP — ${currencyLabel('GBP', 'British Pound')}` },
+    { value: 'AED', label: `🇦🇪 AED — ${currencyLabel('AED', 'UAE Dirham')}` },
+    { value: 'SAR', label: `🇸🇦 SAR — ${currencyLabel('SAR', 'Saudi Riyal')}` },
+    { value: 'TRY', label: `🇹🇷 TRY — ${currencyLabel('TRY', 'Turkish Lira')}` },
+    { value: 'UAH', label: `🇺🇦 UAH — ${currencyLabel('UAH', 'Ukrainian Hryvnia')}` },
+    { value: 'RUB', label: `🇷🇺 RUB — ${currencyLabel('RUB', 'Russian Ruble')}` },
+    { value: 'KZT', label: `🇰🇿 KZT — ${currencyLabel('KZT', 'Kazakhstani Tenge')}` },
+    { value: 'GEL', label: `🇬🇪 GEL — ${currencyLabel('GEL', 'Georgian Lari')}` },
+    { value: 'BRL', label: `🇧🇷 BRL — ${currencyLabel('BRL', 'Brazilian Real')}` },
+    { value: 'MXN', label: `🇲🇽 MXN — ${currencyLabel('MXN', 'Mexican Peso')}` },
+    { value: 'INR', label: `🇮🇳 INR — ${currencyLabel('INR', 'Indian Rupee')}` },
+    { value: 'THB', label: `🇹🇭 THB — ${currencyLabel('THB', 'Thai Baht')}` },
+    { value: 'JPY', label: `🇯🇵 JPY — ${currencyLabel('JPY', 'Japanese Yen')}` },
+    { value: 'CNY', label: `🇨🇳 CNY — ${currencyLabel('CNY', 'Chinese Yuan')}` },
+    { value: 'PLN', label: `🇵🇱 PLN — ${currencyLabel('PLN', 'Polish Złoty')}` },
+    { value: 'RON', label: `🇷🇴 RON — ${currencyLabel('RON', 'Romanian Leu')}` },
+    { value: 'ARS', label: `🇦🇷 ARS — ${currencyLabel('ARS', 'Argentine Peso')}` },
+    { value: 'other', label: t('general.otherCurrency') },
   ]
 
   const isKnownCurrency = CURRENCIES.some((c) => c.value !== 'other' && c.value === biz.currency)
@@ -1231,13 +1235,12 @@ export function SettingsTabs({ business: initial, services: initServices, employ
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="font-semibold text-gray-900 mb-2">{t('tabs.billing')}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              You are running the self-hosted version of Pronto. All features are available without subscription.
+              {t('billing.selfHostedDescription')}
             </p>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-green-800 mb-1">Self-hosted — All features unlocked</p>
+              <p className="text-sm font-medium text-green-800 mb-1">{t('billing.selfHostedHeading')}</p>
               <p className="text-sm text-green-700">
-                All Pro/Agency features are available to you at no charge.
-                Manage your instance via Docker Compose.
+                {t('billing.selfHostedFeaturesDescription')} {t('billing.selfHostedManageHint')}
               </p>
             </div>
           </div>
@@ -1402,7 +1405,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
                     type={showPw ? 'text' : 'password'}
                     value={pwForm.newPassword}
                     onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
-                    placeholder="Min. 8 characters"
+                    placeholder={t('account.newPasswordPlaceholder')}
                     className="w-full border border-gray-200 rounded-lg pl-3 pr-9 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button type="button" onClick={() => setShowPw((v) => !v)}
