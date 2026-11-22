@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/layout/header'
 import { POSTerminal } from './pos-terminal'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { History } from 'lucide-react'
 import { formatInBusinessTimezone } from '@/lib/utils'
@@ -19,6 +19,7 @@ interface SearchParams {
 export default async function POSPage(props: { searchParams: Promise<SearchParams> }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient()
+  const locale = await getLocale()
   const user = await getAuthUser()
 
   const business = await getBusinessForOwner(user!.id)
@@ -72,7 +73,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
         clientId: searchParams.clientId ?? '',
         serviceId: searchParams.serviceId ?? '',
         staffId: searchParams.staffId ?? (appt.employees as { id: string; name: string } | null)?.id ?? '',
-        label: `${clientName} — ${serviceName} — ${formatInBusinessTimezone(appt.starts_at, tz, 'time')}`,
+        label: `${clientName} — ${serviceName} — ${formatInBusinessTimezone(appt.starts_at, tz, 'time', locale)}`,
       }
     }
   }
