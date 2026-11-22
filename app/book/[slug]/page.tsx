@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { PublicBookingForm } from './booking-form'
 import { getTelegramBotInfo } from '@/lib/telegram'
 import { getViberBotInfo } from '@/lib/viber'
+import { LangSwitcher } from '@/components/layout/lang-switcher'
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -95,10 +96,11 @@ export default async function PublicBookingPage(props: { params: Promise<{ slug:
               {business.name[0]}
             </div>
           )}
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 500, color: '#2D2926' }}>{business.name}</div>
+          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: '#2D2926', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{business.name}</div>
             <div style={{ fontSize: 12, color: '#9A8E85' }}>Book an appointment</div>
           </div>
+          <div style={{ flexShrink: 0 }}><LangSwitcher variant="light" /></div>
         </div>
       </header>
 
