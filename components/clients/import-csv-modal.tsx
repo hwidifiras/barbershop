@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 import { X, Upload, CheckCircle, AlertCircle } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,12 +26,12 @@ interface Props {
 // ─── Platform instructions ────────────────────────────────────────────────────
 
 const PLATFORMS = [
-  { id: 'fresha',   label: 'Fresha',    hint: 'Clients → Options (top right) → Export → CSV' },
-  { id: 'vagaro',   label: 'Vagaro',    hint: 'More → Reports → Customers → Action → Export Excel, then save as CSV' },
-  { id: 'booksy',   label: 'Booksy',    hint: 'Customers → More Options → Export → CSV' },
-  { id: 'mindbody', label: 'Mindbody',  hint: 'Reports → Clients → Mailing Lists → Export → CSV' },
-  { id: 'square',   label: 'Square',    hint: 'Customers → Customer Directory → Export' },
-  { id: 'other',    label: 'Other',     hint: 'Export your client list as CSV with columns: name, phone, email' },
+  { id: 'fresha', label: 'Fresha', hintKey: 'platformHints.fresha' },
+  { id: 'vagaro', label: 'Vagaro', hintKey: 'platformHints.vagaro' },
+  { id: 'booksy', label: 'Booksy', hintKey: 'platformHints.booksy' },
+  { id: 'mindbody', label: 'Mindbody', hintKey: 'platformHints.mindbody' },
+  { id: 'square', label: 'Square', hintKey: 'platformHints.square' },
+  { id: 'other', label: 'Other', hintKey: 'platformHints.other' },
 ] as const
 
 // ─── CSV parser (no external libraries) ─────────────────────────────────────
@@ -138,6 +139,7 @@ function rowsToClients(rows: string[][], colMap: ReturnType<typeof detectColumns
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ImportCsvModal({ open, onClose, onImported }: Props) {
+  const t = useTranslations('csvImport')
   const [step, setStep]               = useState<Step>('platform')
   const [platform, setPlatform]       = useState<string | null>(null)
   const [dragging, setDragging]       = useState(false)
@@ -189,7 +191,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
     }
     reader.onerror = () => setImportError(t('fileReadError'))
     reader.readAsText(file, 'UTF-8')
-  }, [])
+  }, [t])
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -217,13 +219,13 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
 
       if (res.status === 402) {
         setImportError(
-          `You've reached the ${data.limit}-client limit on the Free plan. Upgrade to Starter to import unlimited clients.`
+          t('upgradeToImport')
         )
         setLoading(false)
         return
       }
       if (!res.ok) {
-        setImportError(data.error ?? 'Import failed. Please try again.')
+        setImportError(data.error ?? t('importFailed'))
         setLoading(false)
         return
       }
@@ -251,9 +253,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <Dialog.Title className="text-lg font-semibold text-gray-900">
-              Import clients from CSV
-            </Dialog.Title>
+            <Dialog.Title className="text-lg font-semibold text-gray-900">{t('title')}</Dialog.Title>
             <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
               <X className="w-5 h-5" />
             </button>
@@ -263,7 +263,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
           {step === 'platform' && (
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                Select where you&apos;re importing from to get export instructions:
+                {t('selectPlatform')}
               </p>
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {PLATFORMS.map((p) => (
@@ -284,7 +284,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
               {selectedPlatform && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-800">
                   <span className="font-medium">{t('howToExport')}</span>
-                  {selectedPlatform.hint}
+                  {t(selectedPlatform.hintKey)}
                 </div>
               )}
 
@@ -324,19 +324,19 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-medium text-gray-700">
-                  {rowCount} row{rowCount !== 1 ? 's' : ''} found
+                  {t('rowsFound', { count: rowCount })}
                 </span>
                 <button
                   onClick={() => { setStep('platform'); fileInputRef.current?.click() }}
                   className="ml-auto text-xs text-blue-600 hover:underline"
                 >
-                  Change file
+                  {t('changeFile')}
                 </button>
               </div>
 
               {noPhoneWarn && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 text-sm text-amber-800">
-                  ⚠ No phone column detected. Clients will be imported without phone numbers (no deduplication).
+                  {t('noPhoneWarn')}
                 </div>
               )}
 
@@ -363,9 +363,9 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewName')}</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewPhone')}</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewEmail')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500">{t('previewName')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500">{t('previewPhone')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500">{t('previewEmail')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -380,7 +380,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
                 </table>
                 {rowCount > 5 && (
                   <div className="px-3 py-2 text-xs text-gray-400 border-t border-gray-100 bg-gray-50">
-                    …and {rowCount - 5} more row{rowCount - 5 !== 1 ? 's' : ''}
+                    {t('moreRows', { count: rowCount - 5 })}
                   </div>
                 )}
               </div>
@@ -394,14 +394,14 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setStep('platform')}>
-                  Back
+                  {t('back')}
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleImport}
                   disabled={loading || rowCount === 0}
                 >
-                  {loading ? 'Importing…' : `Import ${rowCount} client${rowCount !== 1 ? 's' : ''}`}
+                  {loading ? t('importing') : t('importButton', { count: rowCount })}
                 </Button>
               </div>
             </div>
@@ -411,18 +411,18 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
           {step === 'result' && (
             <div className="text-center py-4">
               <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2"'>{t('doneTitle')}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('doneTitle')}</h3>
               <p className="text-gray-600 mb-1">
                 <span className="font-semibold text-green-700">{resultImported}</span>{' '}
-                client{resultImported !== 1 ? 's' : ''} imported
+                {t('imported', { count: resultImported })}
               </p>
               {resultSkipped > 0 && (
                 <p className="text-sm text-gray-400 mb-4">
-                  {resultSkipped} skipped (duplicates or empty names)
+                  {t('skipped', { count: resultSkipped })}
                 </p>
               )}
               <Button onClick={handleClose} className="mt-2">
-                Done
+                {t('done')}
               </Button>
             </div>
           )}
