@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
     // Viber → клиенту
     if (biz?.viber_bot_token && client?.viber_user_id) {
       await sendViberMessage(biz.viber_bot_token, client.viber_user_id,
-        viberTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined })
+        viberTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined, locale })
       )
     }
     // WhatsApp → клиенту
@@ -193,14 +193,16 @@ export async function GET(req: NextRequest) {
 
     const { data: biz } = await supabase
       .from('businesses')
-      .select('name, address, timezone, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
+      .select('name, address, timezone, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
       .eq('id', a.business_id).single()
 
     const service  = a.services  as unknown as { name: string } | null
     const employee = a.employees as unknown as { name: string } | null
     const tz = biz?.timezone ?? 'UTC'
-    const date = formatEmailDate(a.starts_at, tz)
-    const time = formatEmailTime(a.starts_at, tz)
+    const locale = biz?.notification_language ?? 'en'
+    const intlLocale = notificationIntlLocale(locale)
+    const date = formatEmailDate(a.starts_at, tz, intlLocale)
+    const time = formatEmailTime(a.starts_at, tz, intlLocale)
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }
       : undefined
@@ -208,13 +210,13 @@ export async function GET(req: NextRequest) {
     // Telegram → клиенту (владельцу reminder не нужен — он уже получил уведомление при создании записи)
     if (biz?.telegram_bot_token && client?.telegram_id) {
       await sendTelegramMessage(biz.telegram_bot_token, client.telegram_id,
-        tgTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined, isOneHour: true })
+        tgTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined, isOneHour: true, locale })
       )
     }
     // Viber → клиенту
     if (biz?.viber_bot_token && client?.viber_user_id) {
       await sendViberMessage(biz.viber_bot_token, client.viber_user_id,
-        viberTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined, isOneHour: true })
+        viberTplReminderClient({ clientName: client.name, serviceName: service?.name ?? '—', date, time, businessName: biz.name, address: biz.address ?? undefined, isOneHour: true, locale })
       )
     }
     // WhatsApp → клиенту
@@ -263,6 +265,7 @@ export async function GET(req: NextRequest) {
       .select('name, slug, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
       .eq('id', a.business_id).single()
 
+    const locale = biz?.notification_language ?? 'en'
     const client  = a.clients  as unknown as { name: string; email: string | null; whatsapp_number: string | null; viber_user_id: string | null; telegram_id: string | null } | null
     const service = a.services as unknown as { name: string } | null
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
@@ -291,7 +294,7 @@ export async function GET(req: NextRequest) {
     // Viber → клиенту
     if (biz?.viber_bot_token && client?.viber_user_id) {
       await sendViberMessage(biz.viber_bot_token, client.viber_user_id,
-        viberTplThankYouClient({ clientName: client.name, serviceName: service?.name ?? '—', businessName: biz.name, bookingUrl })
+        viberTplThankYouClient({ clientName: client.name, serviceName: service?.name ?? '—', businessName: biz.name, bookingUrl, locale })
       )
     }
     // WhatsApp → клиенту
@@ -335,6 +338,8 @@ export async function GET(req: NextRequest) {
     if (!await logged(c.business_id, c.id, 'reactivation')) continue
 
     const { data: biz } = await supabase.from('businesses').select('name, slug, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, meta_whatsapp_phone_number_id, meta_whatsapp_access_token').eq('id', c.business_id).single()
+    const locale = biz?.notification_language ?? 'en'
+    const locale = biz?.notification_language ?? 'en'
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }
@@ -349,19 +354,19 @@ export async function GET(req: NextRequest) {
     // Telegram → клиенту
     if (biz?.telegram_bot_token && c.telegram_id) {
       await sendTelegramMessage(biz.telegram_bot_token, c.telegram_id,
-        tgTplReactivationClient({ clientName: c.name, businessName: biz.name, bookingUrl })
+        tgTplReactivationClient({ clientName: c.name, businessName: biz.name, bookingUrl, locale })
       )
     }
     // Viber → клиенту
     if (biz?.viber_bot_token && c.viber_user_id) {
       await sendViberMessage(biz.viber_bot_token, c.viber_user_id,
-        viberTplReactivation({ clientName: c.name, businessName: biz.name, bookingUrl })
+        viberTplReactivation({ clientName: c.name, businessName: biz.name, bookingUrl, locale })
       )
     }
     // WhatsApp → клиенту
     if (c.whatsapp_number) {
       await sendWhatsAppMessage(c.whatsapp_number,
-        waTplReactivation({ clientName: c.name, businessName: biz?.name ?? '', bookingUrl }),
+        waTplReactivation({ clientName: c.name, businessName: biz?.name ?? '', bookingUrl, locale }),
         waCredentials
       )
     }
@@ -395,7 +400,7 @@ export async function GET(req: NextRequest) {
     const year = now.getFullYear()
     if (!await logged(c.business_id, `${c.id}_bday_${year}`, 'birthday')) continue
 
-    const { data: biz } = await supabase.from('businesses').select('name, slug, telegram_bot_token, telegram_chat_id, viber_bot_token, meta_whatsapp_phone_number_id, meta_whatsapp_access_token').eq('id', c.business_id).single()
+    const { data: biz } = await supabase.from('businesses').select('name, slug, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, meta_whatsapp_phone_number_id, meta_whatsapp_access_token').eq('id', c.business_id).single()
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }
@@ -410,19 +415,19 @@ export async function GET(req: NextRequest) {
     // Telegram → клиенту
     if (biz?.telegram_bot_token && c.telegram_id) {
       await sendTelegramMessage(biz.telegram_bot_token, c.telegram_id,
-        tgTplBirthdayClient({ clientName: c.name, businessName: biz.name, bookingUrl })
+        tgTplBirthdayClient({ clientName: c.name, businessName: biz.name, bookingUrl, locale })
       )
     }
     // Viber → клиенту
     if (biz?.viber_bot_token && c.viber_user_id) {
       await sendViberMessage(biz.viber_bot_token, c.viber_user_id,
-        viberTplBirthday({ clientName: c.name, businessName: biz.name, bookingUrl })
+        viberTplBirthday({ clientName: c.name, businessName: biz.name, bookingUrl, locale })
       )
     }
     // WhatsApp → клиенту
     if (c.whatsapp_number) {
       await sendWhatsAppMessage(c.whatsapp_number,
-        waTplBirthday({ clientName: c.name, businessName: biz?.name ?? '', bookingUrl }),
+        waTplBirthday({ clientName: c.name, businessName: biz?.name ?? '', bookingUrl, locale }),
         waCredentials
       )
     }
@@ -432,6 +437,7 @@ export async function GET(req: NextRequest) {
         to: c.email, clientName: c.name,
         businessName: biz?.name ?? '',
         bookingUrl,
+        locale,
       })
     }
     results.push(`birthday:${c.id}`)
