@@ -514,7 +514,11 @@
       "upgrade": "Mejorar plan →",
       "currentPlan": "Plan actual",
       "successMessage": "¡Suscripción activada! Gracias por mejorar tu plan.",
-      "errorMessage": "Algo salió mal. Por favor intenta de nuevo o contacta soporte."
+      "errorMessage": "Algo salió mal. Por favor intenta de nuevo o contacta soporte.",
+      "selfHostedDescription": "Estás utilizando la versión autoalojada de Pronto. Todas las funciones están disponibles sin suscripción.",
+      "selfHostedHeading": "Autoalojado — Todas las funciones desbloqueadas",
+      "selfHostedFeaturesDescription": "Todas las funciones de Pro y Agency están disponibles sin coste.",
+      "selfHostedManageHint": "Administra tu instancia mediante Docker Compose."
     },
     "account": {
       "heading": "Mi cuenta",
@@ -533,7 +537,8 @@
       "pwNoMatch": "Las contraseñas no coinciden",
       "pwSuccess": "Contraseña actualizada correctamente",
       "emailInvalid": "Ingresa una dirección de correo válida",
-      "emailConfirmSent": "Confirmación enviada a {email}. Haz clic en el enlace del correo para completar el cambio."
+      "emailConfirmSent": "Confirmación enviada a {email}. Haz clic en el enlace del correo para completar el cambio.",
+      "newPasswordPlaceholder": "8 caracteres como mínimo"
     },
     "workingHours": {
       "heading": "Horario laboral",
@@ -600,7 +605,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · máx 2MB",
       "logoProOnly": "Disponible en el plan Pro →",
       "logoErrorRemove": "Error al eliminar el logo.",
-      "logoErrorNetwork": "Error de red: {message}"
+      "logoErrorNetwork": "Error de red: {message}",
+      "otherCurrency": "✏️ Otra (introducir manualmente)"
     },
     "services": {
       "empty": "Aún no hay servicios",
@@ -745,7 +751,8 @@
         "birthday": "Nombre de plantilla de cumpleaños",
         "birthdayPlaceholder": "ej. happy_birthday",
         "language": "Idioma de la plantilla"
-      }
+      },
+      "unknownError": "Error desconocido"
     },
     "modules": {
       "heading": "Módulos de funciones",
