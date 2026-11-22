@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { ShoppingBag, Download } from 'lucide-react'
 import { DatePicker } from '@/components/ui/date-picker'
 
@@ -30,22 +30,23 @@ interface SalesData {
   recentSales: RecentSale[]
 }
 
-function fmt(n: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
+function fmt(n: number, currency: string, locale: string) {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 2,
   }).format(n)
 }
 
-function fmtDate(iso: string) {
+function fmtDate(iso: string, locale: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
-    ', ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return d.toLocaleDateString(locale, { month: 'short', day: 'numeric' }) +
+    ', ' + d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 export function SalesTab() {
   const t = useTranslations('inventory')
+  const locale = useLocale()
 
   const [period, setPeriod] = useState<Period>('7d')
   const [data, setData] = useState<SalesData | null>(null)
@@ -190,7 +191,7 @@ export function SalesTab() {
               <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">
                 {t('sales.revenue')}
               </div>
-              <div className="text-2xl font-bold text-gray-900">{fmt(data?.revenue ?? 0, currency)}</div>
+              <div className="text-2xl font-bold text-gray-900">{fmt(data?.revenue ?? 0, currency, locale)}</div>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-4">
               <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">
@@ -240,7 +241,7 @@ export function SalesTab() {
                   <tr key={i} className="border-b border-gray-50 last:border-0">
                     <td className="py-2 text-gray-900">{item.name}</td>
                     <td className="py-2 text-right text-gray-600">{item.qty}</td>
-                    <td className="py-2 text-right font-medium text-gray-900">{fmt(item.revenue, currency)}</td>
+                    <td className="py-2 text-right font-medium text-gray-900">{fmt(item.revenue, currency, locale)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -273,10 +274,10 @@ export function SalesTab() {
                 <tbody>
                   {data!.recentSales.map((sale, i) => (
                     <tr key={i} className="border-b border-gray-50 last:border-0">
-                      <td className="py-2 text-gray-500 whitespace-nowrap pr-3">{fmtDate(sale.date)}</td>
+                      <td className="py-2 text-gray-500 whitespace-nowrap pr-3">{fmtDate(sale.date, locale)}</td>
                       <td className="py-2 text-gray-400 text-xs hidden sm:table-cell pr-3">{sale.receipt}</td>
                       <td className="py-2 text-gray-700 max-w-[180px] truncate">{sale.linesSummary}</td>
-                      <td className="py-2 text-right font-medium text-gray-900 whitespace-nowrap">{fmt(sale.total, currency)}</td>
+                      <td className="py-2 text-right font-medium text-gray-900 whitespace-nowrap">{fmt(sale.total, currency, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
