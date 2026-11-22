@@ -6,9 +6,11 @@ import { PublicBookingForm } from './booking-form'
 import { getTelegramBotInfo } from '@/lib/telegram'
 import { getViberBotInfo } from '@/lib/viber'
 import { LangSwitcher } from '@/components/layout/lang-switcher'
+import { getTranslations } from 'next-intl/server'
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
+  const t = await getTranslations('publicBooking')
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('businesses')
@@ -17,12 +19,13 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     .maybeSingle()
 
   return {
-    title: data ? `Book at ${data.name}` : 'Book appointment',
+    title: data ? `${t('bookAnAppointment')} — ${data.name}` : t('bookAnAppointment'),
   }
 }
 
 export default async function PublicBookingPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
+  const t = await getTranslations('publicBooking')
   const supabase = createServiceClient()
 
   // Public data — brand_color included for warm/premium design
@@ -98,7 +101,7 @@ export default async function PublicBookingPage(props: { params: Promise<{ slug:
           )}
           <div style={{ minWidth: 0, flex: '1 1 auto' }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: '#2D2926', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{business.name}</div>
-            <div style={{ fontSize: 12, color: '#9A8E85' }}>Book an appointment</div>
+            <div style={{ fontSize: 12, color: '#9A8E85' }}>{t('bookAnAppointment')}</div>
           </div>
           <div style={{ flexShrink: 0 }}><LangSwitcher variant="light" /></div>
         </div>
