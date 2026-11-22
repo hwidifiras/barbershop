@@ -6,7 +6,7 @@ import { formatCurrency, uses12HourClock } from '@/lib/utils'
 import { CalendarPlus, Loader2 } from 'lucide-react'
 import { buildGCalUrl } from '@/lib/gcal'
 import { DatePicker } from '@/components/ui/date-picker'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { computeEffectiveHours, type DayHours } from '@/lib/booking-availability'
 
 interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; capacity: number }
@@ -91,6 +91,7 @@ function CtaButton({ label, onClick, disabled }: { label: string; onClick: () =>
 export function PublicBookingForm({ business, services, employees, workingHours, telegramBotUsername, viberBotUri }: Props) {
   const supabase = createClient()
   const t = useTranslations('publicBooking')
+  const locale = useLocale()
 
   const hasEmployeeStep = employees.length > 1
 
@@ -306,7 +307,6 @@ export function PublicBookingForm({ business, services, employees, workingHours,
     setBookingError(null)
   }
 
-  const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
   const is12h = uses12HourClock(locale)
 
   function formatSlot(slot: string): string {
@@ -414,7 +414,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
                   <div style={{ fontSize: 12, color: '#9A8E85', marginTop: 2 }}>{t('selectService.minutes', { duration: s.duration_min })}</div>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--brand)', flexShrink: 0, marginLeft: 12 }}>
-                  {formatCurrency(s.price, business.currency)}
+                  {formatCurrency(s.price, business.currency, locale)}
                 </div>
               </button>
             ))
@@ -585,7 +585,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
               cursor: (!contact.name || saving) ? 'not-allowed' : 'pointer',
             }}
           >
-            {saving ? t('contact.booking') : t('contact.confirm', { price: formatCurrency(selectedService?.price ?? 0, business.currency) })}
+            {saving ? t('contact.booking') : t('contact.confirm', { price: formatCurrency(selectedService?.price ?? 0, business.currency, locale) })}
           </button>
           <p style={{ fontSize: 11, color: '#9A8E85', textAlign: 'center', marginTop: 12 }}>{t('contact.noRegistration')}</p>
         </div>
