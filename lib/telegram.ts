@@ -202,17 +202,19 @@ export function tplReminderClient(opts: {
   businessName: string
   address?: string
   isOneHour?: boolean
+  locale?: string
 }): string {
-  const when = opts.isOneHour ? 'in 1 hour ⏰' : 'tomorrow 📅'
+  const fr = opts.locale === 'fr'
+  const when = fr ? (opts.isOneHour ? 'dans 1 heure ⏰' : 'demain 📅') : (opts.isOneHour ? 'in 1 hour ⏰' : 'tomorrow 📅')
   const lines = [
-    `🔔 <b>Appointment reminder ${when}</b>`,
-    ``,
+    fr ? `🔔 <b>Rappel de rendez-vous ${when}</b>` : `🔔 <b>Appointment reminder ${when}</b>`,
+    '',
     `👤 ${opts.clientName}`,
     `✂️ ${opts.serviceName}`,
-    `🕐 ${opts.date} at ${opts.time}`,
+    fr ? `🕐 ${opts.date} à ${opts.time}` : `🕐 ${opts.date} at ${opts.time}`,
     `🏠 ${opts.businessName}`,
   ]
-  if (opts.address) lines.push(`📍 ${opts.address}`)
+  if (opts.address) lines.push(`📍 ${fr ? 'Adresse' : 'Address'} : ${opts.address}`)
   return lines.join('\n')
 }
 
@@ -221,16 +223,18 @@ export function tplThankYouClient(opts: {
   serviceName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ <b>Thank you for your visit, ${opts.clientName}!</b>`,
-    ``,
+    fr ? `✅ <b>Merci pour votre visite, ${opts.clientName} !</b>` : `✅ <b>Thank you for your visit, ${opts.clientName}!</b>`,
+    '',
     `✂️ ${opts.serviceName}`,
     `🏠 ${opts.businessName}`,
-    ``,
-    `We'd love to see you again!`,
+    '',
+    fr ? 'Nous serions ravis de vous revoir !' : "We'd love to see you again!",
   ]
-  if (opts.bookingUrl) lines.push(``, `📅 Book again: ${opts.bookingUrl}`)
+  if (opts.bookingUrl) lines.push('', fr ? `📅 Réserver à nouveau : ${opts.bookingUrl}` : `📅 Book again: ${opts.bookingUrl}`)
   return lines.join('\n')
 }
 
@@ -238,13 +242,15 @@ export function tplReactivationClient(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `👋 <b>${opts.clientName}, it's been a while!</b>`,
-    ``,
-    `Come back to ${opts.businessName} — we'd love to see you!`,
+    fr ? `👋 <b>${opts.clientName}, cela fait longtemps !</b>` : `👋 <b>${opts.clientName}, it's been a while!</b>`,
+    '',
+    fr ? `Revenez chez ${opts.businessName} : nous serions ravis de vous revoir !` : `Come back to ${opts.businessName} — we'd love to see you!`,
   ]
-  if (opts.bookingUrl) lines.push(``, `📅 Book now: ${opts.bookingUrl}`)
+  if (opts.bookingUrl) lines.push('', fr ? `📅 Réserver maintenant : ${opts.bookingUrl}` : `📅 Book now: ${opts.bookingUrl}`)
   return lines.join('\n')
 }
 
@@ -252,6 +258,18 @@ export function tplBirthdayClient(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
+}): string {
+  const fr = opts.locale === 'fr'
+  const lines = [
+    fr ? `🎂 <b>Joyeux anniversaire, ${opts.clientName} !</b>` : `🎂 <b>Happy Birthday, ${opts.clientName}!</b>`,
+    '',
+    fr ? `Toute l'équipe de ${opts.businessName} vous souhaite le meilleur ! 🎉` : `The team at ${opts.businessName} wishes you all the best! 🎉`,
+  ]
+  if (opts.bookingUrl) lines.push('', fr ? `🎁 Faites-vous plaisir : ${opts.bookingUrl}` : `🎁 Treat yourself: ${opts.bookingUrl}`)
+  return lines.join('\n')
+}
+
 }): string {
   const lines = [
     `🎂 <b>Happy Birthday, ${opts.clientName}!</b>`,
