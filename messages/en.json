@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} offline sales pending sync",
     "offlineSyncNow": "Sync now",
     "offlineSavedReceipt": "Saved offline. Will sync when internet is restored.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Save offline",
+    "offlineSyncError": "Sync failed. We'll retry automatically."
   },
   "crm": {
     "title": "Clients",
