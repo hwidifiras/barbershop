@@ -6,7 +6,7 @@ import { CrmImportButton } from '@/components/clients/crm-import-button'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
 import { Plus, Search, Phone, Mail } from 'lucide-react'
 import Link from 'next/link'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
@@ -19,6 +19,7 @@ export default async function CRMPage(
   const searchParams = await props.searchParams;
   const supabase = await createClient()
   const t = await getTranslations('crm')
+  const locale = await getLocale()
   const user = await getAuthUser()
 
   const business = await getBusinessForOwner(user!.id)
@@ -135,10 +136,10 @@ export default async function CRMPage(
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-700">{statsMap[c.id]?.total_visits ?? 0}</td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell font-medium text-gray-900">
-                      {formatCurrency(statsMap[c.id]?.total_spent ?? 0, business.currency)}
+                      {formatCurrency(statsMap[c.id]?.total_spent ?? 0, business.currency, locale)}
                     </td>
                     <td className="px-4 py-3 text-right hidden md:table-cell text-gray-500">
-                      {statsMap[c.id]?.last_visit_at ? formatInBusinessTimezone(statsMap[c.id]!.last_visit_at!, business.timezone) : '—'}
+                      {statsMap[c.id]?.last_visit_at ? formatInBusinessTimezone(statsMap[c.id]!.last_visit_at!, business.timezone, 'date', locale) : '—'}
                     </td>
                   </tr>
                 ))}
