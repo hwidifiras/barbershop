@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} venda(s) offline pendente(s) de sincronização",
     "offlineSyncNow": "Sincronizar agora",
     "offlineSavedReceipt": "Salvo offline. Será sincronizado quando houver conexão.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Salvar offline",
+    "offlineSyncError": "Falha na sincronização. Tentaremos novamente automaticamente."
   },
   "crm": {
     "title": "Clientes",
