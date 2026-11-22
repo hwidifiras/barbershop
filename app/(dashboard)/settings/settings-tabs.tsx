@@ -319,7 +319,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
       setWaMsg(error.message)
     } else {
       setWaStatus('ok')
-      setWaMsg('WhatsApp credentials saved successfully.')
+      setWaMsg(t('notifications.saved'))
       router.refresh()
     }
   }
@@ -382,7 +382,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
     const json = await res.json()
     if (json.ok) {
       setViberWebhookStatus('ok')
-      setViberWebhookMsg(`Connected! Bot: ${json.botName}.`)
+      setViberWebhookMsg(t('notifications.connected'))
       void requestOwnerLink('viber')
     } else {
       setViberWebhookStatus('error')
@@ -398,7 +398,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
     const json = await res.json()
     if (json.ok) {
       setWebhookStatus('ok')
-      setWebhookMsg(`Connected! Bot: @${json.botUsername}.`)
+      setWebhookMsg(t('notifications.connected'))
       void requestOwnerLink('telegram')
     } else {
       setWebhookStatus('error')
