@@ -921,7 +921,8 @@
     },
     "fileParseError": "Il file è vuoto o non è stato possibile analizzarlo.",
     "fileReadError": "Impossibile leggere il file.",
-    "networkError": "Errore di rete. Riprova."
+    "networkError": "Errore di rete. Riprova.",
+    "importFailed": "Importazione non riuscita. Riprova."
   },
   "datePicker": {
     "today": "Oggi",
