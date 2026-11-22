@@ -449,7 +449,8 @@
       "colorLegend": "Color legend",
       "teamColors": "Team colors",
       "noTeamMembers": "No team members yet",
-      "appointmentStatus": "Appointment status"
+      "appointmentStatus": "Appointment status",
+      "manualSource": "Manual"
     },
     "status": {
       "pending": "pending",
