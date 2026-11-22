@@ -329,6 +329,7 @@
     "addItem": "Aggiungi articolo",
     "importCsv": "Importa",
     "export": "Esporta",
+    "moreActions": "Altre azioni",
     "import": {
       "title": "Importa prodotti",
       "uploadHint": "Hai già un listino prezzi del fornitore in Excel o CSV? Caricalo direttamente — Pronto rileverà automaticamente le colonne.",
@@ -600,7 +601,7 @@
     },
     "services": {
       "empty": "Ancora nessun servizio",
-          "table": {
+      "table": {
         "name": "Nome",
         "category": "Categoria",
         "price": "Prezzo",
@@ -1135,7 +1136,7 @@
     }
   },
   "newClient": {
-      "title": "Nuovo cliente",
+    "title": "Nuovo cliente",
     "backToClients": "← Clienti",
     "fields": {
       "name": "Nome completo *",
