@@ -169,13 +169,17 @@ export function tplLowStock(opts: {
   quantity: number
   unit: string
   threshold: number
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   return [
-    `⚠️ Low stock alert`,
-    ``,
+    fr ? '⚠️ Alerte de stock faible' : '⚠️ Low stock alert',
+    '',
     `📦 ${opts.itemName}`,
-    `Current: ${opts.quantity} ${opts.unit} (threshold: ${opts.threshold})`,
-    ``,
-    `Please restock soon.`,
+    fr
+      ? `Stock actuel : ${opts.quantity} ${opts.unit} (seuil : ${opts.threshold})`
+      : `Current: ${opts.quantity} ${opts.unit} (threshold: ${opts.threshold})`,
+    '',
+    fr ? 'Veuillez réapprovisionner rapidement.' : 'Please restock soon.',
   ].join('\n')
 }
