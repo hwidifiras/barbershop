@@ -514,7 +514,11 @@
       "upgrade": "Passa di livello →",
       "currentPlan": "Piano attuale",
       "successMessage": "Abbonamento attivato! Grazie per essere passato al piano superiore.",
-      "errorMessage": "Qualcosa è andato storto. Riprova o contatta l'assistenza."
+      "errorMessage": "Qualcosa è andato storto. Riprova o contatta l'assistenza.",
+      "selfHostedDescription": "Stai utilizzando la versione self-hosted di Pronto. Tutte le funzionalità sono disponibili senza abbonamento.",
+      "selfHostedHeading": "Self-hosted — Tutte le funzionalità sbloccate",
+      "selfHostedFeaturesDescription": "Tutte le funzionalità Pro e Agency sono disponibili gratuitamente.",
+      "selfHostedManageHint": "Gestisci la tua istanza tramite Docker Compose."
     },
     "account": {
       "heading": "Il mio account",
@@ -533,7 +537,8 @@
       "pwNoMatch": "Le password non corrispondono",
       "pwSuccess": "Password aggiornata con successo",
       "emailInvalid": "Inserisci un indirizzo email valido",
-      "emailConfirmSent": "Conferma inviata a {email}. Clicca sul link nell'email per completare la modifica."
+      "emailConfirmSent": "Conferma inviata a {email}. Clicca sul link nell'email per completare la modifica.",
+      "newPasswordPlaceholder": "Almeno 8 caratteri"
     },
     "workingHours": {
       "heading": "Orari di lavoro",
@@ -600,7 +605,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · max 2MB",
       "logoProOnly": "Disponibile nel piano Pro →",
       "logoErrorRemove": "Impossibile rimuovere il logo.",
-      "logoErrorNetwork": "Errore di rete: {message}"
+      "logoErrorNetwork": "Errore di rete: {message}",
+      "otherCurrency": "✏️ Altro (inserisci manualmente)"
     },
     "services": {
       "empty": "Ancora nessun servizio",
@@ -745,7 +751,8 @@
         "birthday": "Nome del modello di compleanno",
         "birthdayPlaceholder": "es. happy_birthday",
         "language": "Lingua del modello"
-      }
+      },
+      "unknownError": "Errore sconosciuto"
     },
     "modules": {
       "heading": "Moduli delle funzionalità",
