@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
           unit: item.unit,
           threshold: item.low_stock_threshold,
+          locale,
         })
       )
     }
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
           unit: item.unit,
           threshold: item.low_stock_threshold,
+          locale,
         })
       )
     }
