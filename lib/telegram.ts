@@ -267,15 +267,5 @@ export function tplBirthdayClient(opts: {
     fr ? `Toute l'équipe de ${opts.businessName} vous souhaite le meilleur ! 🎉` : `The team at ${opts.businessName} wishes you all the best! 🎉`,
   ]
   if (opts.bookingUrl) lines.push('', fr ? `🎁 Faites-vous plaisir : ${opts.bookingUrl}` : `🎁 Treat yourself: ${opts.bookingUrl}`)
-  return lines.join('\n')
-}
-
-}): string {
-  const lines = [
-    `🎂 <b>Happy Birthday, ${opts.clientName}!</b>`,
-    ``,
-    `The team at ${opts.businessName} wishes you all the best! 🎉`,
-  ]
-  if (opts.bookingUrl) lines.push(``, `🎁 Treat yourself: ${opts.bookingUrl}`)
-  return lines.join('\n')
+  return lines.join('\\n')
 }
