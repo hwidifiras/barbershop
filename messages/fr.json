@@ -347,7 +347,11 @@
       "result": "Importation terminée",
       "imported": "{count} importé(s)",
       "skipped": "{count} ignoré(s) (doublons ou noms vides)",
-      "limitReached": "Limite de l'offre atteinte. Passez à une offre supérieure pour importer davantage de produits."
+      "limitReached": "Limite de l'offre atteinte. Passez à une offre supérieure pour importer davantage de produits.",
+      "fileParseError": "Le fichier est vide ou n'a pas pu être analysé.",
+      "missingNameColumn": "Colonne « name » introuvable. Vérifiez les en-têtes de votre fichier.",
+      "fileReadError": "Impossible de lire le fichier.",
+      "networkError": "Erreur réseau. Veuillez réessayer."
     },
     "searchPlaceholder": "Rechercher par nom, SKU ou code-barres…",
     "itemsTotal": "{count} articles au total",
@@ -914,7 +918,10 @@
       "mindbody": "Rapports → Clients → Listes de diffusion → Exporter → CSV",
       "square": "Clients → Répertoire des clients → Exporter",
       "other": "Exportez votre liste de clients au format CSV avec les colonnes : nom, téléphone, e-mail"
-    }
+    },
+    "fileParseError": "Le fichier est vide ou n'a pas pu être analysé.",
+    "fileReadError": "Impossible de lire le fichier.",
+    "networkError": "Erreur réseau. Veuillez réessayer."
   },
   "datePicker": {
     "today": "Aujourd'hui",
