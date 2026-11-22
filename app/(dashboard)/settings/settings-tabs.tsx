@@ -653,7 +653,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
           <div className="pt-2">
             <label className="text-xs font-medium text-gray-500">{t('general.notificationLanguageLabel')}</label>
             <div className="flex gap-2 mt-1">
-              {(['en', 'es', 'it', 'pt', 'fr'] as const).map((lang) => (
+              {(['en', 'es', 'pt', 'fr'] as const).map((lang) => (
                 <button
                   key={lang}
                   type="button"
@@ -664,7 +664,7 @@ export function SettingsTabs({ business: initial, services: initServices, employ
                       : 'bg-white text-gray-600 border-gray-200 hover:border-green-400'
                   }`}
                 >
-                  {lang === 'en' ? 'English' : lang === 'es' ? 'Español' : lang === 'it' ? 'Italiano' : lang === 'pt' ? 'Português' : 'Français'}
+                  {lang === 'en' ? 'English' : lang === 'es' ? 'Español' : lang === 'pt' ? 'Português' : 'Français'}
                 </button>
               ))}
             </div>
