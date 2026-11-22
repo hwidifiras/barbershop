@@ -921,7 +921,8 @@
     },
     "fileParseError": "O arquivo está vazio ou não pôde ser interpretado.",
     "fileReadError": "Não foi possível ler o arquivo.",
-    "networkError": "Erro de rede. Tente novamente."
+    "networkError": "Erro de rede. Tente novamente.",
+    "importFailed": "Falha na importação. Tente novamente."
   },
   "datePicker": {
     "today": "Hoje",
