@@ -173,7 +173,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
       const text = e.target?.result as string
       const matrix = parseCSV(text)
       if (matrix.length < 2) {
-        setImportError('File appears empty or could not be parsed.')
+        setImportError(t('fileParseError'))
         return
       }
       const hdrs = matrix[0]
@@ -187,7 +187,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
       setImportError(null)
       setStep('upload')
     }
-    reader.onerror = () => setImportError('Failed to read file.')
+    reader.onerror = () => setImportError(t('fileReadError'))
     reader.readAsText(file, 'UTF-8')
   }, [])
 
@@ -233,7 +233,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
       setStep('result')
       onImported(data.imported)
     } catch {
-      setImportError('Network error. Please try again.')
+      setImportError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -283,7 +283,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
 
               {selectedPlatform && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-800">
-                  <span className="font-medium">How to export: </span>
+                  <span className="font-medium">{t('howToExport')}</span>
                   {selectedPlatform.hint}
                 </div>
               )}
@@ -298,8 +298,8 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
                   ${dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
               >
                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-700">Drop CSV file here or click to browse</p>
-                <p className="text-xs text-gray-400 mt-1">Supports .csv files</p>
+                <p className="text-sm font-medium text-gray-700">{t('dropZone')}</p>
+                <p className="text-xs text-gray-400 mt-1">{t('dropZoneFormats')}</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -363,9 +363,9 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-3 py-2 text-left font-medium text-gray-500">Name</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-500">Phone</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-500">Email</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewName')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewPhone')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-500"'>{t('previewEmail')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -411,7 +411,7 @@ export function ImportCsvModal({ open, onClose, onImported }: Props) {
           {step === 'result' && (
             <div className="text-center py-4">
               <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Import complete</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2"'>{t('doneTitle')}</h3>
               <p className="text-gray-600 mb-1">
                 <span className="font-semibold text-green-700">{resultImported}</span>{' '}
                 client{resultImported !== 1 ? 's' : ''} imported
