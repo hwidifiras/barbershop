@@ -401,7 +401,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-orange-800 text-sm">
           <WifiOff className="w-4 h-4 shrink-0" />
           <span className="font-medium">{t('offlineMode')}</span>
-          <span className="text-orange-600">— Sales will sync automatically when you reconnect.</span>
+          <span className="text-orange-600">— {t('offlineSyncAuto')}</span>
           {pendingCount > 0 && (
             <span className="ml-auto font-semibold">{pendingCount} pending</span>
           )}
