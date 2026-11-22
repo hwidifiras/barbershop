@@ -347,7 +347,11 @@
       "result": "Importação concluída",
       "imported": "{count} importado{count, plural, one {} other {s}}",
       "skipped": "{count} ignorado{count, plural, one {} other {s}} (duplicatas ou sem nome)",
-      "limitReached": "Limite do plano atingido. Faça upgrade para importar mais produtos."
+      "limitReached": "Limite do plano atingido. Faça upgrade para importar mais produtos.",
+      "fileParseError": "O arquivo está vazio ou não pôde ser interpretado.",
+      "missingNameColumn": "A coluna \"name\" não foi encontrada. Verifique os cabeçalhos do arquivo.",
+      "fileReadError": "Não foi possível ler o arquivo.",
+      "networkError": "Erro de rede. Tente novamente."
     },
     "searchPlaceholder": "Buscar por nome, SKU ou código de barras...",
     "itemsTotal": "{count} produtos no total",
@@ -914,7 +918,10 @@
       "mindbody": "Reports → Clients → Mailing Lists → Export → CSV",
       "square": "Customers → Customer Directory → Export",
       "other": "Exporte sua lista de clientes como CSV com colunas: name, phone, email"
-    }
+    },
+    "fileParseError": "O arquivo está vazio ou não pôde ser interpretado.",
+    "fileReadError": "Não foi possível ler o arquivo.",
+    "networkError": "Erro de rede. Tente novamente."
   },
   "datePicker": {
     "today": "Hoje",
