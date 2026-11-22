@@ -45,6 +45,7 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('inventoryDetail')
+  const inventoryT = useTranslations('inventory')
   const locale = useLocale()
   const [item, setItem] = useState(initial)
   const [movements, setMovements] = useState(initialMovements)
@@ -164,8 +165,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
               <span className="flex items-center gap-2">
                 {item.name}
                 {isLow
-                  ? <Badge variant="warning">Low stock</Badge>
-                  : <Badge variant="success">OK</Badge>}
+                  ? <Badge variant="warning">{inventoryT('status.lowStock')}</Badge>
+                  : <Badge variant="success">{inventoryT('status.ok')}</Badge>}
               </span>
               <div className="flex items-center gap-1">
                 {!editing && (
