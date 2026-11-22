@@ -10,24 +10,25 @@ interface Props {
   businessId: string
 }
 
-function validatePhone(phone: string): string | null {
+function validatePhone(phone: string, invalidMessage: string): string | null {
   if (!phone) return null
-  if (!/^[\d\s+\-()]+$/.test(phone)) return 'Please enter a valid phone number (digits only)'
+  if (!/^[\d\s+\-()]+$/.test(phone)) return invalidMessage
   const digits = phone.replace(/\D/g, '')
   if (digits.length < 7 || digits.length > 15) return 'Please enter a valid phone number (digits only)'
   return null
 }
 
-function validateBirthday(birthday: string): string | null {
+function validateBirthday(birthday: string, invalidMessage: string): string | null {
   if (!birthday) return null
   const d = new Date(birthday + 'T00:00:00')
-  if (isNaN(d.getTime()) || d.getFullYear() < 1900 || d > new Date()) return 'Please enter a valid date'
+  if (isNaN(d.getTime()) || d.getFullYear() < 1900 || d > new Date()) return invalidMessage
   return null
 }
 
 export function NewClientForm({ businessId }: Props) {
   const supabase = createClient()
   const t = useTranslations('newClient')
+  const validationT = useTranslations('clientDetail')
 
   const [form, setForm] = useState({
     name: '',
@@ -42,12 +43,12 @@ export function NewClientForm({ businessId }: Props) {
   const [errors, setErrors] = useState<{ phone?: string; birthday?: string }>({})
 
   function blurPhone() {
-    const e = validatePhone(form.phone)
+    const e = validatePhone(form.phone, validationT('phoneInvalid'))
     setErrors((prev) => ({ ...prev, phone: e ?? undefined }))
   }
 
   function blurBirthday() {
-    const e = validateBirthday(form.birthday)
+    const e = validateBirthday(form.birthday, validationT('dateInvalid'))
     setErrors((prev) => ({ ...prev, birthday: e ?? undefined }))
   }
 
