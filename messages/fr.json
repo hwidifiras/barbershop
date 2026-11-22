@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} vente(s) hors ligne en attente de synchronisation",
     "offlineSyncNow": "Synchroniser maintenant",
     "offlineSavedReceipt": "Enregistré hors ligne. La synchronisation aura lieu dès le rétablissement de la connexion.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Enregistrer hors ligne",
+    "offlineSyncError": "Échec de la synchronisation. Une nouvelle tentative sera effectuée automatiquement."
   },
   "crm": {
     "title": "Clients",
