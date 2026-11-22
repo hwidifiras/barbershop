@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { Search } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface Item {
   id: string
@@ -27,6 +27,7 @@ interface Props {
 
 export function InventoryList({ items, currency, initialFilter }: Props) {
   const t = useTranslations('inventory')
+  const locale = useLocale()
   const [query, setQuery] = useState(initialFilter ?? '')
 
   const filtered = query.trim()
@@ -101,10 +102,10 @@ export function InventoryList({ items, currency, initialFilter }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-500">
-                      {item.cost_price != null ? formatCurrency(item.cost_price, currency) : '—'}
+                      {item.cost_price != null ? formatCurrency(item.cost_price, currency, locale) : '—'}
                     </td>
                     <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-700">
-                      {item.sell_price != null ? formatCurrency(item.sell_price, currency) : '—'}
+                      {item.sell_price != null ? formatCurrency(item.sell_price, currency, locale) : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {isLow
