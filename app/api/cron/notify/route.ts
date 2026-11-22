@@ -339,7 +339,6 @@ export async function GET(req: NextRequest) {
 
     const { data: biz } = await supabase.from('businesses').select('name, slug, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, meta_whatsapp_phone_number_id, meta_whatsapp_access_token').eq('id', c.business_id).single()
     const locale = biz?.notification_language ?? 'en'
-    const locale = biz?.notification_language ?? 'en'
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }
@@ -401,6 +400,7 @@ export async function GET(req: NextRequest) {
     if (!await logged(c.business_id, `${c.id}_bday_${year}`, 'birthday')) continue
 
     const { data: biz } = await supabase.from('businesses').select('name, slug, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, meta_whatsapp_phone_number_id, meta_whatsapp_access_token').eq('id', c.business_id).single()
+    const locale = biz?.notification_language ?? 'en'
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }
