@@ -10,6 +10,7 @@ const LOCALES = [
   { code: 'es', label: 'ES' },
   { code: 'it', label: 'IT' },
   { code: 'pt', label: 'PT' },
+  { code: 'fr', label: 'FR' },
 ]
 
 export function LangSwitcher() {
