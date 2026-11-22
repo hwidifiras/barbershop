@@ -449,7 +449,8 @@
       "colorLegend": "Legenda colori",
       "teamColors": "Colori del team",
       "noTeamMembers": "Ancora nessun membro del team",
-      "appointmentStatus": "Stato della prenotazione"
+      "appointmentStatus": "Stato della prenotazione",
+      "manualSource": "Manuale"
     },
     "status": {
       "pending": "in attesa",
