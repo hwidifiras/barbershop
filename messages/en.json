@@ -476,7 +476,11 @@
       "cancel": "Cancel",
       "saving": "Saving…",
       "save": "Save",
-      "closedDayError": "This day is marked as closed in Working Hours. Update your schedule in Settings first."
+      "closedDayError": "This day is marked as closed in Working Hours. Update your schedule in Settings first.",
+      "noStaffAvailable": "No active staff available to take this booking. Add an employee in Settings, or select a specific employee.",
+      "slotAlreadyBooked": "This time slot is already booked for the selected employee. Please choose a different time.",
+      "saveError": "Failed to save the appointment. Please try again.",
+      "assignError": "Failed to update employee. Please try again."
     },
     "detail": {
       "statusLabel": "Status",
