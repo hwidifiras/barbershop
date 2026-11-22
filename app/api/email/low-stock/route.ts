@@ -57,9 +57,11 @@ export async function POST(req: NextRequest) {
     // FIX: include owner_id so we can fall back to auth email when businesses.email is null
     const { data: biz } = await supabase
       .from('businesses')
-      .select('owner_id, name, email, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, owner_whatsapp')
+      .select('owner_id, name, email, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, owner_whatsapp')
       .eq('id', item.business_id)
       .single()
+
+    const locale = biz?.notification_language ?? 'en'
 
     // ── Telegram → владельцу ─────────────────────────────────────────────────
     if (biz?.telegram_bot_token && biz?.telegram_chat_id) {
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
           unit: item.unit,
           threshold: item.low_stock_threshold,
+          locale,
         })
       )
     }
@@ -123,6 +126,7 @@ export async function POST(req: NextRequest) {
         unit: item.unit,
         threshold: item.low_stock_threshold,
       }],
+      locale,
     })
 
     // Record AFTER successful send so a failed send remains retryable
