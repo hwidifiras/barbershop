@@ -347,7 +347,11 @@
       "result": "Import complete",
       "imported": "{count} imported",
       "skipped": "{count} skipped (duplicates or empty names)",
-      "limitReached": "Plan limit reached. Upgrade to import more products."
+      "limitReached": "Plan limit reached. Upgrade to import more products.",
+      "fileParseError": "File appears empty or could not be parsed.",
+      "missingNameColumn": "No \"name\" column found. Please check your file headers.",
+      "fileReadError": "Failed to read file.",
+      "networkError": "Network error. Please try again."
     },
     "searchPlaceholder": "Search by name, SKU or barcode...",
     "itemsTotal": "{count} items total",
@@ -914,7 +918,10 @@
       "mindbody": "Reports → Clients → Mailing Lists → Export → CSV",
       "square": "Customers → Customer Directory → Export",
       "other": "Export your client list as CSV with columns: name, phone, email"
-    }
+    },
+    "fileParseError": "File appears empty or could not be parsed.",
+    "fileReadError": "Failed to read file.",
+    "networkError": "Network error. Please try again."
   },
   "datePicker": {
     "today": "Today",
