@@ -34,6 +34,12 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trypronto.app/',
+    languages: {
+      en: 'https://trypronto.app/',
+      es: 'https://trypronto.app/es/',
+      fr: 'https://trypronto.app/fr/',
+      'x-default': 'https://trypronto.app/',
+    },
   },
   openGraph: {
     type: 'website',
@@ -156,6 +162,9 @@ export default function RootPage() {
           </Link>
           <Link href="/es/" className={`${styles.navLink} lang-switcher`}>
             ES
+          </Link>
+          <Link href="/fr/" className={`${styles.navLink} lang-switcher`}>
+            FR
           </Link>
           <Link href="/register" className={styles.btnNav}>
             Start free
