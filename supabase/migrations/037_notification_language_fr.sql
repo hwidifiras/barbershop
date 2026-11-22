@@ -6,4 +6,4 @@ ALTER TABLE public.businesses
 
 ALTER TABLE public.businesses
   ADD CONSTRAINT businesses_notification_language_check
-  CHECK (notification_language IN ('en', 'es', 'it', 'pt', 'fr'));
+  CHECK (notification_language IN ('en', 'es', 'pt', 'fr'));
