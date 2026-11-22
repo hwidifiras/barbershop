@@ -375,11 +375,11 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
         .catch(() => {/* non-critical */})
     } else if (error) {
       if (error.message?.includes('no_staff_available')) {
-        setFormError('No active staff available to take this booking. Add an employee in Settings, or select a specific employee.')
+        setFormError(t('form.noStaffAvailable'))
       } else if (error.message?.includes('slot_already_booked')) {
-        setFormError('This time slot is already booked for the selected employee. Please choose a different time.')
+        setFormError(t('form.slotAlreadyBooked'))
       } else {
-        setFormError('Failed to save the appointment. Please try again.')
+        setFormError(t('form.saveError'))
       }
     }
     setSaving(false)
@@ -408,7 +408,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
       body: JSON.stringify({ employee_id: employeeId || null }),
     })
     if (!res.ok) {
-      setAssignError('Failed to update employee. Please try again.')
+      setAssignError(t('form.assignError'))
       return
     }
     const updated = await res.json()
