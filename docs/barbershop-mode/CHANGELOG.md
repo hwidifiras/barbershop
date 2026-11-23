@@ -19,6 +19,12 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: client answers recorded (phase 0, docs only)
+- **What changed:** spec now covers the universal walk-in/appointment model (4.10), team-access foundations (4.11), French-only, cash-only, and RTL after team access; phases re-ordered (5 = team access, 6 = RTL and extras).
+- **Where:** `docs/barbershop-mode/SPEC.md` (3, 4.4, 4.7, 4.9, 4.10, 4.11, 9, 11, 12)
+- **Barbershop vs standard:** no code change.
+- **Spec section(s):** as listed
+
 ### 2026-11-23: Products default recorded (phase 0, docs only)
 - **What changed:** spec records that Products is off by default for barbershops and can be re-enabled.
 - **Where:** `docs/barbershop-mode/SPEC.md` (4.6, 7, 12)

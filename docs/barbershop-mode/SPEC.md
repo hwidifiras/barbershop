@@ -59,9 +59,11 @@ scrolling (except the desktop week grid), works on a slow connection.
   rollback trivial.
 - Per-shop override: `businesses.barbershop_mode boolean` (section 8) for the escape hatch.
 - Wording that changes (for example "Employees" to "Barbers") lives in translation files
-  under a `barbershop.*` namespace for all five locales (en, es, fr, it, pt). RTL/Arabic is
-  planned for later and out of scope here, but no layout may hard-code left/right where
-  logical properties work.
+  under a `barbershop.*` namespace. **French is the default and only language shown** in barbershop
+  mode (dashboard and public link): the language switcher is hidden, and the notification
+  language defaults to French. The other locale files stay for standard business types.
+  RTL/Arabic comes **after team access** (section 9, phase 6); until then no layout may
+  hard-code left/right where logical properties work.
 
 ---
 
@@ -114,7 +116,7 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 | Services grid | **Change**: bigger tiles, 2 columns on phone, most-used first. |
 | Barber selector | **Change**: avatar chips, default to the signed-in/selected barber. |
 | Cart | **Keep** services/cart tab pattern on mobile. Cart opens as a bottom sheet with a sticky **Charge** button. |
-| Payment method | **Keep** cash / card / transfer; cash is the default and shown first. |
+| Payment method | **Change**: **cash only** in barbershop mode (decided 2026-11-23): the client pays at the chair. Card and transfer stay in the data model and in standard mode; they are not shown. One big **Cash received** button. |
 | Discount | **Change**: collapsed under "Add discount". |
 | Walk-in → save client | **Keep**, simplified to name + phone. |
 | Products tab | **Hide** unless Products module is on. |
@@ -149,7 +151,7 @@ Tabs for a barbershop, in this order. Hidden items stay in the standard layout.
 
 | Tab | Barbershop mode |
 |---|---|
-| **Shop** (was General) | Name, logo, brand colour, address/phone, **hours**, **booking link + QR**. Timezone and currency under "Advanced". Notification language kept. |
+| **Shop** (was General) | Name, logo, brand colour, address/phone, **hours**, **booking link + QR**. Timezone and currency under "Advanced". Notification language defaults to French and moves under "Advanced". |
 | **Barbers** (was Employees) | Name, **photo** (`avatar_url` exists; upload UI to add), phone, active toggle, **personal booking link**. Role and email under "Advanced". |
 | **Services** | Name, duration, price, **category** (Cuts / Beard / Combo…). **Hide** the group "capacity" field (barbershop services are capacity 1). |
 | **Notifications** | **Change**: WhatsApp and Telegram first (templates + triggers). SMTP / Resend / Viber move under "Advanced". |
@@ -181,8 +183,50 @@ Target: **three screens, under 30 seconds**, inside Instagram's in-app browser.
 | Deep links | `/book/[slug]` | **Add** `?b=<barberId>` (per-barber links) and `?s=<serviceId>`. |
 | Style | Cream background, 448px, 51 inline style blocks | New themed component using CSS variables (section 6); the standard page is untouched. |
 
+Language: the public link is **French only** in barbershop mode (no language switcher).
+
 In-app-browser rules: no `window.open`, no popups, no native date picker, no reliance on
 clipboard reads, lightweight bundle, no login.
+
+### 4.10 Walk-ins and appointments: one model for every shop
+
+Shops differ (80/20, 20/80, 50/50, drifting toward appointments over time). So there are
+**no separate modes**. There is **one agenda** and a few **dials** that each shop sets.
+
+- **One timeline.** Everything is a visit on the same agenda per barber: an appointment
+  (booked time) or a walk-in (starts at the **next free slot**). Walk-ins reuse the existing
+  manual appointment insert and the existing atomic slot allocation, so a walk-in can never
+  double-book a barber.
+- **Walk-in in two taps.** "+ Walk-in" → choose barber (or "first free") → name optional →
+  done. The app shows the **estimated wait** ("next free: 15:40").
+- **Dial 1: online booking on/off.** A walk-in-only shop turns the public link off and still
+  uses Today, Calendar and Charge. A shop that grows into appointments turns it on later;
+  nothing else changes.
+- **Dial 2: online share.** Shops choose how much of the day is bookable online: all slots,
+  only selected hours (for example mornings), or a daily cap. The rest stays free for
+  walk-ins. Phase 1 ships "all slots" with on/off; hours/cap follows.
+- **Dial 3: default slot length** for walk-ins (uses the service duration).
+- Nothing in the UI says "walk-in mode" or "appointment mode"; the same screens serve both.
+
+### 4.11 Foundations for barber (team) access: build in from phase 1
+
+Goal after the current scope: other barbers in the same shop log in and track **their own**
+schedule. Today every business table is restricted to the shop **owner**
+(`owner_id = auth.uid()` row-level security); `employees.user_id` exists but nothing uses
+it. Real access needs new rules, so it is its own phase (section 9, phase 5). To avoid
+rework, every phase before it follows these rules:
+
+1. **Barber-aware from day one:** every Today/Calendar/Charge query and component takes a
+   `barberId` filter; the barber chip row and per-barber booking links ship in phase 1-3.
+2. **No owner-only assumptions in new UI:** components read a `currentActor`
+   (owner now, barber later) from one helper, not `business.owner_id` directly.
+3. **Per-barber data model planned:** `employee_hours` and `employee_services` (and optional
+   per-barber price) are designed now and created in phase 5; the public link already treats
+   the barber as the first choice.
+4. **Roles (phase 5):** `owner` (everything), `barber` (own schedule, own clients' notes,
+   charge own visits; no settings/billing). Invite by link; links `employees.user_id`.
+5. **Access rules (phase 5):** new RLS policies so a barber sees only their appointments and
+   the shop's services; owner policies are unchanged, so standard shops are unaffected.
 
 ---
 
@@ -253,7 +297,8 @@ any new table; adding a column needs no new grants.
 | **2** | **Shell + Today** (4.1, 4.2) | Bottom nav on phone; next-client hero and walk-in button work; no horizontal scroll at 360px. |
 | **3** | **Calendar day agenda + Charge + Clients** (4.3–4.5) | A full day (book, start, done, charge) can be run one-handed on a phone. |
 | **4** | **Settings reorg, onboarding presets, Products** (4.6–4.8) | New barbershop signup lands on a ready-to-share setup in under 3 minutes. |
-| **5** | Tips, queue, per-barber hours/prices, no-show tracking | Scoped separately. |
+| **5** | **Team access (barber logins)**: roles, invites, RLS, per-barber hours and services, "my schedule" view (4.11) | A second barber logs in on their phone and sees and charges only their own visits; owner view unchanged; standard shops unaffected. |
+| **6** | **Arabic / RTL**, then tips, no-show tracking, card/transfer or deposits if wanted | Scoped separately. |
 
 Each phase ships behind the mode gate, as its own pull request(s), with a changelog entry.
 
@@ -270,14 +315,9 @@ Each phase ships behind the mode gate, as its own pull request(s), with a change
 
 ---
 
-## 11. Open questions (answers change scope, not direction)
+## 11. Open questions: answered 2026-11-23
 
-1. Walk-in-heavy or appointment-heavy shops? (Walk-ins mostly: build the queue in phase 3,
-   not 5.)
-2. One barber per shop, or several? (Several: per-barber hours/services move up.)
-3. Which language first for barbershop copy? (Determines translation order.)
-4. Payments beyond cash/card/transfer (mobile wallets, deposits against no-shows)?
-5. RTL/Arabic: planned later; confirm timing so we avoid hard-coded left/right now.
+All five answered; see the decisions log (section 12) and sections 4.10 and 4.11.
 
 ---
 
@@ -286,3 +326,8 @@ Each phase ships behind the mode gate, as its own pull request(s), with a change
 | Date | Decision | Section |
 |---|---|---|
 | 2026-11-23 | Products (inventory) module is **off by default** for barbershops and can be re-enabled any time, for example by a shop that sells clippers or other tools. Existing data is kept when it is switched off. | 4.6, 7 |
+| 2026-11-23 | **Walk-ins vs appointments varies per shop** (80/20, 20/80, 50/50, drifting). One agenda and a few settings dials, no separate modes. | 4.10 |
+| 2026-11-23 | **One or several barbers per shop.** Barber-aware from day one; team logins (own schedule) come right after the current scope as phase 5. | 4.11, 9 |
+| 2026-11-23 | **French only** in barbershop mode (no language switcher, French notifications by default). | 3, 4.7, 4.9 |
+| 2026-11-23 | **Cash only** for now: the client pays at the chair. Card/transfer hidden in barbershop mode. | 4.4 |
+| 2026-11-23 | **Arabic/RTL later**, after team access. | 3, 9 |
