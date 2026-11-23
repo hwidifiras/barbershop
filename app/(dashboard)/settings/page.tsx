@@ -25,10 +25,11 @@ export default async function SettingsPage() {
     { data: services },
     { data: employees },
     { data: businessHours },
+    { data: offers },
   ] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, price, duration_min, category, is_active, capacity')
+      .select('id, name, description, price, duration_min, category, is_active, capacity, kind, bookable_alone, bookable_online')
       .eq('business_id', business.id)
       .order('name'),
     supabase
@@ -41,6 +42,11 @@ export default async function SettingsPage() {
       .select('day_of_week, is_open, open_time, close_time, break_start, break_end')
       .eq('business_id', business.id)
       .order('day_of_week'),
+    supabase
+      .from('offers')
+      .select('id, name, price, service_ids, barber_ids, valid_from, valid_to, is_active')
+      .eq('business_id', business.id)
+      .order('created_at'),
   ])
 
   return (
@@ -49,6 +55,7 @@ export default async function SettingsPage() {
       <SettingsTabs
         business={business}
         services={services ?? []}
+        offers={(offers ?? []).map((o) => ({ ...o, price: Number(o.price) }))}
         employees={employees ?? []}
         workingHours={businessHours ?? []}
         userEmail={user.email ?? ''}

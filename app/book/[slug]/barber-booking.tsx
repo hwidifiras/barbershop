@@ -1,8 +1,9 @@
 'use client'
 
-// Public booking page for barbershop mode (docs/barbershop-mode/SPEC.md section 4.9).
-// Reuses the existing booking backend unchanged: get_booked_slots RPC for availability and
-// POST /api/book for the atomic reservation. Only the presentation and the flow are new.
+// Public booking page for barbershop mode (docs/barbershop-mode/SPEC.md sections 4.9 and 4.12).
+// Reuses the existing booking backend: get_booked_slots RPC for availability and POST /api/book for
+// the atomic reservation. Price, duration and rules are re-computed by the server; the totals shown
+// here are display only (lib/barbershop-cart.ts is shared by both).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, CalendarPlus, Check, Loader2, MapPin, MessageCircle, Phone } from 'lucide-react'
@@ -13,11 +14,15 @@ import { computeEffectiveHours, type DayHours } from '@/lib/booking-availability
 import {
   computeBarberSlots, groupByDayPart, minutesInTimezone, unionSlots, type BookedRange,
 } from '@/lib/barbershop-slots'
+import {
+  addOnServices, isOfferValidOn, offerBarberIds, pickBarberFor, previewSelection, startingServices,
+  type CartOffer, type CartService,
+} from '@/lib/barbershop-cart'
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { bricolage, dmSans } from '@/lib/landing-fonts'
 import styles from './barber-booking.module.css'
 
-interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null }
+type Service = CartService & { description: string | null; category: string | null }
 interface Barber { id: string; name: string; avatar_url: string | null }
 interface Business {
   id: string; name: string; currency: string; slug: string; timezone: string | null
@@ -27,6 +32,7 @@ interface Business {
 interface Props {
   business: Business
   services: Service[]
+  offers: CartOffer[]
   barbers: Barber[]
   workingHours: DayHours[]
   accent: string
@@ -34,7 +40,8 @@ interface Props {
   initialServiceId?: string | null
 }
 
-type Step = 'pick' | 'time' | 'contact' | 'done'
+type Step = 'pick' | 'extras' | 'time' | 'contact' | 'done'
+type PerBarber = Record<string, string[]>
 const DAYS_AHEAD = 14
 const CONTACT_KEY = 'barbershop_contact_v1'
 const L = fr.booking
@@ -46,8 +53,7 @@ function todayIn(tz: string): string {
 }
 function addDays(ymd: string, n: number): string {
   const [y, m, d] = ymd.split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d + n))
-  return dt.toISOString().slice(0, 10)
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
 function dowOf(ymd: string): number {
   const [y, m, d] = ymd.split('-').map(Number)
@@ -60,17 +66,24 @@ function utcDate(ymd: string): Date {
 const frDate = (ymd: string, opts: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat('fr-FR', { ...opts, timeZone: 'UTC' }).format(utcDate(ymd))
 
-export function BarberBooking({ business, services, barbers, workingHours, accent, initialBarberId, initialServiceId }: Props) {
+export function BarberBooking({ business, services, offers, barbers, workingHours, accent, initialBarberId, initialServiceId }: Props) {
   const supabase = createClient()
   const tz = business.timezone ?? 'UTC'
   const hours = computeEffectiveHours(workingHours)
   const today = todayIn(tz)
   const dates = Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i))
   const isOpenOn = (ymd: string) => hours.find((h) => h.day_of_week === dowOf(ymd))?.is_open ?? false
+  const money = (n: number) => formatCurrency(n, business.currency, 'fr-FR')
+
+  const allBarberIds = barbers.map((b) => b.id)
+  const svcMap = new Map(services.map((s) => [s.id, s]))
+  const addOns = addOnServices(services) as Service[]
 
   const validBarber = barbers.some((b) => b.id === initialBarberId) ? (initialBarberId as string) : ''
   const [barberId, setBarberId] = useState<string>(validBarber)
   const [service, setService] = useState<Service | null>(null)
+  const [extras, setExtras] = useState<string[]>([])
+  const [offer, setOffer] = useState<CartOffer | null>(null)
   const [step, setStep] = useState<Step>('pick')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
@@ -81,63 +94,93 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const req = useRef(0)
+  const perBarberByDate = useRef<Record<string, PerBarber>>({})
 
   const barber = barbers.find((b) => b.id === barberId) ?? null
+  const selection = previewSelection({
+    service, offer, services,
+    extras: extras.map((id) => svcMap.get(id)).filter((s): s is Service => !!s),
+  })
+  const hasExtrasStep = !!service && service.kind === 'main' && !offer && addOns.length > 0
 
-  // Free times for one date: one barber, or the union across all barbers for "first available".
-  const slotsFor = useCallback(async (ymd: string, svc: Service, bId: string): Promise<string[]> => {
+  // Barbers who may take the current choice ("first available" is limited for restricted offers).
+  const candidatesFor = useCallback((bId: string, o: CartOffer | null): (string | null)[] => {
+    if (bId) return [bId]
+    if (barbers.length === 0) return [null]
+    return o ? offerBarberIds(o, allBarberIds) : allBarberIds
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [barbers])
+
+  const slotsFor = useCallback(async (ymd: string, durationMin: number, ids: (string | null)[]): Promise<{ slots: string[]; perBarber: PerBarber }> => {
     const dayHours = hours.find((h) => h.day_of_week === dowOf(ymd))
-    if (!dayHours?.is_open) return []
-    const ids: (string | null)[] = bId ? [bId] : barbers.length > 0 ? barbers.map((b) => b.id) : [null]
+    if (!dayHours?.is_open) return { slots: [], perBarber: {} }
+    const perBarber: PerBarber = {}
     const lists = await Promise.all(ids.map(async (id) => {
       let booked: BookedRange[] = []
       try {
         const { data } = await supabase.rpc('get_booked_slots', { p_business_id: business.id, p_date: ymd, p_employee_id: id })
         booked = (data ?? []) as BookedRange[]
       } catch { /* treat as free; the server re-checks atomically on submit */ }
-      return computeBarberSlots({
-        dayHours, durationMin: svc.duration_min, booked, timezone: tz,
+      const list = computeBarberSlots({
+        dayHours, durationMin, booked, timezone: tz,
         nowMinutes: ymd === today ? minutesInTimezone(new Date().toISOString(), tz) : undefined,
       })
+      if (id) perBarber[id] = list
+      return list
     }))
-    return unionSlots(lists)
+    return { slots: unionSlots(lists), perBarber }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [business.id, tz, today, barbers, workingHours])
+  }, [business.id, tz, today, workingHours])
 
   // Entering the time step: jump to the first date that has a free slot (saves taps).
-  const openTimeStep = useCallback(async (svc: Service, bId: string) => {
+  const beginTime = useCallback(async (durationMin: number, bId: string, o: CartOffer | null) => {
     const my = ++req.current
     setStep('time'); setError(null); setTime(''); setSlots([]); setNext(null); setLoading(true)
+    const ids = candidatesFor(bId, o)
+    const usable = (d: string) => isOpenOn(d) && (!o || isOfferValidOn(o, d))
     let found: { date: string; slots: string[] } | null = null
     for (const d of dates) {
-      if (!isOpenOn(d)) continue
-      const s = await slotsFor(d, svc, bId)
+      if (!usable(d)) continue
+      const r = await slotsFor(d, durationMin, ids)
       if (my !== req.current) return
-      if (s.length) { found = { date: d, slots: s }; break }
+      perBarberByDate.current[d] = r.perBarber
+      if (r.slots.length) { found = { date: d, slots: r.slots }; break }
     }
     if (my !== req.current) return
     if (found) {
       setDate(found.date); setSlots(found.slots)
       setNext({ date: found.date, time: found.slots[0], slots: found.slots })
     } else {
-      setDate(dates.find(isOpenOn) ?? dates[0]); setSlots([])
+      setDate(dates.find(usable) ?? dates[0]); setSlots([])
     }
     setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotsFor])
+  }, [slotsFor, candidatesFor])
 
   async function pickDate(d: string) {
-    if (!service) return
     const my = ++req.current
     setDate(d); setTime(''); setSlots([]); setLoading(true); setError(null)
-    const s = await slotsFor(d, service, barberId)
+    const r = await slotsFor(d, selection.totalDuration, candidatesFor(barberId, offer))
     if (my !== req.current) return
-    setSlots(s); setLoading(false)
+    perBarberByDate.current[d] = r.perBarber
+    setSlots(r.slots); setLoading(false)
   }
 
-  function chooseService(s: Service) {
-    setService(s)
-    void openTimeStep(s, barberId)
+  function chooseService(s: Service, bId = barberId) {
+    setOffer(null); setService(s); setExtras([]); setError(null)
+    if (s.kind === 'main' && addOns.length > 0) setStep('extras')
+    else void beginTime(s.duration_min, bId, null)
+  }
+
+  function chooseOffer(o: CartOffer) {
+    const first = svcMap.get(o.service_ids[0]) ?? null
+    const duration = o.service_ids.reduce((t, id) => t + (svcMap.get(id)?.duration_min ?? 0), 0)
+    setOffer(o); setService(first); setExtras([]); setError(null)
+    void beginTime(duration, barberId, o)
+  }
+
+  function toggleExtra(id: string) {
+    setExtras((e) => (e.includes(id) ? e.filter((x) => x !== id) : [...e, id]))
   }
 
   // Prefill a returning client; honour ?b= and ?s= deep links.
@@ -149,8 +192,8 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
         if (c && typeof c.name === 'string' && typeof c.phone === 'string') setContact({ name: c.name, phone: c.phone })
       }
     } catch { /* storage unavailable (private mode / in-app browser): ignore */ }
-    const svc = services.find((s) => s.id === initialServiceId)
-    if (svc) { setService(svc); void openTimeStep(svc, validBarber) }
+    const svc = startingServices(services).find((s) => s.id === initialServiceId) as Service | undefined
+    if (svc) chooseService(svc, validBarber)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -162,13 +205,24 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
     const phone = contact.phone.trim()
     if (!name) { setError(L.errorName); return }
     if (!/^[\d\s+\-().]{7,}$/.test(phone)) { setError(L.errorPhone); return }
+
+    // "First available" with an offer limited to some barbers: name the barber ourselves so the
+    // booking cannot land on someone the offer does not cover.
+    let employeeId: string | null = barberId || null
+    const restricted = !!offer && !!offer.barber_ids && offer.barber_ids.length > 0
+    if (!employeeId && restricted) {
+      employeeId = pickBarberFor(time, perBarberByDate.current[date] ?? {}, offerBarberIds(offer!, allBarberIds))
+      if (!employeeId) { setError(L.errorSlotTaken); setStep('time'); setTime(''); void pickDate(date); return }
+    }
+
     setSaving(true); setError(null)
     try {
       const res = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          businessId: business.id, serviceId: service.id, employeeId: barberId || null,
+          businessId: business.id, serviceId: service.id, employeeId,
+          extraServiceIds: offer ? [] : extras, offerId: offer?.id ?? null,
           date, time, name, phone, email: null,
         }),
       })
@@ -178,6 +232,18 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
         if (body?.error === 'no_staff_available') { setError(L.errorNoStaff); return }
         setError(L.errorSlotTaken); setStep('time'); setTime('')
         void pickDate(date)
+        return
+      }
+      if (res.status === 422 || res.status === 404) {
+        const body = await res.json().catch(() => null)
+        setSaving(false)
+        const code = body?.error as string | undefined
+        setError(
+          code === 'offer_not_valid_on_date' ? L.errorOfferInvalidDate
+            : code === 'offer_unavailable' || code === 'offer_barber_not_allowed' ? L.errorOfferUnavailable
+              : L.errorServiceUnavailable,
+        )
+        if (code === 'offer_not_valid_on_date') { setStep('time'); setTime('') } else { reset(); }
         return
       }
       if (res.status === 429) { setSaving(false); setError(L.errorRateLimit); return }
@@ -192,13 +258,18 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
 
   function reset() {
     ++req.current
-    setService(null); setStep('pick'); setDate(''); setTime(''); setSlots([]); setNext(null); setError(null)
+    setService(null); setExtras([]); setOffer(null); setStep('pick'); setDate(''); setTime(''); setSlots([]); setNext(null)
   }
 
   // ── derived view data ─────────────────────────────────────────────────────
 
+  const visibleOffers = offers.filter((o) =>
+    o.service_ids.length > 0 && o.service_ids.every((id) => svcMap.has(id)) &&
+    dates.some((d) => isOpenOn(d) && isOfferValidOn(o, d)) &&
+    (barberId ? offerBarberIds(o, allBarberIds).includes(barberId) : barbers.length === 0 || offerBarberIds(o, allBarberIds).length > 0),
+  )
   const groups: { title: string | null; items: Service[] }[] = []
-  for (const s of services) {
+  for (const s of startingServices(services) as Service[]) {
     const key = s.category?.trim() || null
     let g = groups.find((x) => x.title === key)
     if (!g) { g = { title: key, items: [] }; groups.push(g) }
@@ -209,9 +280,32 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
     d === today ? L.today : d === addDays(today, 1) ? L.tomorrow : frDate(d, { weekday: 'long', day: 'numeric', month: 'long' })
   const whenLabel = date && time ? `${frDate(date, { weekday: 'long', day: 'numeric', month: 'long' })} · ${time}` : ''
   const parts = groupByDayPart(slots)
-  const price = service ? formatCurrency(service.price, business.currency, 'fr-FR') : ''
   const phoneDigits = (business.phone ?? '').replace(/[^\d+]/g, '')
   const canWhatsapp = /^(\+|00)\d{8,}$/.test(phoneDigits)
+  const hasDiscount = selection.listTotal > selection.totalPrice
+
+  const priceView = (
+    <span className={styles.rowPrice}>
+      {hasDiscount && <span className={`${styles.strike} ${styles.num}`}>{money(selection.listTotal)}</span>}
+      <span className={styles.num}>{money(selection.totalPrice)}</span>
+    </span>
+  )
+  const periodText = (o: CartOffer) =>
+    o.valid_to ? fmt(L.offerUntil, { date: frDate(o.valid_to, { day: 'numeric', month: 'long' }) })
+      : o.valid_from && o.valid_from > today ? fmt(L.offerFrom, { date: frDate(o.valid_from, { day: 'numeric', month: 'long' }) }) : ''
+
+  const summaryRows = (
+    <div className={styles.summary}>
+      <div className={styles.row}><span>{L.barber}</span><span>{barber ? barber.name : L.anyBarber}</span></div>
+      <div className={styles.row}>
+        <span>{offer ? L.offerBadge : L.servicesLabel}</span>
+        <span>{offer ? offer.name : selection.lines.map((l) => l.name).join(' + ')}</span>
+      </div>
+      {offer && <div className={styles.row}><span>{L.servicesLabel}</span><span>{selection.lines.map((l) => l.name).join(' + ')}</span></div>}
+      <div className={styles.row}><span>{L.when}</span><span className={styles.num}>{whenLabel}</span></div>
+      <div className={styles.row}><span>{L.price}</span>{priceView}</div>
+    </div>
+  )
 
   const rootStyle = { '--accent': accent } as React.CSSProperties
 
@@ -235,7 +329,7 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
       <main className={styles.main}>
         {error && <div className={styles.error} role="alert">{error}</div>}
 
-        {/* ── Screen 1: barber + service ─────────────────────────────── */}
+        {/* ── Screen 1: barber + offers + service ────────────────────── */}
         {step === 'pick' && (
           <>
             {barbers.length > 1 && (
@@ -262,6 +356,32 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
               </>
             )}
 
+            {visibleOffers.length > 0 && (
+              <>
+                <h2 className={`${styles.h2} ${styles.display}`}>{L.offersTitle}</h2>
+                {visibleOffers.map((o) => {
+                  const included = o.service_ids.map((id) => svcMap.get(id)).filter((s): s is Service => !!s)
+                  const list = included.reduce((t, s) => t + Number(s.price), 0)
+                  return (
+                    <button key={o.id} className={styles.offer} onClick={() => chooseOffer(o)}>
+                      <span className={styles.offerTop}>
+                        <span className={`${styles.offerName} ${styles.display}`}>{o.name}</span>
+                        <span className={styles.pill}>{L.offerBadge}</span>
+                      </span>
+                      <span className={styles.offerIncludes}>
+                        {included.map((s) => s.name).join(' + ')} · {fmt(L.minutes, { n: included.reduce((t, s) => t + s.duration_min, 0) })}
+                      </span>
+                      <span className={styles.offerPrices}>
+                        {list > o.price && <span className={`${styles.strike} ${styles.num}`}>{money(list)}</span>}
+                        <span className={`${styles.offerPrice} ${styles.num}`}>{money(o.price)}</span>
+                      </span>
+                      {periodText(o) && <span className={styles.offerUntil}>{periodText(o)}</span>}
+                    </button>
+                  )
+                })}
+              </>
+            )}
+
             <h2 className={`${styles.h2} ${styles.display}`}>{L.chooseService}</h2>
             {groups.map((g) => (
               <div key={g.title ?? '_'}>
@@ -274,7 +394,7 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
                         {fmt(L.minutes, { n: s.duration_min })}{s.description ? ` · ${s.description}` : ''}
                       </div>
                     </span>
-                    <span className={`${styles.price} ${styles.num}`}>{formatCurrency(s.price, business.currency, 'fr-FR')}</span>
+                    <span className={`${styles.price} ${styles.num}`}>{money(Number(s.price))}</span>
                   </button>
                 ))}
               </div>
@@ -282,24 +402,64 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
           </>
         )}
 
+        {/* ── Optional supplements ───────────────────────────────────── */}
+        {step === 'extras' && service && (
+          <>
+            <button className={styles.back} onClick={() => { setError(null); setStep('pick') }}>
+              <ArrowLeft size={16} /> {L.back}
+            </button>
+            <h2 className={`${styles.h2} ${styles.display}`} style={{ marginTop: 4 }}>{L.addOnTitle}</h2>
+            <p className={styles.muted} style={{ marginTop: 0 }}>{L.addOnHint}</p>
+            <div style={{ marginTop: 14 }}>
+              {addOns.map((a) => {
+                const on = extras.includes(a.id)
+                return (
+                  <button key={a.id} className={styles.addon} aria-pressed={on} onClick={() => toggleExtra(a.id)}>
+                    <span className={styles.box}>{on && <Check size={16} strokeWidth={3} />}</span>
+                    <span className={styles.addonBody}>
+                      <div className={styles.serviceName}>{a.name}</div>
+                      <div className={`${styles.serviceMeta} ${styles.num}`}>{fmt(L.plusMinutes, { n: a.duration_min })}{a.description ? ` · ${a.description}` : ''}</div>
+                    </span>
+                    <span className={`${styles.price} ${styles.num}`}>+{money(Number(a.price))}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <div className={styles.totalLine}>
+              <span className={styles.muted}>{service.name}{extras.length ? ` + ${extras.length}` : ''} · {fmt(L.minutes, { n: selection.totalDuration })}</span>
+              <b className={styles.num}>{money(selection.totalPrice)}</b>
+            </div>
+            <div className={styles.cta}>
+              <div className={styles.ctaInner}>
+                <button className={styles.btn} onClick={() => void beginTime(selection.totalDuration, barberId, null)}>
+                  {extras.length ? fmt(L.addOnContinue, { price: money(selection.totalPrice - Number(service.price)) }) : L.addOnSkip}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* ── Screen 2: date + time ──────────────────────────────────── */}
         {step === 'time' && service && (
           <>
-            <button className={styles.back} onClick={() => { ++req.current; setStep('pick'); setError(null) }}>
+            <button className={styles.back} onClick={() => { ++req.current; setStep(hasExtrasStep ? 'extras' : 'pick'); setError(null) }}>
               <ArrowLeft size={16} /> {L.back}
             </button>
             <h2 className={`${styles.h2} ${styles.display}`} style={{ marginTop: 4 }}>{L.chooseTime}</h2>
             <div className={styles.muted}>
-              {service.name} · {fmt(L.minutes, { n: service.duration_min })}{barber ? ` · ${barber.name}` : ''}
+              {offer ? offer.name : selection.summary} · {fmt(L.minutes, { n: selection.totalDuration })}{barber ? ` · ${barber.name}` : ''}
             </div>
 
             <div className={styles.dates} role="group" style={{ marginTop: 14 }}>
-              {dates.map((d) => (
-                <button key={d} className={styles.date} aria-pressed={date === d} disabled={!isOpenOn(d)} onClick={() => void pickDate(d)} aria-label={dayLabel(d)}>
-                  <span className={styles.dow}>{frDate(d, { weekday: 'short' }).replace('.', '')}</span>
-                  <span className={`${styles.dom} ${styles.display} ${styles.num}`}>{Number(d.slice(8))}</span>
-                </button>
-              ))}
+              {dates.map((d) => {
+                const usable = isOpenOn(d) && (!offer || isOfferValidOn(offer, d))
+                return (
+                  <button key={d} className={styles.date} aria-pressed={date === d} disabled={!usable} onClick={() => void pickDate(d)} aria-label={dayLabel(d)}>
+                    <span className={styles.dow}>{frDate(d, { weekday: 'short' }).replace('.', '')}</span>
+                    <span className={`${styles.dom} ${styles.display} ${styles.num}`}>{Number(d.slice(8))}</span>
+                  </button>
+                )
+              })}
             </div>
 
             {loading && (
@@ -358,12 +518,7 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
             </div>
 
             <h3 className={styles.h3}>{L.summary}</h3>
-            <div className={styles.summary}>
-              <div className={styles.row}><span>{L.barber}</span><span>{barber ? barber.name : L.anyBarber}</span></div>
-              <div className={styles.row}><span>{L.service}</span><span>{service.name}</span></div>
-              <div className={styles.row}><span>{L.when}</span><span className={styles.num}>{whenLabel}</span></div>
-              <div className={styles.row}><span>{L.price}</span><span className={styles.num}>{price}</span></div>
-            </div>
+            {summaryRows}
             <p className={styles.muted}>{L.payAtShop}</p>
 
             <div className={styles.cta}>
@@ -382,16 +537,11 @@ export function BarberBooking({ business, services, barbers, workingHours, accen
             <div className={styles.check}><Check size={36} strokeWidth={3} /></div>
             <h2 className={`${styles.h2} ${styles.display}`} style={{ marginTop: 0 }}>{L.doneTitle}</h2>
             <p className={styles.muted}>{L.doneSubtitle}</p>
-            <div className={styles.summary} style={{ textAlign: 'left' }}>
-              <div className={styles.row}><span>{L.barber}</span><span>{barber ? barber.name : L.anyBarber}</span></div>
-              <div className={styles.row}><span>{L.service}</span><span>{service.name}</span></div>
-              <div className={styles.row}><span>{L.when}</span><span className={styles.num}>{whenLabel}</span></div>
-              <div className={styles.row}><span>{L.price}</span><span className={styles.num}>{price}</span></div>
-            </div>
+            <div style={{ textAlign: 'left' }}>{summaryRows}</div>
             <p className={styles.muted}>{L.payAtShop}</p>
             <div className={styles.actions}>
               <a className={styles.btn} target="_blank" rel="noopener noreferrer"
-                href={buildGCalUrl({ businessName: business.name, serviceName: service.name, employeeName: barber?.name, date, time, durationMin: service.duration_min, timezone: business.timezone, address: business.address })}>
+                href={buildGCalUrl({ businessName: business.name, serviceName: selection.summary, employeeName: barber?.name, date, time, durationMin: selection.totalDuration, timezone: business.timezone, address: business.address })}>
                 <CalendarPlus size={18} /> {L.addToCalendar}
               </a>
               {business.address && (

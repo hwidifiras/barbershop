@@ -1,0 +1,26 @@
+# Barbershop mode: status at a glance
+
+Last updated: 2026-11-23 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
+
+| Phase | What | State |
+|---|---|---|
+| 0 | Spec, mode switch (`isBarbershopMode`) | Done |
+| 1 | Public booking link (3 screens, French, dark), barber photos, QR + links, online on/off | Done, live |
+| 1b | Smart services: supplements, per-service online switch, offers | Built; deploys after migration 040 |
+| 2 | Phone navigation bar + "Today" screen | Next |
+| 3 | Day agenda calendar, Charge (cash), Clients | Planned |
+| 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
+| 5 | Team access: barber logins and own schedule | Planned |
+| 6 | Arabic / RTL, then extras | Planned |
+
+## How to try what is live
+1. Settings → Général → set **Type d'activité** to Barbershop, save, reload.
+2. Settings → Général: link, QR code, barber links and photos, "Réservation en ligne", "Mode barbershop".
+3. Open `/book/<slug>` on a phone.
+4. Settings → Prestations (barbershops): types, "En ligne" switches, offers.
+
+## Rules we keep
+- Barbershop changes only apply when `isBarbershopMode(business)`; other types stay on the standard SaaS.
+- The server decides prices, durations and rules; the browser only displays them.
+- Apply database migrations **before** deploying code that reads them.
+- Each change adds an entry to `CHANGELOG.md` in the same pull request.

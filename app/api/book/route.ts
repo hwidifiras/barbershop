@@ -10,6 +10,7 @@ import DOMPurify from 'isomorphic-dompurify'
 import { createServiceClient } from '@/lib/supabase/service'
 import { rateLimit, getIp } from '@/lib/rate-limit'
 import { isBarbershopMode } from '@/lib/vertical'
+import { resolveBooking, type ResolvedBooking } from '@/lib/barbershop-cart'
 import { computeEffectiveHours, checkSlotWithinHours, dayOfWeekFromDateString } from '@/lib/booking-availability'
 
 function sanitize(s: string): string {
@@ -39,6 +40,9 @@ function parseDateTimeInTz(date: string, time: string, timezone: string): Date {
 const BookingSchema = z.object({
   businessId: z.string().uuid(),
   serviceId:  z.string().uuid(),
+  // Barbershop mode only (docs/barbershop-mode/SPEC.md 4.12): supplements and offers. Ignored for other types.
+  extraServiceIds: z.array(z.string().uuid()).max(10).optional(),
+  offerId:    z.string().uuid().nullable().optional(),
   employeeId: z.string().uuid().nullable().optional(),
   date:       z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   time:       z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
@@ -108,9 +112,42 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Barbershop mode: price, duration and the booking rules (supplements, offers, services switched
+  // off online) are computed HERE from the database, never taken from the browser.
+  let resolved: ResolvedBooking | null = null
+  if (isBarbershopMode(biz)) {
+    const [{ data: allServices }, { data: allOffers }] = await Promise.all([
+      supabase
+        .from('services')
+        .select('id, name, price, duration_min, kind, bookable_alone, bookable_online, is_active')
+        .eq('business_id', businessId),
+      parsed.data.offerId
+        ? supabase.from('offers').select('id, name, price, service_ids, barber_ids, valid_from, valid_to, is_active').eq('business_id', businessId)
+        : Promise.resolve({ data: [] }),
+    ])
+    resolved = resolveBooking({
+      serviceId,
+      extraServiceIds: parsed.data.extraServiceIds,
+      offerId: parsed.data.offerId ?? null,
+      employeeId: employeeId ?? null,
+      date,
+      services: (allServices ?? []) as Parameters<typeof resolveBooking>[0]['services'],
+      offers: (allOffers ?? []) as Parameters<typeof resolveBooking>[0]['offers'],
+    })
+    if (!resolved.ok) {
+      return NextResponse.json(
+        { error: resolved.error },
+        { status: resolved.error === 'service_unavailable' ? 404 : 422 }
+      )
+    }
+  }
+
   if (!service) {
     return NextResponse.json({ error: 'service_not_found' }, { status: 404 })
   }
+
+  const totalDuration = resolved?.ok ? resolved.totalDuration : service.duration_min
+  const totalPrice    = resolved?.ok ? resolved.totalPrice : service.price
 
   const timezone = biz?.timezone ?? 'UTC'
 
@@ -128,7 +165,7 @@ export async function POST(req: NextRequest) {
   const effectiveHours = computeEffectiveHours(businessHours ?? [])
   const dow = dayOfWeekFromDateString(date)
   const dayHours = effectiveHours.find((h) => h.day_of_week === dow)
-  const slotCheck = checkSlotWithinHours(dayHours, time, service.duration_min)
+  const slotCheck = checkSlotWithinHours(dayHours, time, totalDuration)
 
   if (!slotCheck.ok) {
     const messages: Record<typeof slotCheck.reason, string> = {
@@ -208,7 +245,7 @@ export async function POST(req: NextRequest) {
 
   // Create appointment — parse wall-clock time in the business timezone
   const startsAt = parseDateTimeInTz(date, time, timezone)
-  const endsAt   = new Date(startsAt.getTime() + service.duration_min * 60_000)
+  const endsAt   = new Date(startsAt.getTime() + totalDuration * 60_000)
 
   const { data: appt, error: apptErr } = await supabase
     .from('appointments')
@@ -219,9 +256,10 @@ export async function POST(req: NextRequest) {
       service_id:  serviceId,
       starts_at:   startsAt.toISOString(),
       ends_at:     endsAt.toISOString(),
-      price:       service.price,
+      price:       totalPrice,
       status:      'confirmed',
       source:      'online',
+      ...(resolved?.ok ? { offer_id: resolved.offerId, items_summary: resolved.summary } : {}),
     })
     .select('id')
     .single()
@@ -247,6 +285,24 @@ export async function POST(req: NextRequest) {
     }
     console.error('[api/book] insert error:', apptErr?.message)
     return NextResponse.json({ error: 'booking_failed' }, { status: 500 })
+  }
+
+  // Barbershop mode: keep the booking's lines (price and duration frozen at booking time) for the
+  // calendar and the POS. The appointment itself is already valid without them (it carries the
+  // total price, the end time and a readable summary), so a failure here is logged, not fatal.
+  if (resolved?.ok) {
+    const { error: itemsErr } = await supabase.from('appointment_items').insert(
+      resolved.lines.map((l, i) => ({
+        appointment_id: appt.id,
+        business_id: businessId,
+        service_id: l.service_id,
+        name: l.name,
+        price: l.price,
+        duration_min: l.duration_min,
+        position: i,
+      }))
+    )
+    if (itemsErr) console.error('[api/book] appointment_items insert error:', itemsErr.message)
   }
 
   // Trigger notifications (fire-and-forget — non-blocking)

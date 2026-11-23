@@ -211,6 +211,9 @@ export type Database = {
           category: string | null
           is_active: boolean
           capacity: number
+          kind: string
+          bookable_alone: boolean
+          bookable_online: boolean
           created_at: string
         }
         Insert: {
@@ -223,6 +226,9 @@ export type Database = {
           category?: string | null
           is_active?: boolean
           capacity?: number
+          kind?: string
+          bookable_alone?: boolean
+          bookable_online?: boolean
           created_at?: string
         }
         Update: {
@@ -235,6 +241,9 @@ export type Database = {
           category?: string | null
           is_active?: boolean
           capacity?: number
+          kind?: string
+          bookable_alone?: boolean
+          bookable_online?: boolean
           created_at?: string
         }
         Relationships: [
@@ -322,6 +331,8 @@ export type Database = {
           price: number | null
           notes: string | null
           source: string
+          offer_id: string | null
+          items_summary: string | null
           created_at: string
           updated_at: string
         }
@@ -337,6 +348,8 @@ export type Database = {
           price?: number | null
           notes?: string | null
           source?: string
+          offer_id?: string | null
+          items_summary?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -352,6 +365,8 @@ export type Database = {
           price?: number | null
           notes?: string | null
           source?: string
+          offer_id?: string | null
+          items_summary?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -382,6 +397,104 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      offers: {
+        Row: {
+          id: string
+          business_id: string
+          name: string
+          price: number
+          service_ids: string[]
+          barber_ids: string[] | null
+          valid_from: string | null
+          valid_to: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          name: string
+          price: number
+          service_ids: string[]
+          barber_ids?: string[] | null
+          valid_from?: string | null
+          valid_to?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          business_id?: string
+          name?: string
+          price?: number
+          service_ids?: string[]
+          barber_ids?: string[] | null
+          valid_from?: string | null
+          valid_to?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      appointment_items: {
+        Row: {
+          id: string
+          appointment_id: string
+          business_id: string
+          service_id: string | null
+          name: string
+          price: number
+          duration_min: number
+          position: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          business_id: string
+          service_id?: string | null
+          name: string
+          price?: number
+          duration_min?: number
+          position?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          business_id?: string
+          service_id?: string | null
+          name?: string
+          price?: number
+          duration_min?: number
+          position?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_items_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           }
         ]
