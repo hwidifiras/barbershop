@@ -63,12 +63,26 @@ export function pickNextAppointment<T extends TodayAppt>(
   return { appt, current: new Date(appt.starts_at).getTime() <= nowMs }
 }
 
-/** Counts for the strip: done (completed or paid) and remaining (pending or confirmed). */
-export function countDoneRemaining(appts: TodayAppt[], barberId?: string): { done: number; remaining: number } {
+/** An unfinished booking whose end time has already passed: it needs closing (Terminé or Absent). */
+export function isOverdue(a: TodayAppt, nowMs: number): boolean {
+  return OPEN_STATUSES.includes(a.status) && new Date(a.ends_at).getTime() <= nowMs
+}
+
+/**
+ * Counts for the strip: done (completed or paid), remaining (pending or confirmed and not over yet)
+ * and overdue (pending or confirmed but already past, still to be closed). Without `nowMs`
+ * nothing counts as overdue.
+ */
+export function countDoneRemaining(
+  appts: TodayAppt[], barberId?: string, nowMs?: number,
+): { done: number; remaining: number; overdue: number } {
   const mine = barberId ? appts.filter((a) => a.employee_id === barberId) : appts
+  const open = mine.filter((a) => OPEN_STATUSES.includes(a.status))
+  const overdue = nowMs === undefined ? 0 : open.filter((a) => isOverdue(a, nowMs)).length
   return {
     done: mine.filter((a) => DONE_STATUSES.includes(a.status)).length,
-    remaining: mine.filter((a) => OPEN_STATUSES.includes(a.status)).length,
+    remaining: open.length - overdue,
+    overdue,
   }
 }
 

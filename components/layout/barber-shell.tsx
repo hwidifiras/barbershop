@@ -42,6 +42,14 @@ export function BarberShell({ businessName, logoUrl, slug, inventoryOn, accent }
       .catch(() => { /* offline: stays in the current language until the next visit */ })
   }, [locale, router])
 
+  // Escape closes the "Plus" menu.
+  useEffect(() => {
+    if (!moreOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [moreOpen])
+
   const tabs: Tab[] = [
     { href: '/dashboard', label: N.today, icon: Sun },
     { href: '/booking', label: N.calendar, icon: CalendarDays },
