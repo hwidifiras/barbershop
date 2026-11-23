@@ -1,5 +1,6 @@
 import { updatePassword } from './actions'
 import { PasswordInput } from '@/components/ui/password-input'
+import { getTranslations } from 'next-intl/server'
 
 export default async function ResetPasswordPage(
   props: {
@@ -7,9 +8,10 @@ export default async function ResetPasswordPage(
   }
 ) {
   const searchParams = await props.searchParams;
+  const t = await getTranslations('auth.resetPassword')
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">Set new password</h1>
+      <h1 className="text-xl font-semibold text-gray-900 mb-6">{t('heading')}</h1>
 
       {searchParams.error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
@@ -21,16 +23,16 @@ export default async function ResetPasswordPage(
         <PasswordInput
           id="password"
           name="password"
-          label="New password"
-          placeholder="Min. 8 characters"
+          label={t('newPasswordLabel')}
+          placeholder={t('newPasswordPlaceholder')}
           required
           autoComplete="new-password"
         />
         <PasswordInput
           id="confirm"
           name="confirm"
-          label="Confirm password"
-          placeholder="Repeat new password"
+          label={t('confirmLabel')}
+          placeholder={t('confirmPlaceholder')}
           required
           autoComplete="new-password"
         />
@@ -38,7 +40,7 @@ export default async function ResetPasswordPage(
           type="submit"
           className="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors"
         >
-          Update password
+          {t('submitButton')}
         </button>
       </form>
     </div>

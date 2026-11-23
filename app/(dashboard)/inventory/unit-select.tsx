@@ -1,6 +1,8 @@
 'use client'
 
-const PRESET_UNITS = ['pcs', 'g', 'kg', 'ml', 'l', 'bottle', 'box', 'pack']
+import { useTranslations } from 'next-intl'
+
+const PRESET_UNITS = ['pcs', 'g', 'kg', 'ml', 'l', 'bottle', 'box', 'pack'] as const
 
 interface Props {
   value: string
@@ -9,7 +11,8 @@ interface Props {
 }
 
 export function UnitSelect({ value, onChange, className = '' }: Props) {
-  const isOther = value !== '' && !PRESET_UNITS.includes(value)
+  const t = useTranslations('inventory.units')
+  const isOther = value !== '' && !(PRESET_UNITS as readonly string[]).includes(value)
   const selectVal = isOther ? 'other' : value
 
   return (
@@ -23,16 +26,16 @@ export function UnitSelect({ value, onChange, className = '' }: Props) {
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
       >
         {PRESET_UNITS.map((u) => (
-          <option key={u} value={u}>{u}</option>
+          <option key={u} value={u}>{t(u)}</option>
         ))}
-        <option value="other">other…</option>
+        <option value="other">{t('other')}</option>
       </select>
       {selectVal === 'other' && (
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter unit name"
+          placeholder={t('enterUnit')}
           autoFocus
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

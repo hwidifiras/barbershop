@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} offline sales pending sync",
     "offlineSyncNow": "Sync now",
     "offlineSavedReceipt": "Saved offline. Will sync when internet is restored.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Save offline",
+    "offlineSyncError": "Sync failed. We'll retry automatically."
   },
   "crm": {
     "title": "Clients",
@@ -345,7 +347,11 @@
       "result": "Import complete",
       "imported": "{count} imported",
       "skipped": "{count} skipped (duplicates or empty names)",
-      "limitReached": "Plan limit reached. Upgrade to import more products."
+      "limitReached": "Plan limit reached. Upgrade to import more products.",
+      "fileParseError": "File appears empty or could not be parsed.",
+      "missingNameColumn": "No \"name\" column found. Please check your file headers.",
+      "fileReadError": "Failed to read file.",
+      "networkError": "Network error. Please try again."
     },
     "searchPlaceholder": "Search by name, SKU or barcode...",
     "itemsTotal": "{count} items total",
@@ -449,7 +455,8 @@
       "colorLegend": "Color legend",
       "teamColors": "Team colors",
       "noTeamMembers": "No team members yet",
-      "appointmentStatus": "Appointment status"
+      "appointmentStatus": "Appointment status",
+      "manualSource": "Manual"
     },
     "status": {
       "pending": "pending",
@@ -473,7 +480,11 @@
       "cancel": "Cancel",
       "saving": "Saving…",
       "save": "Save",
-      "closedDayError": "This day is marked as closed in Working Hours. Update your schedule in Settings first."
+      "closedDayError": "This day is marked as closed in Working Hours. Update your schedule in Settings first.",
+      "noStaffAvailable": "No active staff available to take this booking. Add an employee in Settings, or select a specific employee.",
+      "slotAlreadyBooked": "This time slot is already booked for the selected employee. Please choose a different time.",
+      "saveError": "Failed to save the appointment. Please try again.",
+      "assignError": "Failed to update employee. Please try again."
     },
     "detail": {
       "statusLabel": "Status",
@@ -511,7 +522,11 @@
       "upgrade": "Upgrade →",
       "currentPlan": "Current plan",
       "successMessage": "Subscription activated! Thank you for upgrading.",
-      "errorMessage": "Something went wrong. Please try again or contact support."
+      "errorMessage": "Something went wrong. Please try again or contact support.",
+      "selfHostedDescription": "You are running the self-hosted version of Pronto. All features are available without a subscription.",
+      "selfHostedHeading": "Self-hosted — All features unlocked",
+      "selfHostedFeaturesDescription": "All Pro and Agency features are available to you at no charge.",
+      "selfHostedManageHint": "Manage your instance via Docker Compose."
     },
     "account": {
       "heading": "My account",
@@ -530,7 +545,8 @@
       "pwNoMatch": "Passwords do not match",
       "pwSuccess": "Password updated successfully",
       "emailInvalid": "Enter a valid email address",
-      "emailConfirmSent": "Confirmation sent to {email}. Click the link in the email to complete the change."
+      "emailConfirmSent": "Confirmation sent to {email}. Click the link in the email to complete the change.",
+      "newPasswordPlaceholder": "Min. 8 characters"
     },
     "workingHours": {
       "heading": "Working Hours",
@@ -597,7 +613,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · max 2MB",
       "logoProOnly": "Available on Pro plan →",
       "logoErrorRemove": "Failed to remove logo.",
-      "logoErrorNetwork": "Network error: {message}"
+      "logoErrorNetwork": "Network error: {message}",
+      "otherCurrency": "✏️ Other (enter manually)"
     },
     "services": {
       "empty": "No services yet",
@@ -742,7 +759,8 @@
         "birthday": "Birthday template name",
         "birthdayPlaceholder": "e.g. happy_birthday",
         "language": "Template language"
-      }
+      },
+      "unknownError": "Unknown error"
     },
     "modules": {
       "heading": "Feature Modules",
@@ -900,7 +918,11 @@
       "mindbody": "Reports → Clients → Mailing Lists → Export → CSV",
       "square": "Customers → Customer Directory → Export",
       "other": "Export your client list as CSV with columns: name, phone, email"
-    }
+    },
+    "fileParseError": "File appears empty or could not be parsed.",
+    "fileReadError": "Failed to read file.",
+    "networkError": "Network error. Please try again.",
+    "importFailed": "Import failed. Please try again."
   },
   "datePicker": {
     "today": "Today",

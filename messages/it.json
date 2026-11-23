@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} vendite offline in attesa di sincronizzazione",
     "offlineSyncNow": "Sincronizza ora",
     "offlineSavedReceipt": "Salvato offline. Verrà sincronizzato al ripristino di internet.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Salva offline",
+    "offlineSyncError": "Sincronizzazione non riuscita. Riproveremo automaticamente."
   },
   "crm": {
     "title": "Clienti",
@@ -329,6 +331,7 @@
     "addItem": "Aggiungi articolo",
     "importCsv": "Importa",
     "export": "Esporta",
+    "moreActions": "Altre azioni",
     "import": {
       "title": "Importa prodotti",
       "uploadHint": "Hai già un listino prezzi del fornitore in Excel o CSV? Caricalo direttamente — Pronto rileverà automaticamente le colonne.",
@@ -344,7 +347,11 @@
       "result": "Importazione completata",
       "imported": "{count} importati",
       "skipped": "{count} ignorati (duplicati o senza nome)",
-      "limitReached": "Limite del piano raggiunto. Passa al piano superiore per importare altri prodotti."
+      "limitReached": "Limite del piano raggiunto. Passa al piano superiore per importare altri prodotti.",
+      "fileParseError": "Il file è vuoto o non è stato possibile analizzarlo.",
+      "missingNameColumn": "Colonna \"name\" non trovata. Controlla le intestazioni del file.",
+      "fileReadError": "Impossibile leggere il file.",
+      "networkError": "Errore di rete. Riprova."
     },
     "searchPlaceholder": "Cerca per nome, SKU o codice a barre...",
     "itemsTotal": "{count} articoli in totale",
@@ -448,7 +455,8 @@
       "colorLegend": "Legenda colori",
       "teamColors": "Colori del team",
       "noTeamMembers": "Ancora nessun membro del team",
-      "appointmentStatus": "Stato della prenotazione"
+      "appointmentStatus": "Stato della prenotazione",
+      "manualSource": "Manuale"
     },
     "status": {
       "pending": "in attesa",
@@ -472,7 +480,11 @@
       "cancel": "Annulla",
       "saving": "Salvataggio in corso…",
       "save": "Salva",
-      "closedDayError": "Questo giorno è contrassegnato come di chiusura negli Orari di Lavoro. Aggiorna prima i tuoi orari nelle Impostazioni."
+      "closedDayError": "Questo giorno è contrassegnato come di chiusura negli Orari di Lavoro. Aggiorna prima i tuoi orari nelle Impostazioni.",
+      "noStaffAvailable": "Non è disponibile alcun membro dello staff per questa prenotazione. Aggiungi un dipendente nelle Impostazioni oppure selezionane uno specifico.",
+      "slotAlreadyBooked": "Questo orario è già prenotato per il dipendente selezionato. Scegli un altro orario.",
+      "saveError": "Impossibile salvare l'appuntamento. Riprova.",
+      "assignError": "Impossibile aggiornare il dipendente. Riprova."
     },
     "detail": {
       "statusLabel": "Stato",
@@ -510,7 +522,11 @@
       "upgrade": "Passa di livello →",
       "currentPlan": "Piano attuale",
       "successMessage": "Abbonamento attivato! Grazie per essere passato al piano superiore.",
-      "errorMessage": "Qualcosa è andato storto. Riprova o contatta l'assistenza."
+      "errorMessage": "Qualcosa è andato storto. Riprova o contatta l'assistenza.",
+      "selfHostedDescription": "Stai utilizzando la versione self-hosted di Pronto. Tutte le funzionalità sono disponibili senza abbonamento.",
+      "selfHostedHeading": "Self-hosted — Tutte le funzionalità sbloccate",
+      "selfHostedFeaturesDescription": "Tutte le funzionalità Pro e Agency sono disponibili gratuitamente.",
+      "selfHostedManageHint": "Gestisci la tua istanza tramite Docker Compose."
     },
     "account": {
       "heading": "Il mio account",
@@ -529,7 +545,8 @@
       "pwNoMatch": "Le password non corrispondono",
       "pwSuccess": "Password aggiornata con successo",
       "emailInvalid": "Inserisci un indirizzo email valido",
-      "emailConfirmSent": "Conferma inviata a {email}. Clicca sul link nell'email per completare la modifica."
+      "emailConfirmSent": "Conferma inviata a {email}. Clicca sul link nell'email per completare la modifica.",
+      "newPasswordPlaceholder": "Almeno 8 caratteri"
     },
     "workingHours": {
       "heading": "Orari di lavoro",
@@ -596,11 +613,12 @@
       "logoFormats": "PNG, JPG, WebP, SVG · max 2MB",
       "logoProOnly": "Disponibile nel piano Pro →",
       "logoErrorRemove": "Impossibile rimuovere il logo.",
-      "logoErrorNetwork": "Errore di rete: {message}"
+      "logoErrorNetwork": "Errore di rete: {message}",
+      "otherCurrency": "✏️ Altro (inserisci manualmente)"
     },
     "services": {
       "empty": "Ancora nessun servizio",
-          "table": {
+      "table": {
         "name": "Nome",
         "category": "Categoria",
         "price": "Prezzo",
@@ -741,7 +759,8 @@
         "birthday": "Nome del modello di compleanno",
         "birthdayPlaceholder": "es. happy_birthday",
         "language": "Lingua del modello"
-      }
+      },
+      "unknownError": "Errore sconosciuto"
     },
     "modules": {
       "heading": "Moduli delle funzionalità",
@@ -899,7 +918,11 @@
       "mindbody": "Report → Clienti → Mailing list → Esporta → CSV",
       "square": "Clienti → Elenco clienti → Esporta",
       "other": "Esporta il tuo elenco clienti in formato CSV con le colonne: nome, telefono, email"
-    }
+    },
+    "fileParseError": "Il file è vuoto o non è stato possibile analizzarlo.",
+    "fileReadError": "Impossibile leggere il file.",
+    "networkError": "Errore di rete. Riprova.",
+    "importFailed": "Importazione non riuscita. Riprova."
   },
   "datePicker": {
     "today": "Oggi",
@@ -1135,7 +1158,7 @@
     }
   },
   "newClient": {
-      "title": "Nuovo cliente",
+    "title": "Nuovo cliente",
     "backToClients": "← Clienti",
     "fields": {
       "name": "Nome completo *",

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,6 +45,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('inventoryDetail')
+  const inventoryT = useTranslations('inventory')
+  const locale = useLocale()
   const [item, setItem] = useState(initial)
   const [movements, setMovements] = useState(initialMovements)
   const [editing, setEditing] = useState(false)
@@ -163,8 +165,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
               <span className="flex items-center gap-2">
                 {item.name}
                 {isLow
-                  ? <Badge variant="warning">Low stock</Badge>
-                  : <Badge variant="success">OK</Badge>}
+                  ? <Badge variant="warning">{inventoryT('status.lowStock')}</Badge>
+                  : <Badge variant="success">{inventoryT('status.ok')}</Badge>}
               </span>
               <div className="flex items-center gap-1">
                 {!editing && (
@@ -258,8 +260,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                 {[
                   { label: t('fields.sku'), value: item.sku },
                   { label: t('fields.category'), value: item.category },
-                  { label: t('fields.costPrice'), value: item.cost_price != null ? formatCurrency(item.cost_price, currency) : null },
-                  { label: t('fields.sellPrice'), value: item.sell_price != null ? formatCurrency(item.sell_price, currency) : null },
+                  { label: t('fields.costPrice'), value: item.cost_price != null ? formatCurrency(item.cost_price, currency, locale) : null },
+                  { label: t('fields.sellPrice'), value: item.sell_price != null ? formatCurrency(item.sell_price, currency, locale) : null },
                   { label: t('fields.lowStockThreshold'), value: `${item.low_stock_threshold} ${item.unit}` },
                 ].filter((r) => r.value).map((row) => (
                   <div key={row.label} className="flex gap-2 justify-between">
@@ -336,8 +338,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                 {movements.map((m) => (
                   <tr key={m.id} className="border-b border-gray-100 last:border-0">
                     <td className="py-2 pr-4 text-gray-500">
-                      <div>{formatInBusinessTimezone(m.created_at, timezone)}</div>
-                      <div className="text-xs">{formatInBusinessTimezone(m.created_at, timezone, 'time')}</div>
+                      <div>{formatInBusinessTimezone(m.created_at, timezone, 'date', locale)}</div>
+                      <div className="text-xs">{formatInBusinessTimezone(m.created_at, timezone, 'time', locale)}</div>
                     </td>
                     <td className="py-2 pr-4">
                       <span className={`font-medium capitalize ${movTypeColor[m.type]}`}>

@@ -6,7 +6,7 @@ import { formatCurrency, uses12HourClock } from '@/lib/utils'
 import { CalendarPlus, Loader2 } from 'lucide-react'
 import { buildGCalUrl } from '@/lib/gcal'
 import { DatePicker } from '@/components/ui/date-picker'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { computeEffectiveHours, type DayHours } from '@/lib/booking-availability'
 
 interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; capacity: number }
@@ -91,6 +91,7 @@ function CtaButton({ label, onClick, disabled }: { label: string; onClick: () =>
 export function PublicBookingForm({ business, services, employees, workingHours, telegramBotUsername, viberBotUri }: Props) {
   const supabase = createClient()
   const t = useTranslations('publicBooking')
+  const locale = useLocale()
 
   const hasEmployeeStep = employees.length > 1
 
@@ -215,15 +216,15 @@ export function PublicBookingForm({ business, services, employees, workingHours,
   async function submit() {
     if (!selectedService || !date || !time || !contact.name) return
     if (!contact.phone && !contact.email) {
-      setBookingError('Please enter at least a phone number or email so we can confirm your booking.')
+      setBookingError(t('errorContactRequired'))
       return
     }
     if (contact.phone && !/^[\d\s\+\-\(\)\.]{7,}$/.test(contact.phone)) {
-      setBookingError('Please enter a valid phone number (digits only, e.g. +1 234 567 8900).')
+      setBookingError(t('errorPhone'))
       return
     }
     if (contact.email && !contact.email.includes('@')) {
-      setBookingError('Please enter a valid email address (e.g. name@example.com).')
+      setBookingError(t('errorEmail'))
       return
     }
     setSaving(true)
@@ -263,7 +264,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
 
       if (res.status === 429) {
         setSaving(false)
-        setBookingError('Too many booking attempts. Please wait a few minutes and try again.')
+        setBookingError(t('errorRateLimit'))
         return
       }
 
@@ -276,7 +277,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
       setSaving(false)
     } catch {
       setSaving(false)
-      setBookingError('Something went wrong. Please try again or contact the business directly.')
+      setBookingError(t('errorGeneric'))
     }
   }
 
@@ -306,7 +307,6 @@ export function PublicBookingForm({ business, services, employees, workingHours,
     setBookingError(null)
   }
 
-  const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
   const is12h = uses12HourClock(locale)
 
   function formatSlot(slot: string): string {
@@ -401,7 +401,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
       {/* ── Step 1: Service ───────────────────────────────────────────────── */}
       {step === 'service' && (
         <div>
-          <StepBadge label="Select service" />
+          <StepBadge label={t('stepSelectService')} />
           <SectionTitle text={t('selectService.heading')} />
           {services.length === 0 ? (
             <p style={{ fontSize: 14, color: '#9A8E85' }}>{t('selectService.empty')}</p>
@@ -414,7 +414,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
                   <div style={{ fontSize: 12, color: '#9A8E85', marginTop: 2 }}>{t('selectService.minutes', { duration: s.duration_min })}</div>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--brand)', flexShrink: 0, marginLeft: 12 }}>
-                  {formatCurrency(s.price, business.currency)}
+                  {formatCurrency(s.price, business.currency, locale)}
                 </div>
               </button>
             ))
@@ -426,7 +426,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
       {step === 'employee' && selectedService && (
         <div>
           <BackLink label={t('selectEmployee.back')} onClick={handleBackFromEmployee} />
-          <StepBadge label="Choose specialist" />
+          <StepBadge label={t('stepChooseSpecialist')} />
           <SectionTitle text={t('selectEmployee.heading')} />
           <p style={{ fontSize: 13, color: '#9A8E85', marginTop: -8, marginBottom: 14 }}>{selectedService.name}</p>
 
@@ -456,12 +456,12 @@ export function PublicBookingForm({ business, services, employees, workingHours,
       {step === 'datetime' && selectedService && (
         <div>
           <BackLink label={t('datetime.back')} onClick={handleBackFromDatetime} />
-          <StepBadge label="Date & time" />
+          <StepBadge label={t('stepDatetime')} />
           <SectionTitle text={t('datetime.heading')} />
 
           {slotTakenError && (
             <div style={{ marginBottom: 16, padding: 12, background: '#FFF8ED', border: '0.5px solid #F5C842', borderRadius: 10, fontSize: 13, color: '#7A5C00' }}>
-              ⚠ This time was just booked by someone else. Please choose a different time.
+              {t('slotTaken')}
             </div>
           )}
 
@@ -487,15 +487,15 @@ export function PublicBookingForm({ business, services, employees, workingHours,
               {loadingSlots ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#9A8E85' }}>
                   <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
-                  Loading available times&hellip;
+                  {t('loadingTimes')}
                 </div>
               ) : dayClosed ? (
                 <div style={{ padding: 12, background: '#F5F0EB', borderRadius: 10, fontSize: 14, color: '#9A8E85' }}>
-                  This day is outside working hours. Please choose another date.
+                  {t('dayClosed')}
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div style={{ padding: 12, background: '#F5F0EB', borderRadius: 10, fontSize: 14, color: '#9A8E85' }}>
-                  No available times for this day. Please choose another date.
+                  {t('noSlots')}
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -520,7 +520,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
                         <div>{formatSlot(ts)}</div>
                         {isPartial && (
                           <div style={{ fontSize: 10, color: isSelected ? 'rgba(255,255,255,0.8)' : 'var(--brand)', marginTop: 2 }}>
-                            {spotsLeft} spots left
+                            {t('spotsLeft', { count: spotsLeft })}
                           </div>
                         )}
                       </button>
@@ -539,7 +539,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
       {step === 'contact' && (
         <div>
           <BackLink label={t('contact.back')} onClick={() => setStep('datetime')} />
-          <StepBadge label="Your details" />
+          <StepBadge label={t('stepYourDetails')} />
           <SectionTitle text={t('contact.heading')} />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -585,7 +585,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
               cursor: (!contact.name || saving) ? 'not-allowed' : 'pointer',
             }}
           >
-            {saving ? t('contact.booking') : t('contact.confirm', { price: formatCurrency(selectedService?.price ?? 0, business.currency) })}
+            {saving ? t('contact.booking') : t('contact.confirm', { price: formatCurrency(selectedService?.price ?? 0, business.currency, locale) })}
           </button>
           <p style={{ fontSize: 11, color: '#9A8E85', textAlign: 'center', marginTop: 12 }}>{t('contact.noRegistration')}</p>
         </div>

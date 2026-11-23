@@ -67,19 +67,21 @@ export function tplBookingConfirmation(opts: {
   businessName: string
   employeeName?: string
   address?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ Booking confirmed!`,
-    ``,
-    `Hi ${opts.clientName},`,
-    `Your appointment has been booked:`,
-    ``,
-    `Service: ${opts.serviceName}`,
-    `Date: ${opts.date} at ${opts.time}`,
+    fr ? '✅ Réservation confirmée !' : '✅ Booking confirmed!',
+    '',
+    fr ? `Bonjour ${opts.clientName},` : `Hi ${opts.clientName},`,
+    fr ? 'Votre rendez-vous a bien été enregistré :' : 'Your appointment has been booked:',
+    '',
+    `${fr ? 'Prestation' : 'Service'} : ${opts.serviceName}`,
+    `${fr ? 'Date' : 'Date'} : ${opts.date} à ${opts.time}`,
   ]
-  if (opts.employeeName) lines.push(`Specialist: ${opts.employeeName}`)
-  if (opts.address) lines.push(`Address: ${opts.address}`)
-  lines.push(``, `See you soon — ${opts.businessName}`)
+  if (opts.employeeName) lines.push(`${fr ? 'Intervenant' : 'Specialist'} : ${opts.employeeName}`)
+  if (opts.address) lines.push(`${fr ? 'Adresse' : 'Address'} : ${opts.address}`)
+  lines.push('', fr ? `À bientôt — ${opts.businessName}` : `See you soon — ${opts.businessName}`)
   return lines.join('\n')
 }
 
@@ -90,18 +92,20 @@ export function tplReminder(opts: {
   time: string
   businessName: string
   isOneHour?: boolean
+  locale?: string
 }): string {
-  const when = opts.isOneHour ? 'in 1 hour ⏰' : 'tomorrow 📅'
+  const fr = opts.locale === 'fr'
+  const when = fr ? (opts.isOneHour ? 'dans 1 heure ⏰' : 'demain 📅') : (opts.isOneHour ? 'in 1 hour ⏰' : 'tomorrow 📅')
   return [
-    `🔔 Appointment reminder`,
-    ``,
-    `Hi ${opts.clientName},`,
-    `Your appointment is ${when}:`,
-    ``,
-    `Service: ${opts.serviceName}`,
-    `Date: ${opts.date} at ${opts.time}`,
-    ``,
-    `See you soon — ${opts.businessName}`,
+    fr ? '🔔 Rappel de rendez-vous' : '🔔 Appointment reminder',
+    '',
+    fr ? `Bonjour ${opts.clientName},` : `Hi ${opts.clientName},`,
+    fr ? `Votre rendez-vous est prévu ${when} :` : `Your appointment is ${when}:`,
+    '',
+    `${fr ? 'Prestation' : 'Service'} : ${opts.serviceName}`,
+    `${fr ? 'Date' : 'Date'} : ${opts.date} à ${opts.time}`,
+    '',
+    fr ? `À bientôt — ${opts.businessName}` : `See you soon — ${opts.businessName}`,
   ].join('\n')
 }
 
@@ -110,19 +114,19 @@ export function tplThankYou(opts: {
   serviceName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ Thank you for your visit!`,
-    ``,
-    `Hi ${opts.clientName},`,
-    `It was a pleasure seeing you for ${opts.serviceName}.`,
-    ``,
-    `We look forward to your next visit!`,
+    fr ? '✅ Merci pour votre visite !' : '✅ Thank you for your visit!',
+    '',
+    fr ? `Bonjour ${opts.clientName},` : `Hi ${opts.clientName},`,
+    fr ? `Nous avons été ravis de vous accueillir pour ${opts.serviceName}.` : `It was a pleasure seeing you for ${opts.serviceName}.`,
+    '',
+    fr ? 'Au plaisir de vous revoir !' : 'We look forward to your next visit!',
   ]
-  if (opts.bookingUrl) {
-    lines.push(``, `Book your next appointment:`, opts.bookingUrl)
-  }
-  lines.push(``, `— ${opts.businessName}`)
+  if (opts.bookingUrl) lines.push('', fr ? 'Réservez votre prochain rendez-vous :' : 'Book your next appointment:', opts.bookingUrl)
+  lines.push('', `— ${opts.businessName}`)
   return lines.join('\n')
 }
 
@@ -130,16 +134,16 @@ export function tplReactivation(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `👋 We miss you, ${opts.clientName}!`,
-    ``,
-    `It's been a while since your last visit at ${opts.businessName}.`,
-    `We'd love to see you again!`,
+    fr ? `👋 Vous nous manquez, ${opts.clientName} !` : `👋 We miss you, ${opts.clientName}!`,
+    '',
+    fr ? `Cela fait quelque temps que vous n'êtes pas venu(e) chez ${opts.businessName}.` : `It's been a while since your last visit at ${opts.businessName}.`,
+    fr ? 'Nous serions ravis de vous revoir !' : "We'd love to see you again!",
   ]
-  if (opts.bookingUrl) {
-    lines.push(``, `Book your appointment:`, opts.bookingUrl)
-  }
+  if (opts.bookingUrl) lines.push('', fr ? 'Réservez votre rendez-vous :' : 'Book your appointment:', opts.bookingUrl)
   return lines.join('\n')
 }
 
@@ -147,16 +151,16 @@ export function tplBirthday(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `🎂 Happy Birthday, ${opts.clientName}!`,
-    ``,
-    `Wishing you a wonderful day from all of us at ${opts.businessName}.`,
-    `Treat yourself — you deserve it!`,
+    fr ? `🎂 Joyeux anniversaire, ${opts.clientName} !` : `🎂 Happy Birthday, ${opts.clientName}!`,
+    '',
+    fr ? `Toute l'équipe de ${opts.businessName} vous souhaite une excellente journée. 🎉` : `Wishing you a wonderful day from all of us at ${opts.businessName}.`,
+    fr ? 'Faites-vous plaisir, vous le méritez !' : 'Treat yourself — you deserve it!',
   ]
-  if (opts.bookingUrl) {
-    lines.push(``, `Book a special treat:`, opts.bookingUrl)
-  }
+  if (opts.bookingUrl) lines.push('', fr ? 'Réservez un moment rien que pour vous :' : 'Book a special treat:', opts.bookingUrl)
   return lines.join('\n')
 }
 
@@ -165,13 +169,17 @@ export function tplLowStock(opts: {
   quantity: number
   unit: string
   threshold: number
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   return [
-    `⚠️ Low stock alert`,
-    ``,
+    fr ? '⚠️ Alerte de stock faible' : '⚠️ Low stock alert',
+    '',
     `📦 ${opts.itemName}`,
-    `Current: ${opts.quantity} ${opts.unit} (threshold: ${opts.threshold})`,
-    ``,
-    `Please restock soon.`,
+    fr
+      ? `Stock actuel : ${opts.quantity} ${opts.unit} (seuil : ${opts.threshold})`
+      : `Current: ${opts.quantity} ${opts.unit} (threshold: ${opts.threshold})`,
+    '',
+    fr ? 'Veuillez réapprovisionner rapidement.' : 'Please restock soon.',
   ].join('\n')
 }

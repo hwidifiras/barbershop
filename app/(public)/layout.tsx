@@ -1,18 +1,6 @@
 import Link from 'next/link'
-import { Bricolage_Grotesque, DM_Sans } from 'next/font/google'
+import { bricolage, dmSans } from '@/lib/landing-fonts'
 import styles from './public-layout.module.css'
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-bricolage',
-})
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-dm-sans',
-})
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (

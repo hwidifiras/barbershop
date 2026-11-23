@@ -1,22 +1,10 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Bricolage_Grotesque, DM_Sans } from 'next/font/google'
+import { bricolage, dmSans } from '@/lib/landing-fonts'
 import { Check, Minus } from 'lucide-react'
 import { PricingCards } from './PricingCards'
 import styles from '../../(public)/public-layout.module.css'
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-bricolage',
-})
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-dm-sans',
-})
 
 export const metadata: Metadata = {
   title: 'Precios de Pronto — Software Gratis de Gestión para Negocios de Servicios',
@@ -38,6 +26,7 @@ export const metadata: Metadata = {
     languages: {
       en: 'https://trypronto.app',
       es: 'https://trypronto.app/es/precios',
+      fr: 'https://trypronto.app/fr/prix',
       'x-default': 'https://trypronto.app',
     },
   },
@@ -208,6 +197,9 @@ export default function EsPreciosPage() {
           </Link>
           <Link href="/" className={`${styles.navLink} lang-switcher`}>
             EN
+          </Link>
+          <Link href="/fr/prix" className={`${styles.navLink} lang-switcher`}>
+            FR
           </Link>
           <Link href="/register" className={styles.btnNav}>
             Empezar gratis

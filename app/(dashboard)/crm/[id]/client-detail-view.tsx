@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate, formatInBusinessTimezone } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -75,6 +75,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('clientDetail')
+  const locale = useLocale()
   const [client, setClient] = useState(initial)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -137,9 +138,9 @@ export function ClientDetailView({ client: initial, appointments, currency, time
 
   const stats = [
     { label: t('stats.totalVisits'), value: String(client.total_visits), icon: CalendarDays, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: t('stats.totalSpent'), value: formatCurrency(client.total_spent, currency), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: t('stats.lastVisit'), value: client.last_visit_at ? formatInBusinessTimezone(client.last_visit_at, timezone) : t('stats.never'), icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: t('stats.clientSince'), value: formatInBusinessTimezone(client.created_at, timezone), icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: t('stats.totalSpent'), value: formatCurrency(client.total_spent, currency, locale), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: t('stats.lastVisit'), value: client.last_visit_at ? formatInBusinessTimezone(client.last_visit_at, timezone, 'date', locale) : t('stats.never'), icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: t('stats.clientSince'), value: formatInBusinessTimezone(client.created_at, timezone, 'date', locale), icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50' },
   ]
 
   return (
@@ -323,7 +324,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                 {client.birthday && (
                   <div className="flex gap-2">
                     <span className="text-gray-400 w-16 shrink-0">{t('fields.birthday')}</span>
-                    <span className="text-gray-700">{formatDate(client.birthday)}</span>
+                    <span className="text-gray-700">{formatDate(client.birthday, locale)}</span>
                   </div>
                 )}
                 {client.tags.length > 0 && (
@@ -399,14 +400,14 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                         {a.services?.name ?? '—'}
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5">
-                        {formatInBusinessTimezone(a.starts_at, timezone)} · {formatInBusinessTimezone(a.starts_at, timezone, 'time')}
+                        {formatInBusinessTimezone(a.starts_at, timezone, 'date', locale)} · {formatInBusinessTimezone(a.starts_at, timezone, 'time', locale)}
                         {a.employees?.name && ` · ${a.employees.name}`}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
                       {a.price != null && (
                         <span className="text-sm font-semibold text-gray-900">
-                          {formatCurrency(a.price, currency)}
+                          {formatCurrency(a.price, currency, locale)}
                         </span>
                       )}
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[a.status] ?? 'bg-gray-100 text-gray-500'}`}>

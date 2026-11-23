@@ -17,7 +17,7 @@ import {
   CloudOff,
   CalendarDays,
 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import {
   cacheData,
   getCachedData,
@@ -57,6 +57,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('pos')
+  const locale = useLocale()
 
   // ─── POS state ────────────────────────────────────────────────────────────
   const [cart, setCart] = useState<CartItem[]>([])
@@ -179,7 +180,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
       const remaining = await getPendingCount()
       setPendingCount(remaining)
     } catch {
-      setSyncError('Sync failed. Will retry automatically.')
+      setSyncError(t('offlineSyncError'))
     } finally {
       setSyncing(false)
     }
@@ -329,7 +330,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                   Saved offline. Will sync when internet is restored.
                 </p>
               )}
-              <p className="text-2xl font-bold text-gray-900 mb-6">{formatCurrency(successAmount, currency)}</p>
+              <p className="text-2xl font-bold text-gray-900 mb-6">{formatCurrency(successAmount, currency, locale)}</p>
               <Button onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full">{t('success.newSale')}</Button>
             </CardContent>
           </Card>
@@ -338,31 +339,31 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
           {showSaveModal && (
             <Card>
               <CardContent className="pt-5 pb-5">
-                <p className="text-sm font-semibold text-gray-900 mb-3">Save this customer to your client base?</p>
+                <p className="text-sm font-semibold text-gray-900 mb-3">{t('saveClientPrompt')}</p>
                 <div className="space-y-2">
                   <input
                     type="text"
-                    placeholder="Name *"
+                    placeholder={t('saveClientNamePlaceholder')}
                     value={saveForm.name}
                     onChange={(e) => setSaveForm((f) => ({ ...f, name: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="tel"
-                    placeholder="Phone"
+                    placeholder={t('saveClientPhonePlaceholder')}
                     value={saveForm.phone}
                     onChange={(e) => setSaveForm((f) => ({ ...f, phone: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder={t('saveClientEmailPlaceholder')}
                     value={saveForm.email}
                     onChange={(e) => setSaveForm((f) => ({ ...f, email: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <textarea
-                    placeholder="Notes"
+                    placeholder={t('saveClientNotesPlaceholder')}
                     value={saveForm.notes}
                     onChange={(e) => setSaveForm((f) => ({ ...f, notes: e.target.value }))}
                     rows={2}
@@ -381,7 +382,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                     disabled={!saveForm.name.trim() || savingClient}
                     className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
-                    {savingClient ? '…' : 'Save client'}
+                    {savingClient ? '…' : t('saveClientSave')}
                   </button>
                 </div>
               </CardContent>
@@ -399,8 +400,8 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
       {!isOnline && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-orange-800 text-sm">
           <WifiOff className="w-4 h-4 shrink-0" />
-          <span className="font-medium">Offline mode</span>
-          <span className="text-orange-600">— Sales will sync automatically when you reconnect.</span>
+          <span className="font-medium">{t('offlineMode')}</span>
+          <span className="text-orange-600">— {t('offlineSyncAuto')}</span>
           {pendingCount > 0 && (
             <span className="ml-auto font-semibold">{pendingCount} pending</span>
           )}
@@ -472,7 +473,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                       className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all"
                     >
                       <div className="font-medium text-gray-900 text-sm mb-1">{s.name}</div>
-                      <div className="text-blue-600 font-semibold">{formatCurrency(s.price, currency)}</div>
+                      <div className="text-blue-600 font-semibold">{formatCurrency(s.price, currency, locale)}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{s.duration_min} min</div>
                     </button>
                   ))}
@@ -539,7 +540,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                 <div key={item.service.id} className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">{item.service.name}</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(item.service.price, currency)}</div>
+                    <div className="text-xs text-gray-500">{formatCurrency(item.service.price, currency, locale)}</div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => updateQty(item.service.id, -1)} className="p-1 rounded hover:bg-gray-100">
@@ -592,7 +593,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{t('totalLabel')}</span>
-              <span className="text-xl font-bold text-gray-900">{formatCurrency(total, currency)}</span>
+              <span className="text-xl font-bold text-gray-900">{formatCurrency(total, currency, locale)}</span>
             </div>
             <Button
               onClick={checkout}
@@ -603,7 +604,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
                 ? t('processing')
                 : isOnline
                   ? t('chargeButton')
-                  : `Save offline · ${formatCurrency(total, currency)}`}
+                  : `${t('offlineSaveButton')} · ${formatCurrency(total, currency, locale)}`}
             </Button>
           </div>
         </div>

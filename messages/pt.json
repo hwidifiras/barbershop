@@ -300,7 +300,9 @@
     "offlinePendingSync": "{count} venda(s) offline pendente(s) de sincronização",
     "offlineSyncNow": "Sincronizar agora",
     "offlineSavedReceipt": "Salvo offline. Será sincronizado quando houver conexão.",
-    "durationMin": "{min} min"
+    "durationMin": "{min} min",
+    "offlineSaveButton": "Salvar offline",
+    "offlineSyncError": "Falha na sincronização. Tentaremos novamente automaticamente."
   },
   "crm": {
     "title": "Clientes",
@@ -345,7 +347,11 @@
       "result": "Importação concluída",
       "imported": "{count} importado{count, plural, one {} other {s}}",
       "skipped": "{count} ignorado{count, plural, one {} other {s}} (duplicatas ou sem nome)",
-      "limitReached": "Limite do plano atingido. Faça upgrade para importar mais produtos."
+      "limitReached": "Limite do plano atingido. Faça upgrade para importar mais produtos.",
+      "fileParseError": "O arquivo está vazio ou não pôde ser interpretado.",
+      "missingNameColumn": "A coluna \"name\" não foi encontrada. Verifique os cabeçalhos do arquivo.",
+      "fileReadError": "Não foi possível ler o arquivo.",
+      "networkError": "Erro de rede. Tente novamente."
     },
     "searchPlaceholder": "Buscar por nome, SKU ou código de barras...",
     "itemsTotal": "{count} produtos no total",
@@ -449,7 +455,8 @@
       "colorLegend": "Legenda de cores",
       "teamColors": "Cores da equipe",
       "noTeamMembers": "Nenhum membro da equipe ainda",
-      "appointmentStatus": "Status do agendamento"
+      "appointmentStatus": "Status do agendamento",
+      "manualSource": "Manual"
     },
     "status": {
       "pending": "pendente",
@@ -473,7 +480,11 @@
       "cancel": "Cancelar",
       "saving": "Salvando…",
       "save": "Salvar",
-      "closedDayError": "Este dia está marcado como fechado no Horário de funcionamento. Atualize sua agenda em Configurações primeiro."
+      "closedDayError": "Este dia está marcado como fechado no Horário de funcionamento. Atualize sua agenda em Configurações primeiro.",
+      "noStaffAvailable": "Não há funcionários ativos disponíveis para esta reserva. Adicione um funcionário em Configurações ou selecione um funcionário específico.",
+      "slotAlreadyBooked": "Este horário já está reservado para o funcionário selecionado. Escolha outro horário.",
+      "saveError": "Não foi possível salvar o agendamento. Tente novamente.",
+      "assignError": "Não foi possível atualizar o funcionário. Tente novamente."
     },
     "detail": {
       "statusLabel": "Status",
@@ -511,7 +522,11 @@
       "upgrade": "Fazer upgrade →",
       "currentPlan": "Plano atual",
       "successMessage": "Assinatura ativada! Obrigado por fazer o upgrade.",
-      "errorMessage": "Algo deu errado. Por favor tente novamente ou entre em contato com o suporte."
+      "errorMessage": "Algo deu errado. Por favor tente novamente ou entre em contato com o suporte.",
+      "selfHostedDescription": "Você está usando a versão auto-hospedada do Pronto. Todos os recursos estão disponíveis sem assinatura.",
+      "selfHostedHeading": "Auto-hospedado — Todos os recursos desbloqueados",
+      "selfHostedFeaturesDescription": "Todos os recursos dos planos Pro e Agency estão disponíveis gratuitamente.",
+      "selfHostedManageHint": "Gerencie sua instância pelo Docker Compose."
     },
     "account": {
       "heading": "Minha conta",
@@ -530,7 +545,8 @@
       "pwNoMatch": "As senhas não coincidem",
       "pwSuccess": "Senha atualizada com sucesso",
       "emailInvalid": "Digite um endereço de e-mail válido",
-      "emailConfirmSent": "Confirmação enviada para {email}. Clique no link do e-mail para concluir a alteração."
+      "emailConfirmSent": "Confirmação enviada para {email}. Clique no link do e-mail para concluir a alteração.",
+      "newPasswordPlaceholder": "Mínimo de 8 caracteres"
     },
     "workingHours": {
       "heading": "Horário de funcionamento",
@@ -597,7 +613,8 @@
       "logoFormats": "PNG, JPG, WebP, SVG · máx 2MB",
       "logoProOnly": "Disponível no plano Pro →",
       "logoErrorRemove": "Falha ao remover o logo.",
-      "logoErrorNetwork": "Erro de rede: {message}"
+      "logoErrorNetwork": "Erro de rede: {message}",
+      "otherCurrency": "✏️ Outra (inserir manualmente)"
     },
     "services": {
       "empty": "Nenhum serviço ainda",
@@ -742,7 +759,8 @@
         "birthday": "Nome do template de aniversário",
         "birthdayPlaceholder": "ex. happy_birthday",
         "language": "Idioma do template"
-      }
+      },
+      "unknownError": "Erro desconhecido"
     },
     "modules": {
       "heading": "Módulos de funcionalidades",
@@ -900,7 +918,11 @@
       "mindbody": "Reports → Clients → Mailing Lists → Export → CSV",
       "square": "Customers → Customer Directory → Export",
       "other": "Exporte sua lista de clientes como CSV com colunas: name, phone, email"
-    }
+    },
+    "fileParseError": "O arquivo está vazio ou não pôde ser interpretado.",
+    "fileReadError": "Não foi possível ler o arquivo.",
+    "networkError": "Erro de rede. Tente novamente.",
+    "importFailed": "Falha na importação. Tente novamente."
   },
   "datePicker": {
     "today": "Hoje",

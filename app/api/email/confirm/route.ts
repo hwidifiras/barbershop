@@ -14,17 +14,19 @@ function tplConfirmClient(opts: {
   time: string
   businessName: string
   address?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ <b>Booking confirmed!</b>`,
+    `✅ <b>${fr ? 'Réservation confirmée !' : 'Booking confirmed!'}</b>`,
     ``,
     `👤 ${opts.clientName}`,
     `📋 ${opts.serviceName}`,
-    `🕐 ${opts.date} at ${opts.time}`,
+    `🕐 ${fr ? `${opts.date} à ${opts.time}` : `${opts.date} at ${opts.time}`}`,
     `🏠 ${opts.businessName}`,
   ]
   if (opts.address) lines.push(`📍 ${opts.address}`)
-  lines.push(``, `We'll remind you before the appointment.`)
+  lines.push(``, fr ? 'Nous vous enverrons un rappel avant le rendez-vous.' : `We'll remind you before the appointment.`)
   return lines.join('\n')
 }
 
@@ -35,17 +37,19 @@ function viberTplConfirmClient(opts: {
   time: string
   businessName: string
   address?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ Booking confirmed!`,
+    `✅ ${fr ? 'Réservation confirmée !' : 'Booking confirmed!'}`,
     ``,
     `👤 ${opts.clientName}`,
     `📋 ${opts.serviceName}`,
-    `🕐 ${opts.date} at ${opts.time}`,
+    `🕐 ${fr ? `${opts.date} à ${opts.time}` : `${opts.date} at ${opts.time}`}`,
     `🏠 ${opts.businessName}`,
   ]
   if (opts.address) lines.push(`📍 ${opts.address}`)
-  lines.push(``, `We'll remind you before the appointment.`)
+  lines.push(``, fr ? 'Nous vous enverrons un rappel avant le rendez-vous.' : `We'll remind you before the appointment.`)
   return lines.join('\n')
 }
 
@@ -95,13 +99,15 @@ export async function POST(req: NextRequest) {
 
     const { data: biz } = await supabase
       .from('businesses')
-      .select('name, address, slug, timezone, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
+      .select('name, address, slug, timezone, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
       .eq('id', appt.business_id)
       .single()
 
     const tz = biz?.timezone ?? 'UTC'
-    const date = formatEmailDate(appt.starts_at, tz)
-    const time = formatEmailTime(appt.starts_at, tz)
+    const locale = biz?.notification_language ?? 'en'
+    const intlLocale = locale === 'fr' ? 'fr-FR' : locale === 'es' ? 'es-ES' : locale === 'it' ? 'it-IT' : locale === 'pt' ? 'pt-BR' : 'en-US'
+    const date = formatEmailDate(appt.starts_at, tz, intlLocale)
+    const time = formatEmailTime(appt.starts_at, tz, intlLocale)
 
     // ── Telegram → владельцу ────────────────────────────────────────────────
     if (biz?.telegram_bot_token && biz?.telegram_chat_id) {
@@ -131,6 +137,7 @@ export async function POST(req: NextRequest) {
           time,
           businessName: biz.name,
           address: biz.address ?? undefined,
+          locale,
         })
       )
     }
@@ -163,6 +170,7 @@ export async function POST(req: NextRequest) {
           time,
           businessName: biz.name,
           address: biz.address ?? undefined,
+          locale,
         })
       )
     }
@@ -182,6 +190,7 @@ export async function POST(req: NextRequest) {
           businessName: biz?.name ?? '',
           employeeName: employee?.name,
           address: biz?.address ?? undefined,
+          locale,
         }),
         waCredentials
       )
@@ -230,6 +239,7 @@ export async function POST(req: NextRequest) {
       employeeName: employee?.name ?? undefined,
       address: biz?.address ?? undefined,
       calendarUrl,
+      locale,
     })
 
     // Record only after a confirmed successful send

@@ -204,7 +204,7 @@ export function ImportInventoryModal({ open, onClose, onImported }: Props) {
     try {
       const matrix = await parseFile(file)
       if (matrix.length < 2) {
-        setImportError('File appears empty or could not be parsed.')
+        setImportError(t('import.fileParseError'))
         return
       }
       const hdrs     = matrix[0].map(String)
@@ -212,7 +212,7 @@ export function ImportInventoryModal({ open, onClose, onImported }: Props) {
       const map      = detectColumns(hdrs)
 
       if (map.name === -1) {
-        setImportError('No "name" column found. Please check your file headers.')
+        setImportError(t('import.missingNameColumn'))
         return
       }
 
@@ -222,7 +222,7 @@ export function ImportInventoryModal({ open, onClose, onImported }: Props) {
       setParsedRows(rowsToParsed(dataRows, map))
       setStep('preview')
     } catch {
-      setImportError('Failed to read file.')
+      setImportError(t('import.fileReadError'))
     }
   }, [])
 
@@ -261,7 +261,7 @@ export function ImportInventoryModal({ open, onClose, onImported }: Props) {
       setStep('result')
       onImported(data.imported)
     } catch {
-      setImportError('Network error. Please try again.')
+      setImportError(t('import.networkError'))
     } finally {
       setLoading(false)
     }
@@ -437,7 +437,7 @@ export function ImportInventoryModal({ open, onClose, onImported }: Props) {
                   {t('import.skipped', { count: resultSkipped })}
                 </p>
               )}
-              <Button onClick={handleClose} className="mt-2">Done</Button>
+              <Button onClick={handleClose} className="mt-2">{t('import.result')}</Button>
             </div>
           )}
 

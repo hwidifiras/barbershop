@@ -6,7 +6,7 @@ import { formatInBusinessTimezone, uses12HourClock } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { ChevronLeft, ChevronRight, ExternalLink, CreditCard, Palette } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import {
   DndContext,
@@ -84,11 +84,11 @@ function getStatusStripe(status: string): string {
   return STATUS_STRIPE[status.toLowerCase()] ?? STATUS_STRIPE.pending
 }
 
-const SOURCE_BADGE: Record<string, { label: string; pill: string }> = {
-  online:   { label: 'Online',   pill: 'bg-blue-100 text-blue-700' },
-  manual:   { label: 'Manual',   pill: 'bg-gray-100 text-gray-500' },
-  telegram: { label: 'Telegram', pill: 'bg-sky-100 text-sky-700' },
-  viber:    { label: 'Viber',    pill: 'bg-purple-100 text-purple-700' },
+const SOURCE_BADGE: Record<string, { pill: string }> = {
+  online:   { pill: 'bg-blue-100 text-blue-700' },
+  manual:   { pill: 'bg-gray-100 text-gray-500' },
+  telegram: { pill: 'bg-sky-100 text-sky-700' },
+  viber:    { pill: 'bg-purple-100 text-purple-700' },
 }
 interface Employee { id: string; name: string }
 interface Service { id: string; name: string; duration_min: number; price: number }
@@ -156,6 +156,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('booking')
+  const locale = useLocale()
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
   const [origin, setOrigin] = useState('')
   useEffect(() => { setOrigin(window.location.origin) }, [])
@@ -189,7 +190,6 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
   }, [businessHours, appointments, timezone])
   const [showForm, setShowForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
   const is12h = uses12HourClock(locale)
 
   // hour/minute always stored in 24h internally; period only used when is12h
@@ -375,11 +375,11 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
         .catch(() => {/* non-critical */})
     } else if (error) {
       if (error.message?.includes('no_staff_available')) {
-        setFormError('No active staff available to take this booking. Add an employee in Settings, or select a specific employee.')
+        setFormError(t('form.noStaffAvailable'))
       } else if (error.message?.includes('slot_already_booked')) {
-        setFormError('This time slot is already booked for the selected employee. Please choose a different time.')
+        setFormError(t('form.slotAlreadyBooked'))
       } else {
-        setFormError('Failed to save the appointment. Please try again.')
+        setFormError(t('form.saveError'))
       }
     }
     setSaving(false)
@@ -408,7 +408,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
       body: JSON.stringify({ employee_id: employeeId || null }),
     })
     if (!res.ok) {
-      setAssignError('Failed to update employee. Please try again.')
+      setAssignError(t('form.assignError'))
       return
     }
     const updated = await res.json()
@@ -445,8 +445,8 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
         <div className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-gray-100"><ChevronLeft className="w-4 h-4" /></button>
           <span className="text-sm font-medium text-gray-700 w-40 text-center">
-            {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} –{' '}
-            {weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {weekDates[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' })} –{' '}
+            {weekDates[6].toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
           <button onClick={() => navigate(1)} className="p-1.5 rounded-lg hover:bg-gray-100"><ChevronRight className="w-4 h-4" /></button>
           <button onClick={() => { const m = getMonday(new Date()); setWeekStart(m); loadWeek(m) }}
@@ -464,15 +464,15 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
             <button
               onClick={() => setShowLegend((v) => !v)}
               className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
-              title="Color legend"
+              title={t('calendar.colorLegend')}
             >
               <Palette className="w-4 h-4" />
             </button>
             {showLegend && (
               <div className="absolute right-0 top-8 z-30 w-56 bg-white rounded-xl border border-gray-200 shadow-lg p-3">
-                <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Team colors</div>
+                <div className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('calendar.teamColors')}</div>
                 {employees.length === 0 ? (
-                  <p className="text-xs text-gray-400">No team members yet</p>
+                  <p className="text-xs text-gray-400">{t('calendar.noTeamMembers')}</p>
                 ) : (
                   <div className="space-y-1.5 mb-3">
                     {employees.map((emp) => {
@@ -486,17 +486,17 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
                     })}
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: NO_EMPLOYEE_COLOR.bg, border: '1px solid rgba(0,0,0,0.1)' }} />
-                      <span className="text-xs text-gray-500 truncate">Unassigned</span>
+                      <span className="text-xs text-gray-500 truncate">{t('detail.unassigned')}</span>
                     </div>
                   </div>
                 )}
                 <div className="border-t border-gray-100 pt-2 mt-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Appointment status</div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('calendar.appointmentStatus')}</div>
                   <div className="space-y-1.5">
                     {Object.entries(STATUS_STRIPE).map(([status, color]) => (
                       <div key={status} className="flex items-center gap-2">
                         <span className="w-1 h-4 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-xs text-gray-700 capitalize">{status.replace('_', ' ')}</span>
+                        <span className="text-xs text-gray-700 capitalize">{t(`status.${status}`)}</span>
                       </div>
                     ))}
                   </div>
@@ -559,13 +559,13 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
                                 style={{ backgroundColor: empColor.bg, color: empColor.text, borderLeft: `5px solid ${stripe}`, borderTop: '1px solid rgba(0,0,0,0.08)', borderRight: '1px solid rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}
                               >
                                 <div className="font-semibold truncate">{a.clients?.name ?? (a.source === 'online' ? 'Online' : t('walkIn'))}</div>
-                                <div className="truncate">{a.services?.name} · {formatInBusinessTimezone(a.starts_at, timezone, 'time')}</div>
+                                <div className="truncate">{a.services?.name} · {formatInBusinessTimezone(a.starts_at, timezone, 'time', locale)}</div>
                                 {a.employees?.name && (
                                   <div className="truncate text-[10px] opacity-70">{a.employees.name}</div>
                                 )}
                                 {a.source && SOURCE_BADGE[a.source] && (
                                   <span className={`inline-block mt-0.5 text-[9px] leading-tight px-1 rounded font-medium ${SOURCE_BADGE[a.source].pill}`}>
-                                    {SOURCE_BADGE[a.source].label}
+                                    {a.source === 'online' ? t('detail.onlineLabel') : a.source === 'manual' ? t('calendar.manualSource') : a.source}
                                   </span>
                                 )}
                               </div>
@@ -724,12 +724,12 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h2 className="text-base font-semibold mb-1">{selectedAppt.clients?.name ?? (selectedAppt.source === 'online' ? 'Online booking' : t('walkIn'))}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              {selectedAppt.services?.name} · {formatInBusinessTimezone(selectedAppt.starts_at, timezone, 'time')} – {formatInBusinessTimezone(selectedAppt.ends_at, timezone, 'time')}
+              {selectedAppt.services?.name} · {formatInBusinessTimezone(selectedAppt.starts_at, timezone, 'time', locale)} – {formatInBusinessTimezone(selectedAppt.ends_at, timezone, 'time', locale)}
             </p>
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               {selectedAppt.source && SOURCE_BADGE[selectedAppt.source] && (
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SOURCE_BADGE[selectedAppt.source].pill}`}>
-                  {SOURCE_BADGE[selectedAppt.source].label}
+                  {selectedAppt.source === 'online' ? t('detail.onlineLabel') : selectedAppt.source === 'manual' ? t('calendar.manualSource') : selectedAppt.source}
                 </span>
               )}
             </div>
@@ -741,7 +741,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
                   onChange={(e) => assignEmployee(selectedAppt.id, e.target.value)}
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{t('detail.unassigned')}</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
@@ -782,20 +782,20 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
             )}
             {confirmDelete ? (
               <div className="rounded-xl border border-red-200 bg-red-50 p-3 mb-2">
-                <p className="text-sm text-red-700 font-medium mb-2">Delete this appointment?</p>
+                <p className="text-sm text-red-700 font-medium mb-2">{t('detail.deleteConfirm')}</p>
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white h-8 text-sm"
                     onClick={() => deleteAppointment(selectedAppt.id)}
                   >
-                    Delete
+                    {t('detail.deleteConfirmYes')}
                   </Button>
                   <Button
                     variant="outline"
                     className="flex-1 h-8 text-sm"
                     onClick={() => setConfirmDelete(false)}
                   >
-                    Cancel
+                    {t('form.cancel')}
                   </Button>
                 </div>
               </div>

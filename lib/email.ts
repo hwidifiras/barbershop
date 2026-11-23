@@ -11,9 +11,9 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 // ─── Shared layout ────────────────────────────────────────────────────────────
 
-function layout(businessName: string, body: string): string {
+function layout(businessName: string, body: string, locale = 'en'): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${locale}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,7 +37,7 @@ function layout(businessName: string, body: string): string {
           <tr>
             <td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
               <p style="margin:0;font-size:12px;color:#9ca3af;">
-                Powered by <a href="${APP_URL}" style="color:#2563eb;text-decoration:none;">Pronto</a>
+                ${locale === 'fr' ? 'Propulsé par' : 'Powered by'} <a href="${APP_URL}" style="color:#2563eb;text-decoration:none;">Pronto</a>
               </p>
             </td>
           </tr>
@@ -86,25 +86,27 @@ export async function sendBookingConfirmation(opts: {
   employeeName?: string
   address?: string
   calendarUrl?: string
+  locale?: string
 }) {
+  const fr = opts.locale === 'fr'
   const body = `
-    ${h1('Booking confirmed!')}
-    ${p(`Hi ${firstName(opts.clientName)}, your appointment is confirmed.`)}
+    ${h1(fr ? 'Réservation confirmée !' : 'Booking confirmed!')}
+    ${p(fr ? `Bonjour ${firstName(opts.clientName)}, votre rendez-vous est confirmé.` : `Hi ${firstName(opts.clientName)}, your appointment is confirmed.`)}
     ${info([
-      ['Service', opts.serviceName],
+      [fr ? 'Prestation' : 'Service', opts.serviceName],
       ['Date', opts.date],
-      ['Time', opts.time],
-      ...(opts.employeeName ? [['Employee', opts.employeeName] as [string, string]] : []),
-      ...(opts.address ? [['Address', opts.address] as [string, string]] : []),
+      [fr ? 'Heure' : 'Time', opts.time],
+      ...(opts.employeeName ? [[fr ? 'Intervenant' : 'Employee', opts.employeeName] as [string, string]] : []),
+      ...(opts.address ? [[fr ? 'Adresse' : 'Address', opts.address] as [string, string]] : []),
     ])}
-    ${p('See you soon!')}
-    ${opts.calendarUrl ? p(`<a href="${opts.calendarUrl}" style="color:#2563eb;">Add to Google Calendar</a>`) : ''}
+    ${p(fr ? 'À bientôt !' : 'See you soon!')}
+    ${opts.calendarUrl ? p(`<a href="${opts.calendarUrl}" style="color:#2563eb;">Ajouter à Google Agenda</a>`) : ''}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `Booking confirmed — ${opts.serviceName} at ${opts.time}`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `Réservation confirmée — ${opts.serviceName} à ${opts.time}` : `Booking confirmed — ${opts.serviceName} at ${opts.time}`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -120,25 +122,27 @@ export async function sendReminder(opts: {
   employeeName?: string
   address?: string
   isOneHour?: boolean
+  locale?: string
 }) {
-  const when = opts.isOneHour ? 'in 1 hour' : 'tomorrow'
+  const fr = opts.locale === 'fr'
+  const when = fr ? (opts.isOneHour ? 'dans 1 heure' : 'demain') : (opts.isOneHour ? 'in 1 hour' : 'tomorrow')
   const body = `
-    ${h1(`Reminder: your appointment is ${when}`)}
-    ${p(`Hi ${firstName(opts.clientName)}, just a friendly reminder about your upcoming appointment.`)}
+    ${h1(fr ? `Rappel : votre rendez-vous est ${when}` : `Reminder: your appointment is ${when}`)}
+    ${p(fr ? `Bonjour ${firstName(opts.clientName)}, nous vous rappelons votre prochain rendez-vous.` : `Hi ${firstName(opts.clientName)}, just a friendly reminder about your upcoming appointment.`)}
     ${info([
-      ['Service', opts.serviceName],
+      [fr ? 'Prestation' : 'Service', opts.serviceName],
       ['Date', opts.date],
-      ['Time', opts.time],
-      ...(opts.employeeName ? [['Employee', opts.employeeName] as [string, string]] : []),
-      ...(opts.address ? [['Address', opts.address] as [string, string]] : []),
+      [fr ? 'Heure' : 'Time', opts.time],
+      ...(opts.employeeName ? [[fr ? 'Intervenant' : 'Employee', opts.employeeName] as [string, string]] : []),
+      ...(opts.address ? [[fr ? 'Adresse' : 'Address', opts.address] as [string, string]] : []),
     ])}
-    ${p('We look forward to seeing you!')}
+    ${p(fr ? 'Nous avons hâte de vous accueillir !' : 'We look forward to seeing you!')}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `Reminder: ${opts.serviceName} ${when} at ${opts.time}`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `Rappel : ${opts.serviceName} ${when} à ${opts.time}` : `Reminder: ${opts.serviceName} ${when} at ${opts.time}`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -150,18 +154,20 @@ export async function sendThankYou(opts: {
   businessName: string
   serviceName: string
   bookingUrl?: string
+  locale?: string
 }) {
+  const fr = opts.locale === 'fr'
   const body = `
-    ${h1('Thank you for your visit!')}
-    ${p(`Hi ${firstName(opts.clientName)}, thank you for choosing ${opts.businessName}. We hope to see you again!`)}
-    ${p(`You were in for: <strong>${opts.serviceName}</strong>`)}
-    ${opts.bookingUrl ? btn('Book your next appointment', opts.bookingUrl) : ''}
+    ${h1(fr ? 'Merci pour votre visite !' : 'Thank you for your visit!')}
+    ${p(fr ? `Bonjour ${firstName(opts.clientName)}, merci d'avoir choisi ${opts.businessName}. Au plaisir de vous revoir !` : `Hi ${firstName(opts.clientName)}, thank you for choosing ${opts.businessName}. We hope to see you again!`)}
+    ${p(fr ? `Votre prestation : <strong>${opts.serviceName}</strong>` : `You were in for: <strong>${opts.serviceName}</strong>`)}
+    ${opts.bookingUrl ? btn(fr ? 'Réserver votre prochain rendez-vous' : 'Book your next appointment', opts.bookingUrl) : ''}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `Thanks for visiting ${opts.businessName}!`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `Merci pour votre visite chez ${opts.businessName} !` : `Thanks for visiting ${opts.businessName}!`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -172,18 +178,20 @@ export async function sendReactivation(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }) {
+  const fr = opts.locale === 'fr'
   const body = `
-    ${h1('We miss you!')}
-    ${p(`Hi ${firstName(opts.clientName)}, it's been a while since your last visit to ${opts.businessName}.`)}
-    ${p("We'd love to see you again. Book your next appointment anytime — it only takes a minute.")}
-    ${opts.bookingUrl ? btn('Book now', opts.bookingUrl) : ''}
+    ${h1(fr ? 'Vous nous manquez !' : 'We miss you!')}
+    ${p(fr ? `Bonjour ${firstName(opts.clientName)}, cela fait quelque temps que vous n'êtes pas venu(e) chez ${opts.businessName}.` : `Hi ${firstName(opts.clientName)}, it's been a while since your last visit to ${opts.businessName}.`)}
+    ${p(fr ? 'Nous serions ravis de vous revoir. Réservez votre prochain rendez-vous en quelques instants.' : "We'd love to see you again. Book your next appointment anytime — it only takes a minute.")}
+    ${opts.bookingUrl ? btn(fr ? 'Réserver maintenant' : 'Book now', opts.bookingUrl) : ''}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `${opts.businessName} misses you — book your next visit`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `${opts.businessName} aimerait vous revoir` : `${opts.businessName} misses you — book your next visit`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -194,18 +202,20 @@ export async function sendBirthday(opts: {
   clientName: string
   businessName: string
   bookingUrl?: string
+  locale?: string
 }) {
+  const fr = opts.locale === 'fr'
   const body = `
-    ${h1('🎂 Happy Birthday!')}
-    ${p(`Hi ${firstName(opts.clientName)}, wishing you a wonderful birthday from the whole team at ${opts.businessName}!`)}
-    ${p('To celebrate, come in and treat yourself.')}
-    ${opts.bookingUrl ? btn('Book a visit', opts.bookingUrl) : ''}
+    ${h1(fr ? '🎂 Joyeux anniversaire !' : '🎂 Happy Birthday!')}
+    ${p(fr ? `Bonjour ${firstName(opts.clientName)}, toute l'équipe de ${opts.businessName} vous souhaite un merveilleux anniversaire !` : `Hi ${firstName(opts.clientName)}, wishing you a wonderful birthday from the whole team at ${opts.businessName}!`)}
+    ${p(fr ? 'Pour célébrer cette journée, faites-vous plaisir avec une visite.' : 'To celebrate, come in and treat yourself.')}
+    ${opts.bookingUrl ? btn(fr ? 'Réserver une visite' : 'Book a visit', opts.bookingUrl) : ''}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `Happy Birthday from ${opts.businessName}! 🎂`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `Joyeux anniversaire de la part de ${opts.businessName} ! 🎂` : `Happy Birthday from ${opts.businessName}! 🎂`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -215,21 +225,23 @@ export async function sendLowStockAlert(opts: {
   to: string
   businessName: string
   items: { name: string; quantity: number; unit: string; threshold: number }[]
+  locale?: string
 }) {
+  const fr = opts.locale === 'fr'
   const rows = opts.items.map(
-    (i) => [i.name, `${i.quantity} ${i.unit} (threshold: ${i.threshold})`] as [string, string]
+    (i) => [i.name, fr ? `${i.quantity} ${i.unit} (seuil : ${i.threshold})` : `${i.quantity} ${i.unit} (threshold: ${i.threshold})`] as [string, string]
   )
   const body = `
-    ${h1('Low-stock alert')}
-    ${p(`The following items in ${opts.businessName} are running low:`)}
+    ${h1(fr ? 'Alerte de stock faible' : 'Low-stock alert')}
+    ${p(fr ? `Les articles suivants de ${opts.businessName} sont bientôt en rupture de stock :` : `The following items in ${opts.businessName} are running low:`)}
     ${info(rows)}
-    ${btn('Go to Inventory', `${APP_URL}/inventory`)}
+    ${btn(fr ? 'Accéder à l’inventaire' : 'Go to Inventory', `${APP_URL}/inventory`)}
   `
   return sendMail({
     from: getFromAddress(opts.businessName),
     to: opts.to,
-    subject: `Low-stock alert — ${opts.items.length} item${opts.items.length > 1 ? 's' : ''} running low`,
-    html: layout(opts.businessName, body),
+    subject: fr ? `Alerte de stock faible — ${opts.items.length} article(s) à réapprovisionner` : `Low-stock alert — ${opts.items.length} item(s) running low`,
+    html: layout(opts.businessName, body, opts.locale),
   })
 }
 
@@ -250,8 +262,8 @@ function firstName(name: string): string {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export function formatEmailDate(iso: string, timezone = 'UTC') {
-  return new Date(iso).toLocaleDateString('en-US', {
+export function formatEmailDate(iso: string, timezone = 'UTC', locale = 'en-US') {
+  return new Date(iso).toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -259,8 +271,8 @@ export function formatEmailDate(iso: string, timezone = 'UTC') {
   })
 }
 
-export function formatEmailTime(iso: string, timezone = 'UTC') {
-  return new Date(iso).toLocaleTimeString('en-US', {
+export function formatEmailTime(iso: string, timezone = 'UTC', locale = 'en-US') {
+  return new Date(iso).toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,

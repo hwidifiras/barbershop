@@ -5,7 +5,7 @@ import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
 import { Users, Package, CalendarDays, TrendingUp, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
@@ -22,6 +22,7 @@ const STATUS_STRIPE: Record<string, string> = {
 export default async function DashboardPage() {
   const supabase = await createClient()
   const t = await getTranslations('dashboard')
+  const locale = await getLocale()
   const user = await getAuthUser()
 
   const business = await getBusinessForOwner(user!.id)
@@ -121,7 +122,7 @@ export default async function DashboardPage() {
                   </div>
                   <ArrowUpRight className="w-4 h-4 text-gray-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">{formatCurrency(revenueToday, business.currency)}</div>
+                <div className="text-2xl font-bold text-gray-900">{formatCurrency(revenueToday, business.currency, locale)}</div>
                 <div className="text-sm text-gray-500 mt-0.5">{t('stats.revenueToday')}</div>
                 {/* Sparkline */}
                 <div className="flex items-end gap-[2px] mt-2 h-6">
@@ -228,7 +229,7 @@ export default async function DashboardPage() {
                           {(a.clients as { name: string } | null)?.name ?? t('upcomingAppointments.walkIn')}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {(a.services as { name: string } | null)?.name} · {formatInBusinessTimezone(a.starts_at, business.timezone)}
+                          {(a.services as { name: string } | null)?.name} · {formatInBusinessTimezone(a.starts_at, business.timezone, 'date', locale)}
                         </div>
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[a.status]}`}>
@@ -263,11 +264,11 @@ export default async function DashboardPage() {
                           {(tx.clients as { name: string } | null)?.name ?? t('recentSales.walkIn')}
                         </div>
                         <div className="text-xs text-gray-500 capitalize">
-                          {tx.payment_method} · {formatInBusinessTimezone(tx.created_at, business.timezone)}
+                          {tx.payment_method} · {formatInBusinessTimezone(tx.created_at, business.timezone, 'date', locale)}
                         </div>
                       </div>
                       <span className="text-sm font-semibold text-gray-900">
-                        {formatCurrency(tx.amount, business.currency)}
+                        {formatCurrency(tx.amount, business.currency, locale)}
                       </span>
                     </div>
                   ))}

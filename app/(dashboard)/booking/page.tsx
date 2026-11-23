@@ -4,9 +4,11 @@ import { Header } from '@/components/layout/header'
 import { BookingCalendar } from './booking-calendar'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { getTranslations } from 'next-intl/server'
 
 export default async function BookingPage() {
   const supabase = await createClient()
+  const t = await getTranslations('booking')
   const user = await getAuthUser()
 
   const business = await getBusinessForOwner(user!.id)
@@ -52,7 +54,7 @@ export default async function BookingPage() {
 
   return (
     <>
-      <Header title="Booking" />
+      <Header title={t('title')} />
       <BookingCalendar
         businessId={business.id}
         slug={business.slug}
