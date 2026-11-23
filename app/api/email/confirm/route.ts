@@ -14,17 +14,19 @@ function tplConfirmClient(opts: {
   time: string
   businessName: string
   address?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ <b>Booking confirmed!</b>`,
+    `✅ <b>${fr ? 'Réservation confirmée !' : 'Booking confirmed!'}</b>`,
     ``,
     `👤 ${opts.clientName}`,
     `📋 ${opts.serviceName}`,
-    `🕐 ${opts.date} at ${opts.time}`,
+    `🕐 ${fr ? `${opts.date} à ${opts.time}` : `${opts.date} at ${opts.time}`}`,
     `🏠 ${opts.businessName}`,
   ]
   if (opts.address) lines.push(`📍 ${opts.address}`)
-  lines.push(``, `We'll remind you before the appointment.`)
+  lines.push(``, fr ? 'Nous vous enverrons un rappel avant le rendez-vous.' : `We'll remind you before the appointment.`)
   return lines.join('\n')
 }
 
@@ -35,17 +37,19 @@ function viberTplConfirmClient(opts: {
   time: string
   businessName: string
   address?: string
+  locale?: string
 }): string {
+  const fr = opts.locale === 'fr'
   const lines = [
-    `✅ Booking confirmed!`,
+    `✅ ${fr ? 'Réservation confirmée !' : 'Booking confirmed!'}`,
     ``,
     `👤 ${opts.clientName}`,
     `📋 ${opts.serviceName}`,
-    `🕐 ${opts.date} at ${opts.time}`,
+    `🕐 ${fr ? `${opts.date} à ${opts.time}` : `${opts.date} at ${opts.time}`}`,
     `🏠 ${opts.businessName}`,
   ]
   if (opts.address) lines.push(`📍 ${opts.address}`)
-  lines.push(``, `We'll remind you before the appointment.`)
+  lines.push(``, fr ? 'Nous vous enverrons un rappel avant le rendez-vous.' : `We'll remind you before the appointment.`)
   return lines.join('\n')
 }
 

@@ -12,7 +12,7 @@ interface Props {
 
 export function UnitSelect({ value, onChange, className = '' }: Props) {
   const t = useTranslations('inventory.units')
-  const isOther = value !== '' && !PRESET_UNITS.includes(value)
+  const isOther = value !== '' && !(PRESET_UNITS as readonly string[]).includes(value)
   const selectVal = isOther ? 'other' : value
 
   return (

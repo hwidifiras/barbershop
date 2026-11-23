@@ -1,5 +1,5 @@
 -- Allow French notifications independently of the dashboard interface language.
--- Keep the existing supported notification locales and add Italian and French.
+-- Existing supported notification locales (en, es, pt) plus French.
 
 ALTER TABLE public.businesses
   DROP CONSTRAINT IF EXISTS businesses_notification_language_check;

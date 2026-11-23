@@ -520,7 +520,7 @@ export function PublicBookingForm({ business, services, employees, workingHours,
                         <div>{formatSlot(ts)}</div>
                         {isPartial && (
                           <div style={{ fontSize: 10, color: isSelected ? 'rgba(255,255,255,0.8)' : 'var(--brand)', marginTop: 2 }}>
-                            {t('spotsLeft', { count: spotsLeft })
+                            {t('spotsLeft', { count: spotsLeft })}
                           </div>
                         )}
                       </button>

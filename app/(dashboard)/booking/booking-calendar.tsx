@@ -565,7 +565,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
                                 )}
                                 {a.source && SOURCE_BADGE[a.source] && (
                                   <span className={`inline-block mt-0.5 text-[9px] leading-tight px-1 rounded font-medium ${SOURCE_BADGE[a.source].pill}`}>
-                                    {SOURCE_BADGE[a.source].label}
+                                    {a.source === 'online' ? t('detail.onlineLabel') : a.source === 'manual' ? t('calendar.manualSource') : a.source}
                                   </span>
                                 )}
                               </div>
@@ -782,7 +782,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
             )}
             {confirmDelete ? (
               <div className="rounded-xl border border-red-200 bg-red-50 p-3 mb-2">
-                <p className="text-sm text-red-700 font-medium mb-2"{t('detail.deleteConfirm')}</p>
+                <p className="text-sm text-red-700 font-medium mb-2">{t('detail.deleteConfirm')}</p>
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white h-8 text-sm"

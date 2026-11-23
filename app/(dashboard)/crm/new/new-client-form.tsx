@@ -56,8 +56,8 @@ export function NewClientForm({ businessId }: Props) {
     e.preventDefault()
     if (!form.name.trim()) return
 
-    const phoneErr = validatePhone(form.phone)
-    const bdErr = validateBirthday(form.birthday)
+    const phoneErr = validatePhone(form.phone, validationT('phoneInvalid'))
+    const bdErr = validateBirthday(form.birthday, validationT('dateInvalid'))
     if (phoneErr || bdErr) {
       setErrors({ phone: phoneErr ?? undefined, birthday: bdErr ?? undefined })
       return
