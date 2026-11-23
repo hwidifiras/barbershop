@@ -80,7 +80,7 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 | More sheet | n/a | **Add**: Products (if module on), Settings, Language, Sign out, "Share booking link". |
 | Desktop nav | Dark navy sidebar | **Change** (restyle + relabel): Today, Calendar, Charge, Clients, Products, Settings. |
 | Labels | Dashboard, POS, Booking, Inventory | **Change** to Today, Charge, Calendar, Products. |
-| "Pronto." brand | Top of sidebar and mobile bar | **Change**: shop logo/name first; Pronto mark small, in More. |
+| "Pronto." brand | Top of sidebar and mobile bar | **Change**: shop logo/name first. (The small Pronto mark in More is not shown yet.) |
 
 ### 4.2 Dashboard becomes **Today** (`/dashboard`)
 
@@ -90,8 +90,8 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 | Total clients card | **Hide** (low value for the chair). |
 | Low stock card | **Hide** unless Products is on and something is low, then a small alert chip linking to Products. |
 | Upcoming appointments list | **Change** to a **timeline** for today (all barbers, with a barber filter chip row). |
-| **Next client hero** | **Add**: client, service, time, barber, countdown. One-tap **Start** → **Done** → **Charge**, plus **No-show**. |
-| **+ Walk-in** button | **Add**: large, always visible; creates an appointment for "now" (reuses the existing manual-appointment insert with `source: 'manual'`). |
+| **Next client hero** | **Add**: client, service, time, barber, countdown, with one-tap **Terminé**, **Encaisser** (opens the POS prefilled) and **Absent**. There is no separate "Start" status in the database, so **En cours** is derived from the clock (the appointment's start and end times). |
+| **+ Walk-in** button (**Client sans RDV**) | **Add**: large, always visible. Pick the service and barber (or "Premier libre"); name and phone are optional (a client is created or matched by phone). The page shows the **next free time** ("Prochain créneau : 11:30 avec firas") and books it as a normal appointment (`source: 'manual'`); the database's slot allocation prevents double-booking. |
 | Recent sales list | **Hide** from Today; reachable via Charge → History. |
 | Onboarding checklist | **Change**: barbershop checklist of 3 steps: add barbers (and photos) → set hours → **share your link**. |
 | **Share booking link card** | **Add**: copy link, QR code, "put this in your Instagram bio" tip. |
@@ -409,3 +409,4 @@ All five answered; see the decisions log (section 12) and sections 4.10 and 4.11
 | 2026-11-23 | **Offers** are shop-wide by default, with optional per-barber limits via simple chips; period is optional and checked against the visit date. | 4.12 |
 | 2026-11-23 | The 💺 chair emoji and "available barber" badge are **skipped**. | 4.12 |
 | 2026-11-23 | **Conflict rules:** one main service per booking (combos are main services); optional **Inclut déjà** on a main service (supplement shown "Inclus ✓", server refuses it); optional explicit **single-choice group** on supplements; **offers accept supplements** on top. Chosen over a full "rubriques" redesign to keep the barber's setup light. | 4.12 |
+| 2026-11-23 | **Phase 2 shell:** French is forced for the whole dashboard in barbershop mode (the shell switches the dashboard language once and the switcher is hidden). **En cours** is derived from time because no in-progress status exists. | 4.1, 4.2 |

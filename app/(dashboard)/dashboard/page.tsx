@@ -9,6 +9,8 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
+import { BarberToday } from './barber-today'
 
 const STATUS_STRIPE: Record<string, string> = {
   pending:   '#94a3b8',
@@ -30,6 +32,10 @@ export default async function DashboardPage() {
   if (!business) redirect('/onboarding')
 
   if (!business.onboarding_completed) redirect('/onboarding')
+
+  // Barbershop mode (docs/barbershop-mode/SPEC.md 4.2): the "Today" screen replaces the dashboard.
+  // Every other business type continues below, unchanged.
+  if (isBarbershopMode(business)) return <BarberToday business={business} />
 
   const todayStr = new Date().toISOString().slice(0, 10)
   const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10)
