@@ -211,10 +211,13 @@ Shops differ (80/20, 20/80, 50/50, drifting toward appointments over time). So t
 ### 4.11 Foundations for barber (team) access: build in from phase 1
 
 Goal after the current scope: other barbers in the same shop log in and track **their own**
-schedule. Today every business table is restricted to the shop **owner**
-(`owner_id = auth.uid()` row-level security); `employees.user_id` exists but nothing uses
-it. Real access needs new rules, so it is its own phase (section 9, phase 5). To avoid
-rework, every phase before it follows these rules:
+schedule. What exists today (checked in the database, 2026-11-23): the row-level-security
+policies on every shop table use `my_business_ids()`, which returns the owner's business **and**
+the business of any active employee whose `employees.user_id` matches the login. So a barber
+account linked that way would see **all** of the shop's data, not only their own visits, and
+there is no invite flow, role, or per-barber scoping yet. Real team access therefore needs
+finer rules, and is its own phase (section 9, phase 5). To avoid rework, every phase before it
+follows these rules:
 
 1. **Barber-aware from day one:** every Today/Calendar/Charge query and component takes a
    `barberId` filter; the barber chip row and per-barber booking links ship in phase 1-3.
@@ -225,8 +228,57 @@ rework, every phase before it follows these rules:
    the barber as the first choice.
 4. **Roles (phase 5):** `owner` (everything), `barber` (own schedule, own clients' notes,
    charge own visits; no settings/billing). Invite by link; links `employees.user_id`.
-5. **Access rules (phase 5):** new RLS policies so a barber sees only their appointments and
-   the shop's services; owner policies are unchanged, so standard shops are unaffected.
+5. **Access rules (phase 5):** tighten the `my_business_ids()`-based policies for barber
+   accounts so a barber sees only their appointments and the shop's services; owner access is
+   unchanged, so standard shops are unaffected.
+
+### 4.12 Smart services: supplements, online switch, offers (barbershop only)
+
+Decided 2026-11-23. Barbershop mode only; standard business types are unchanged.
+
+**Main services and supplements.** Every service has a type: **Principale** or **Supplément**
+(`services.kind`). A supplement has a switch **Réservable seul** (`services.bookable_alone`, set
+per supplement):
+- off (default): the client can only add it to a main service. It never appears as a starting
+  choice on the booking page.
+- on: it also appears in the starting list and can be booked by itself.
+
+**Booking flow.** After a client picks a main service, an optional screen **"Ajouter un
+supplément ?"** lists the supplements (+ price, + minutes) with a running total. Skipped when the
+shop has no supplements, or when an offer or a stand-alone supplement was chosen. Duration and
+price are summed; the booking blocks the barber for the total time.
+
+**Online switch per service** (`services.bookable_online`, default on). Off = the service is
+hidden from the **public booking page only** and refused by `/api/book`. It stays visible in the
+POS and the calendar (those keep using `services.is_active`), and **existing bookings are never
+touched**: the change only applies to new online bookings.
+
+**Offers (forfaits).** A named package of services sold for one price (`offers`):
+- shown on the booking page as a card with the regular total in grey with a line through it and
+  the package price in the accent colour (for example ~~200~~ **120**), plus "Jusqu'au 30 novembre";
+- optional start and end date; it is validated against the **visit date**, and the date strip
+  greys out days outside the period; it disappears by itself once the period has passed;
+- applies to **all barbers by default**; the barber can limit it to chosen barbers with chips
+  (no chips selected = everyone). If the client picked "Premier disponible" and the offer is
+  limited, the page names an allowed free barber itself so the booking cannot land elsewhere;
+- booked as one appointment: total duration, package price, and a readable label.
+
+**Where the data lives.** `appointment_items` stores each line (name, price, duration frozen at
+booking time); `appointments.items_summary` ("Coupe + Barbe") keeps screens that only read
+appointments working; `appointments.offer_id` records the offer. The server (`/api/book`)
+recomputes price, duration and every rule from the database via `lib/barbershop-cart.ts`; the
+browser's totals are display only.
+
+**Other screens.** Calendar and confirmation messages show the combined label. In the POS,
+"Charger" from such a booking loads every line and applies the package discount so the sale
+equals the booked price.
+
+**Settings (barbershop mode).** Services tab becomes: list with type badges and an **En ligne**
+switch per row, add/edit form (type segmented control, "Réservable seul" for supplements,
+category, price, duration), and an **Offres** section (name, tap the services, price with
+"au lieu de X", optional period, "Tous les barbiers" or chosen barbers, active switch).
+
+Not included (decided): the 💺 chair emoji and the "available barber" badge were skipped.
 
 ---
 
@@ -294,6 +346,7 @@ any new table; adding a column needs no new grants.
 |---|---|---|
 | **0** | This spec approved; `getVertical()` and `isBarbershop` plumbing; mode switch | Standard shops render identically (snapshot/route tests); barbershop flag readable in layout. |
 | **1** | **Public booking link** (4.9) + barber photos + service categories + Settings → Shop link/QR | A real barbershop link books end-to-end on a 360px phone inside Instagram's browser; confirmation links work. |
+| **1b** | **Smart services** (4.12): supplements, online switch, offers | Barber creates a supplement and an offer in Settings; a client books a haircut + supplement and an offer on the public link; price, duration and calendar/POS/confirmation all agree. |
 | **2** | **Shell + Today** (4.1, 4.2) | Bottom nav on phone; next-client hero and walk-in button work; no horizontal scroll at 360px. |
 | **3** | **Calendar day agenda + Charge + Clients** (4.3–4.5) | A full day (book, start, done, charge) can be run one-handed on a phone. |
 | **4** | **Settings reorg, onboarding presets, Products** (4.6–4.8) | New barbershop signup lands on a ready-to-share setup in under 3 minutes. |
@@ -331,3 +384,7 @@ All five answered; see the decisions log (section 12) and sections 4.10 and 4.11
 | 2026-11-23 | **French only** in barbershop mode (no language switcher, French notifications by default). | 3, 4.7, 4.9 |
 | 2026-11-23 | **Cash only** for now: the client pays at the chair. Card/transfer hidden in barbershop mode. | 4.4 |
 | 2026-11-23 | **Arabic/RTL later**, after team access. | 3, 9 |
+| 2026-11-23 | **Supplements:** "Réservable seul" is a toggle **per supplement** (not shop-wide). | 4.12 |
+| 2026-11-23 | **Service on/off** hides it from **online booking only**; it stays visible in the POS and calendar and existing bookings are untouched. | 4.12 |
+| 2026-11-23 | **Offers** are shop-wide by default, with optional per-barber limits via simple chips; period is optional and checked against the visit date. | 4.12 |
+| 2026-11-23 | The 💺 chair emoji and "available barber" badge are **skipped**. | 4.12 |

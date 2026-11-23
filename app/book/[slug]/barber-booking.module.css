@@ -138,3 +138,34 @@
   .barber, .service, .date, .slot, .btn { transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
   .btn:active, .service:active, .slot:active { transform: scale(0.98); }
 }
+
+/* ── Offers (forfaits) ─────────────────────────────────────────────────── */
+.offer {
+  width: 100%; text-align: left; font: inherit; cursor: pointer; color: var(--text);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface));
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--border)); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; min-height: var(--tap);
+}
+.offerTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.offerName { font-size: 16px; font-weight: 700; }
+.pill { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #111; background: var(--accent); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.offerIncludes { font-size: 13px; color: var(--muted); }
+.offerPrices { display: flex; align-items: baseline; gap: 10px; }
+.strike { color: var(--muted); text-decoration: line-through; font-size: 14px; }
+.offerPrice { font-size: 20px; font-weight: 800; color: var(--accent); }
+.offerUntil { font-size: 12px; color: var(--muted); }
+
+/* ── Supplements (add-ons) ─────────────────────────────────────────────── */
+.addon {
+  width: 100%; min-height: var(--tap); background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; text-align: left;
+  color: var(--text); cursor: pointer; font: inherit;
+}
+.addon[aria-pressed='true'] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.box { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #111; }
+.addon[aria-pressed='true'] .box { background: var(--accent); border-color: var(--accent); }
+.addonBody { flex: 1; min-width: 0; }
+.totalLine { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 2px 2px; font-size: 15px; }
+.totalLine b { font-size: 18px; }
+.rowPrice { display: inline-flex; align-items: baseline; gap: 8px; justify-content: flex-end; }
+.btnStack { display: flex; flex-direction: column; gap: 8px; width: 100%; }

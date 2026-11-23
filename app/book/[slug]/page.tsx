@@ -76,12 +76,17 @@ export default async function PublicBookingPage(props: {
       )
     }
 
-    const [{ data: bServices }, { data: bBarbers }, { data: bHours }] = await Promise.all([
+    const todayInTz = new Intl.DateTimeFormat('en-CA', {
+      timeZone: business.timezone ?? 'UTC', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date())
+
+    const [{ data: bServices }, { data: bBarbers }, { data: bHours }, { data: bOffers }] = await Promise.all([
       supabase
         .from('services')
-        .select('id, name, description, price, duration_min, category')
+        .select('id, name, description, price, duration_min, category, kind, bookable_alone, bookable_online, is_active')
         .eq('business_id', business.id)
         .eq('is_active', true)
+        .eq('bookable_online', true)
         .order('category', { nullsFirst: false })
         .order('name'),
       supabase
@@ -95,6 +100,14 @@ export default async function PublicBookingPage(props: {
         .select('day_of_week, is_open, open_time, close_time, break_start, break_end')
         .eq('business_id', business.id)
         .order('day_of_week'),
+      // Offers that have not ended yet; the page and /api/book re-check validity per visit date.
+      supabase
+        .from('offers')
+        .select('id, name, price, service_ids, barber_ids, valid_from, valid_to, is_active')
+        .eq('business_id', business.id)
+        .eq('is_active', true)
+        .or(`valid_to.is.null,valid_to.gte.${todayInTz}`)
+        .order('created_at'),
     ])
 
     return (
@@ -104,7 +117,8 @@ export default async function PublicBookingPage(props: {
           timezone: business.timezone, address: business.address ?? null, phone: business.phone ?? null,
           logo_url: business.logo_url ?? null,
         }}
-        services={bServices ?? []}
+        services={(bServices ?? []).map((sv) => ({ ...sv, kind: sv.kind === 'supplement' ? 'supplement' : 'main' }))}
+        offers={(bOffers ?? []).map((o) => ({ ...o, price: Number(o.price) }))}
         barbers={bBarbers ?? []}
         workingHours={bHours ?? []}
         accent={accent}

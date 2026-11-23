@@ -19,6 +19,23 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: Phase 1b — smart services: supplements, online switch, offers (branch `feat/barbershop-smart-services`)
+- **What changed:**
+  - Services have a type (main / supplement) and, for supplements, "Réservable seul" (per supplement).
+  - Per-service **En ligne** switch: hides the service from the public page and `/api/book` only; POS and calendar still show it; existing bookings unchanged.
+  - **Offers**: package price for several services, optional period, all barbers or chosen barbers; shown with the regular price struck through.
+  - Public booking page: offers section, optional "Ajouter un supplément ?" step with running total, price/duration summed, date strip respects an offer's period.
+  - `/api/book` computes price, duration and all rules itself (`lib/barbershop-cart.ts`) and stores the lines.
+  - Calendar and confirmation messages show the combined label; POS "Charger" loads all lines and the package discount.
+  - Settings → Services (barbershops): new screen for all of the above.
+- **Where:** `lib/barbershop-cart.ts`, `app/api/book/route.ts`, `app/api/email/confirm/route.ts`, `app/book/[slug]/{page,barber-booking}.tsx` + css, `components/settings/barbershop-services.tsx`, `app/(dashboard)/settings/{page,settings-tabs}.tsx`, `app/(dashboard)/booking/{page,booking-calendar}.tsx`, `app/(dashboard)/pos/{page,pos-terminal}.tsx`, `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`.
+- **Barbershop vs standard:** all new behaviour is gated by `isBarbershopMode`. Standard types keep the unchanged booking form and Services tab; `/api/book` ignores `extraServiceIds`/`offerId` for them; calendar/POS/confirmation changes only act when a booking has the new fields (null for standard bookings).
+- **Data/migrations:** `040_barbershop_services_offers.sql`: `services.kind/bookable_alone/bookable_online`, tables `offers` and `appointment_items` (RLS via `my_business_ids()` + explicit grants), `appointments.offer_id/items_summary`. Additive; defaults leave existing rows unchanged. **Apply before deploying.**
+- **Spec section(s):** 4.12 (and a correction to 4.11 about the existing access rules)
+- **Verified:** `tsc` clean; unit tests 87 pass (21 new for pricing/rules: supplements, alone/with-main, hidden services, offer period and barbers, three-decimal prices); `npm test` 14 pass incl. the grants rule for 040; `check:i18n` OK; lint 0 errors; full `next build` OK.
+- **Notes / follow-ups:** reminder messages sent by the scheduled job still name only the main service (confirmation messages are updated). Chair emoji and "available barber" badge skipped by decision.
+
+
 ### 2026-11-23: Phase 1 — barbershop public booking link (branch `feat/barbershop-booking-link`)
 - **What changed:**
   - New phone-first, dark, French-only booking page for barbershops: barber photo cards (or "Premier disponible") + services grouped by category on screen 1; swipeable 14-day strip, "Prochain créneau" shortcut and Matin/Après-midi/Soir slot groups on screen 2; name + phone only, summary and a sticky confirm button on screen 3; confirmation with add-to-calendar, Maps, call and WhatsApp.

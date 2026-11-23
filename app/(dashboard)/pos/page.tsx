@@ -54,19 +54,35 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
     serviceId: string
     staffId: string
     label: string
+    // Barbershop bookings with supplements or an offer: every line, plus the package discount.
+    lines?: { id: string; name: string; price: number; duration_min: number; category: string | null }[]
+    discount?: number
   } | undefined
 
   if (searchParams.bookingId) {
     const { data: appt } = await supabase
       .from('appointments')
-      .select('id, starts_at, clients(name), services(name), employees(id, name)')
+      .select('id, starts_at, price, items_summary, clients(name), services(name), employees(id, name)')
       .eq('id', searchParams.bookingId)
       .eq('business_id', business.id) // security: only own business
       .maybeSingle()
 
     if (appt) {
+      // Lines of a barbershop booking (supplements / offer). Standard bookings have none and
+      // keep the original single-service prefill.
+      const { data: apptItems } = await supabase
+        .from('appointment_items')
+        .select('service_id, name, price, duration_min, position')
+        .eq('appointment_id', appt.id)
+        .order('position')
+      const lines = (apptItems ?? []).map((i) => ({
+        id: i.service_id ?? `item-${i.position}`, name: i.name, price: Number(i.price), duration_min: i.duration_min, category: null as string | null,
+      }))
+      const listTotal = lines.reduce((t, l) => t + l.price, 0)
+      const discount = lines.length > 0 && appt.price != null ? Math.max(0, Math.round((listTotal - Number(appt.price)) * 1000) / 1000) : 0
+
       const clientName = (appt.clients as { name: string } | null)?.name ?? 'Walk-in'
-      const serviceName = (appt.services as { name: string } | null)?.name ?? ''
+      const serviceName = appt.items_summary ?? (appt.services as { name: string } | null)?.name ?? ''
       const tz = business.timezone ?? 'UTC'
       bookingContext = {
         bookingId: appt.id,
@@ -74,6 +90,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
         serviceId: searchParams.serviceId ?? '',
         staffId: searchParams.staffId ?? (appt.employees as { id: string; name: string } | null)?.id ?? '',
         label: `${clientName} — ${serviceName} — ${formatInBusinessTimezone(appt.starts_at, tz, 'time', locale)}`,
+        ...(lines.length > 0 ? { lines, discount } : {}),
       }
     }
   }

@@ -42,6 +42,8 @@ interface BookingContext {
   serviceId: string
   staffId: string
   label: string
+  lines?: Service[]
+  discount?: number
 }
 
 interface POSTerminalProps {
@@ -122,8 +124,14 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
   // ─── On mount: prefill from booking context ──────────────────────────────
   useEffect(() => {
     if (!bookingContext) return
-    const svc = initialServices.find((s) => s.id === bookingContext.serviceId)
-    if (svc) setCart([{ service: svc, qty: 1 }])
+    if (bookingContext.lines && bookingContext.lines.length > 0) {
+      // Barbershop booking with supplements / an offer: load every line and the package discount.
+      setCart(bookingContext.lines.map((l) => ({ service: l, qty: 1 })))
+      if (bookingContext.discount) setDiscount(bookingContext.discount)
+    } else {
+      const svc = initialServices.find((s) => s.id === bookingContext.serviceId)
+      if (svc) setCart([{ service: svc, qty: 1 }])
+    }
     if (bookingContext.clientId) setSelectedClient(bookingContext.clientId)
     if (bookingContext.staffId) setSelectedEmployee(bookingContext.staffId)
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -21,7 +21,7 @@ import {
 } from '@dnd-kit/core'
 
 interface Appointment {
-  id: string; starts_at: string; ends_at: string; status: string; source: string | null; notes: string | null
+  id: string; starts_at: string; ends_at: string; status: string; source: string | null; notes: string | null; items_summary?: string | null
   clients: { id: string; name: string } | null
   employees: { id: string; name: string } | null
   services: { id: string; name: string; price: number } | null
@@ -331,7 +331,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
   async function loadWeek(start: Date) {
     const end = new Date(start); end.setDate(start.getDate() + 7)
     const { data } = await supabase.from('appointments')
-      .select('id, starts_at, ends_at, status, source, notes, clients(id, name), employees(id, name), services(id, name, price)')
+      .select('id, starts_at, ends_at, status, source, notes, items_summary, clients(id, name), employees(id, name), services(id, name, price)')
       .eq('business_id', businessId).gte('starts_at', start.toISOString()).lt('starts_at', end.toISOString()).order('starts_at')
     setAppointments((data as Appointment[]) ?? [])
   }
@@ -363,7 +363,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
       business_id: businessId, client_id: form.client_id || null, employee_id: form.employee_id || null,
       service_id: form.service_id, starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString(),
       notes: form.notes ? form.notes.trim() || null : null, price: service.price, status: 'confirmed', source: 'manual',
-    }).select('id, starts_at, ends_at, status, source, notes, clients(id, name), employees(id, name), services(id, name, price)').single()
+    }).select('id, starts_at, ends_at, status, source, notes, items_summary, clients(id, name), employees(id, name), services(id, name, price)').single()
 
     if (!error && data) {
       setAppointments((prev) => [...prev, data as Appointment])
@@ -559,7 +559,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
                                 style={{ backgroundColor: empColor.bg, color: empColor.text, borderLeft: `5px solid ${stripe}`, borderTop: '1px solid rgba(0,0,0,0.08)', borderRight: '1px solid rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}
                               >
                                 <div className="font-semibold truncate">{a.clients?.name ?? (a.source === 'online' ? 'Online' : t('walkIn'))}</div>
-                                <div className="truncate">{a.services?.name} · {formatInBusinessTimezone(a.starts_at, timezone, 'time', locale)}</div>
+                                <div className="truncate">{a.items_summary ?? a.services?.name} · {formatInBusinessTimezone(a.starts_at, timezone, 'time', locale)}</div>
                                 {a.employees?.name && (
                                   <div className="truncate text-[10px] opacity-70">{a.employees.name}</div>
                                 )}
@@ -590,7 +590,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
               <div className="rounded px-2 py-1 text-xs shadow-lg w-28"
                 style={{ backgroundColor: empColor.bg, color: empColor.text, borderLeft: `5px solid ${stripe}`, borderTop: '1px solid rgba(0,0,0,0.08)', borderRight: '1px solid rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
                 <div className="font-semibold truncate">{draggedAppt.clients?.name ?? (draggedAppt.source === 'online' ? 'Online' : t('walkIn'))}</div>
-                <div className="truncate">{draggedAppt.services?.name}</div>
+                <div className="truncate">{draggedAppt.items_summary ?? draggedAppt.services?.name}</div>
                 {draggedAppt.employees?.name && (
                   <div className="truncate opacity-70">{draggedAppt.employees.name}</div>
                 )}
@@ -724,7 +724,7 @@ export function BookingCalendar({ businessId, slug, timezone, appointments: init
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h2 className="text-base font-semibold mb-1">{selectedAppt.clients?.name ?? (selectedAppt.source === 'online' ? 'Online booking' : t('walkIn'))}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              {selectedAppt.services?.name} · {formatInBusinessTimezone(selectedAppt.starts_at, timezone, 'time', locale)} – {formatInBusinessTimezone(selectedAppt.ends_at, timezone, 'time', locale)}
+              {selectedAppt.items_summary ?? selectedAppt.services?.name} · {formatInBusinessTimezone(selectedAppt.starts_at, timezone, 'time', locale)} – {formatInBusinessTimezone(selectedAppt.ends_at, timezone, 'time', locale)}
             </p>
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               {selectedAppt.source && SOURCE_BADGE[selectedAppt.source] && (

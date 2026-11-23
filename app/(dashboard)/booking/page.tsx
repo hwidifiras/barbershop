@@ -25,7 +25,7 @@ export default async function BookingPage() {
     await Promise.all([
       supabase
         .from('appointments')
-        .select('id, starts_at, ends_at, status, source, notes, clients(id, name), employees(id, name), services(id, name, price)')
+        .select('id, starts_at, ends_at, status, source, notes, items_summary, clients(id, name), employees(id, name), services(id, name, price)')
         .eq('business_id', business.id)
         .gte('starts_at', weekStart.toISOString())
         .lt('starts_at', weekEnd.toISOString())

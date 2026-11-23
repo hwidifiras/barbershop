@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     const { data: appt, error: apptErr } = await supabase
       .from('appointments')
-      .select('id, starts_at, business_id, source, services(name, duration_min), employees(name), clients(name, email, whatsapp_number, telegram_id, viber_user_id)')
+      .select('id, starts_at, business_id, source, items_summary, services(name, duration_min), employees(name), clients(name, email, whatsapp_number, telegram_id, viber_user_id)')
       .eq('id', appointmentId)
       .single()
 
@@ -96,6 +96,8 @@ export async function POST(req: NextRequest) {
     } | null
     const service = appt.services as unknown as { name: string; duration_min: number } | null
     const employee = appt.employees as unknown as { name: string } | null
+    // Barbershop bookings with supplements / an offer carry a readable label ("Coupe + Barbe").
+    const serviceLabel = appt.items_summary ?? service?.name
 
     const { data: biz } = await supabase
       .from('businesses')
@@ -116,7 +118,7 @@ export async function POST(req: NextRequest) {
         biz.telegram_chat_id,
         tplNewBooking({
           clientName: client?.name ?? 'Walk-in',
-          serviceName: service?.name ?? '—',
+          serviceName: serviceLabel ?? '—',
           date,
           time,
           employeeName: employee?.name,
@@ -132,7 +134,7 @@ export async function POST(req: NextRequest) {
         client.telegram_id,
         tplConfirmClient({
           clientName: client.name,
-          serviceName: service?.name ?? '—',
+          serviceName: serviceLabel ?? '—',
           date,
           time,
           businessName: biz.name,
@@ -149,7 +151,7 @@ export async function POST(req: NextRequest) {
         biz.viber_chat_id,
         viberTplNewBooking({
           clientName: client?.name ?? 'Walk-in',
-          serviceName: service?.name ?? '—',
+          serviceName: serviceLabel ?? '—',
           date,
           time,
           employeeName: employee?.name,
@@ -165,7 +167,7 @@ export async function POST(req: NextRequest) {
         client.viber_user_id,
         viberTplConfirmClient({
           clientName: client.name,
-          serviceName: service?.name ?? '—',
+          serviceName: serviceLabel ?? '—',
           date,
           time,
           businessName: biz.name,
@@ -184,7 +186,7 @@ export async function POST(req: NextRequest) {
         client.whatsapp_number,
         waTplBookingConfirmation({
           clientName: client.name,
-          serviceName: service?.name ?? '—',
+          serviceName: serviceLabel ?? '—',
           date,
           time,
           businessName: biz?.name ?? '',
@@ -221,7 +223,7 @@ export async function POST(req: NextRequest) {
 
     const calendarUrl = buildGCalUrlFromISO({
       businessName: biz?.name ?? '',
-      serviceName: service?.name ?? '',
+      serviceName: serviceLabel ?? '',
       employeeName: employee?.name ?? null,
       startsAt: appt.starts_at,
       durationMin: service?.duration_min ?? 60,
@@ -233,7 +235,7 @@ export async function POST(req: NextRequest) {
       to: recipientEmail,
       clientName: client?.name ?? 'Guest',
       businessName: biz?.name ?? 'Your appointment',
-      serviceName: service?.name ?? '—',
+      serviceName: serviceLabel ?? '—',
       date,
       time,
       employeeName: employee?.name ?? undefined,

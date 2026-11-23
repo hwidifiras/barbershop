@@ -10,6 +10,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { MODULES, ModuleKey } from '@/lib/modules'
 import { isBarbershopMode } from '@/lib/vertical'
 import { BarbershopShopCard } from '@/components/settings/barbershop-shop-card'
+import { BarbershopServices, type ServiceRow, type OfferRow } from '@/components/settings/barbershop-services'
 
 const clean = (s: string, max = 500) => s?.trim().slice(0, max) ?? ''
 
@@ -38,7 +39,7 @@ interface Business {
   barbershop_mode: boolean | null
   online_booking_enabled: boolean
 }
-interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; is_active: boolean; capacity: number }
+interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; is_active: boolean; capacity: number; kind?: string; bookable_alone?: boolean; bookable_online?: boolean }
 interface Employee { id: string; name: string; role: string; email: string | null; phone: string | null; is_active: boolean; avatar_url?: string | null }
 interface DayHours { day_of_week: number; is_open: boolean; open_time: string; close_time: string; break_start?: string | null; break_end?: string | null }
 
@@ -57,10 +58,10 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${String(h).padStart(2, '0')}:${m}`
 })
 
-interface Props { business: Business & { telegram_chat_id?: string | null; viber_chat_id?: string | null }; services: Service[]; employees: Employee[]; workingHours: DayHours[]; userEmail: string }
+interface Props { business: Business & { telegram_chat_id?: string | null; viber_chat_id?: string | null }; services: Service[]; offers?: OfferRow[]; employees: Employee[]; workingHours: DayHours[]; userEmail: string }
 type Tab = 'general' | 'services' | 'employees' | 'notifications' | 'billing' | 'account' | 'modules'
 
-export function SettingsTabs({ business: initial, services: initServices, employees: initEmployees, workingHours: initHours, userEmail }: Props) {
+export function SettingsTabs({ business: initial, services: initServices, offers: initOffers = [], employees: initEmployees, workingHours: initHours, userEmail }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('settings')
@@ -797,7 +798,21 @@ export function SettingsTabs({ business: initial, services: initServices, employ
       )}
 
       {/* Services */}
-      {tab === 'services' && (
+      {/* Barbershop mode (docs/barbershop-mode/SPEC.md 4.12): main services, supplements, offers. */}
+      {tab === 'services' && isBarbershopMode(initial) && (
+        <BarbershopServices
+          businessId={initial.id}
+          currency={biz.currency}
+          services={initServices.map((sv): ServiceRow => ({
+            ...sv, price: Number(sv.price), kind: sv.kind ?? 'main',
+            bookable_alone: sv.bookable_alone ?? false, bookable_online: sv.bookable_online ?? true,
+          }))}
+          offers={initOffers}
+          barbers={employees.filter((e) => e.is_active).map((e) => ({ id: e.id, name: e.name }))}
+        />
+      )}
+
+      {tab === 'services' && !isBarbershopMode(initial) && (
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {services.length === 0 ? (
