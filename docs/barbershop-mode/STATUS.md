@@ -6,7 +6,8 @@ Last updated: 2026-11-23 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 |---|---|---|
 | 0 | Spec, mode switch (`isBarbershopMode`) | Done |
 | 1 | Public booking link (3 screens, French, dark), barber photos, QR + links, online on/off | Done, live |
-| 1b | Smart services: supplements, per-service online switch, offers | Built; deploys after migration 040 |
+| 1b | Smart services: supplements, per-service online switch, offers | Done, live |
+| 1c | No contradictions: "Inclut déjà", single-choice groups, supplements on offers | Built; deploys after migration 041 |
 | 2 | Phone navigation bar + "Today" screen | Next |
 | 3 | Day agenda calendar, Charge (cash), Clients | Planned |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
@@ -17,7 +18,7 @@ Last updated: 2026-11-23 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 1. Settings → Général → set **Type d'activité** to Barbershop, save, reload.
 2. Settings → Général: link, QR code, barber links and photos, "Réservation en ligne", "Mode barbershop".
 3. Open `/book/<slug>` on a phone.
-4. Settings → Prestations (barbershops): types, "En ligne" switches, offers.
+4. Settings → Prestations (barbershops): types, "En ligne" switches, "Inclut déjà", single-choice groups, offers.
 
 ## Rules we keep
 - Barbershop changes only apply when `isBarbershopMode(business)`; other types stay on the standard SaaS.

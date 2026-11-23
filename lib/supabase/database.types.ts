@@ -214,6 +214,8 @@ export type Database = {
           kind: string
           bookable_alone: boolean
           bookable_online: boolean
+          includes: string[]
+          exclusive_group: string | null
           created_at: string
         }
         Insert: {
@@ -229,6 +231,8 @@ export type Database = {
           kind?: string
           bookable_alone?: boolean
           bookable_online?: boolean
+          includes?: string[]
+          exclusive_group?: string | null
           created_at?: string
         }
         Update: {
@@ -244,6 +248,8 @@ export type Database = {
           kind?: string
           bookable_alone?: boolean
           bookable_online?: boolean
+          includes?: string[]
+          exclusive_group?: string | null
           created_at?: string
         }
         Relationships: [

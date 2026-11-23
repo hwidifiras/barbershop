@@ -39,7 +39,7 @@ interface Business {
   barbershop_mode: boolean | null
   online_booking_enabled: boolean
 }
-interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; is_active: boolean; capacity: number; kind?: string; bookable_alone?: boolean; bookable_online?: boolean }
+interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; is_active: boolean; capacity: number; kind?: string; bookable_alone?: boolean; bookable_online?: boolean; includes?: string[]; exclusive_group?: string | null }
 interface Employee { id: string; name: string; role: string; email: string | null; phone: string | null; is_active: boolean; avatar_url?: string | null }
 interface DayHours { day_of_week: number; is_open: boolean; open_time: string; close_time: string; break_start?: string | null; break_end?: string | null }
 
@@ -806,6 +806,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
           services={initServices.map((sv): ServiceRow => ({
             ...sv, price: Number(sv.price), kind: sv.kind ?? 'main',
             bookable_alone: sv.bookable_alone ?? false, bookable_online: sv.bookable_online ?? true,
+            includes: sv.includes ?? [], exclusive_group: sv.exclusive_group ?? null,
           }))}
           offers={initOffers}
           barbers={employees.filter((e) => e.is_active).map((e) => ({ id: e.id, name: e.name }))}

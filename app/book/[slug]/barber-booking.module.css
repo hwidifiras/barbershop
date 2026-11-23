@@ -169,3 +169,8 @@
 .totalLine b { font-size: 18px; }
 .rowPrice { display: inline-flex; align-items: baseline; gap: 8px; justify-content: flex-end; }
 .btnStack { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+/* ── Included / single-choice supplements ──────────────────────────────── */
+.addon:disabled, .addon[data-included='true'] { cursor: default; opacity: 0.6; background: var(--surface-2); }
+.addon[data-included='true'] .box { background: color-mix(in srgb, var(--accent) 35%, transparent); border-color: transparent; }
+.includes { font-size: 12px; margin-top: 3px; color: var(--accent); }
