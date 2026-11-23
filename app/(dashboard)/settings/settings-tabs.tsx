@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2, Check, Loader2, CheckCircle2, AlertCircle, Users, Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { MODULES, ModuleKey } from '@/lib/modules'
+import { isBarbershopMode } from '@/lib/vertical'
+import { BarbershopShopCard } from '@/components/settings/barbershop-shop-card'
 
 const clean = (s: string, max = 500) => s?.trim().slice(0, max) ?? ''
 
@@ -33,9 +35,11 @@ interface Business {
   notification_language: string | null
   logo_url: string | null
   enabled_modules: string[] | null
+  barbershop_mode: boolean | null
+  online_booking_enabled: boolean
 }
 interface Service { id: string; name: string; description: string | null; price: number; duration_min: number; category: string | null; is_active: boolean; capacity: number }
-interface Employee { id: string; name: string; role: string; email: string | null; phone: string | null; is_active: boolean }
+interface Employee { id: string; name: string; role: string; email: string | null; phone: string | null; is_active: boolean; avatar_url?: string | null }
 interface DayHours { day_of_week: number; is_open: boolean; open_time: string; close_time: string; break_start?: string | null; break_end?: string | null }
 
 const DEFAULT_HOURS: DayHours[] = [0, 1, 2, 3, 4, 5, 6].map((dow) => ({
@@ -525,6 +529,15 @@ export function SettingsTabs({ business: initial, services: initServices, employ
       {/* General */}
       {tab === 'general' && (
         <div className="space-y-6">
+        {/* Barbershop mode (docs/barbershop-mode/SPEC.md): shown only for barbershops. The card stays
+            rendered when the mode is off so the shop can switch it back on. */}
+        {(initial.type === 'barbershop' || isBarbershopMode(initial)) && (
+          <BarbershopShopCard
+            business={{ id: initial.id, slug: biz.slug, online_booking_enabled: initial.online_booking_enabled ?? true }}
+            barbers={employees.filter((e) => e.is_active).map((e) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url ?? null }))}
+            modeOn={isBarbershopMode(initial)}
+          />
+        )}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-900 mb-4">{t('general.heading')}</h2>
           <div className="grid sm:grid-cols-2 gap-4">

@@ -48,6 +48,8 @@ export type Database = {
           wa_template_birthday: string | null
           wa_template_language: string | null
           brand_color: string | null
+          barbershop_mode: boolean | null
+          online_booking_enabled: boolean
           notification_language: string | null
           enabled_modules: string[] | null
           created_at: string
@@ -91,6 +93,8 @@ export type Database = {
           wa_template_birthday?: string | null
           wa_template_language?: string | null
           brand_color?: string | null
+          barbershop_mode?: boolean | null
+          online_booking_enabled?: boolean
           notification_language?: string | null
           enabled_modules?: string[] | null
           created_at?: string
@@ -134,6 +138,8 @@ export type Database = {
           wa_template_birthday?: string | null
           wa_template_language?: string | null
           brand_color?: string | null
+          barbershop_mode?: boolean | null
+          online_booking_enabled?: boolean
           notification_language?: string | null
           enabled_modules?: string[] | null
           created_at?: string

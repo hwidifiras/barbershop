@@ -9,6 +9,7 @@ import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 import { createServiceClient } from '@/lib/supabase/service'
 import { rateLimit, getIp } from '@/lib/rate-limit'
+import { isBarbershopMode } from '@/lib/vertical'
 import { computeEffectiveHours, checkSlotWithinHours, dayOfWeekFromDateString } from '@/lib/booking-availability'
 
 function sanitize(s: string): string {
@@ -92,10 +93,20 @@ export async function POST(req: NextRequest) {
       .maybeSingle(),
     supabase
       .from('businesses')
-      .select('timezone')
+      .select('timezone, type, barbershop_mode, online_booking_enabled')
       .eq('id', businessId)
       .maybeSingle(),
   ])
+
+  // Barbershop mode, dial 1 (docs/barbershop-mode/SPEC.md 4.10): a walk-in-only shop can turn
+  // the public link off. Enforced here as well as in the page so a stale tab or a direct POST
+  // cannot book. Only barbershop mode reads this flag; other business types are unaffected.
+  if (isBarbershopMode(biz) && biz?.online_booking_enabled === false) {
+    return NextResponse.json(
+      { error: 'online_booking_disabled', message: 'Online booking is turned off for this business.' },
+      { status: 403 }
+    )
+  }
 
   if (!service) {
     return NextResponse.json({ error: 'service_not_found' }, { status: 404 })
