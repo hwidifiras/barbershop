@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { inter } from '@/lib/app-font'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import enMessages from '../messages/en.json'
@@ -9,7 +9,6 @@ import './globals.css'
 // unavailable (see RootLayout below).
 const FALLBACK_MESSAGES = enMessages as Awaited<ReturnType<typeof getMessages>>
 
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Pronto — Business Management for Service SMBs',
