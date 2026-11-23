@@ -93,6 +93,12 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 | **Next client hero** | **Add**: client, service, time, barber, countdown, with one-tap **Terminé**, **Encaisser** (opens the POS prefilled) and **Absent**. There is no separate "Start" status in the database, so **En cours** is derived from the clock (the appointment's start and end times). |
 | **+ Walk-in** button (**Client sans RDV**) | **Add**: large, always visible. Pick the service and barber (or "Premier libre"); name and phone are optional (a client is created or matched by phone). The page shows the **next free time** ("Prochain créneau : 11:30 avec firas") and books it as a normal appointment (`source: 'manual'`); the database's slot allocation prevents double-booking. |
 | Recent sales list | **Hide** from Today; reachable via Charge → History. |
+| **Keeping the screen current** | The list refreshes by itself every minute and whenever the barber returns to the tab, so online bookings and changes from another phone appear without reloading. |
+| **Overdue bookings** | A pending/confirmed booking whose end time has passed is labelled **À clôturer**, is not counted as "restants", and a banner above the next-client card opens it so it can be marked Terminé or Absent. |
+| **Cancelled bookings** | Hidden from the day's timeline; a "Voir les annulés (n)" link shows them. |
+| **Walk-in supplements** | The walk-in sheet also offers the supplements, with the same rules as the booking page ("Inclus" items cannot be added; one choice per single-choice group). Price, duration and the booking's lines (`appointment_items`) are saved so the POS charges the right total. If the lines cannot be saved the booking is removed again and the barber can retry. |
+| **No services yet** | The walk-in sheet explains that a service must be created first and links to Settings → Prestations. |
+| **Escape key** | Closes the walk-in sheet and the "Plus" menu. |
 | Onboarding checklist | **Change**: barbershop checklist of 3 steps: add barbers (and photos) → set hours → **share your link**. |
 | **Share booking link card** | **Add**: copy link, QR code, "put this in your Instagram bio" tip. |
 
@@ -410,3 +416,5 @@ All five answered; see the decisions log (section 12) and sections 4.10 and 4.11
 | 2026-11-23 | The 💺 chair emoji and "available barber" badge are **skipped**. | 4.12 |
 | 2026-11-23 | **Conflict rules:** one main service per booking (combos are main services); optional **Inclut déjà** on a main service (supplement shown "Inclus ✓", server refuses it); optional explicit **single-choice group** on supplements; **offers accept supplements** on top. Chosen over a full "rubriques" redesign to keep the barber's setup light. | 4.12 |
 | 2026-11-23 | **Phase 2 shell:** French is forced for the whole dashboard in barbershop mode (the shell switches the dashboard language once and the switcher is hidden). **En cours** is derived from time because no in-progress status exists. | 4.1, 4.2 |
+
+| 2026-11-23 | **Audit of phase 2** found and fixed: stale list (now auto-refreshes), overdue bookings counted as remaining, walk-ins unable to take supplements, dead-end sheet with no services; cancelled bookings hidden by default; Escape closes sheets. | 4.2 |

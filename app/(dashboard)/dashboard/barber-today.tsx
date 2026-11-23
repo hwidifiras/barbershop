@@ -30,7 +30,7 @@ export async function BarberToday({ business }: { business: BusinessRow }) {
   const [apptRes, barbersRes, servicesRes, hoursRes, revenueRes, stockRes] = await Promise.all([
     supabase.from('appointments').select(APPT_SELECT).eq('business_id', business.id).gte('starts_at', from).lt('starts_at', to).order('starts_at'),
     supabase.from('employees').select('id, name, avatar_url').eq('business_id', business.id).eq('is_active', true).order('name'),
-    supabase.from('services').select('id, name, price, duration_min, kind, bookable_alone').eq('business_id', business.id).eq('is_active', true).order('name'),
+    supabase.from('services').select('id, name, price, duration_min, kind, bookable_alone, includes, exclusive_group').eq('business_id', business.id).eq('is_active', true).order('name'),
     supabase.from('business_hours').select('day_of_week, is_open, open_time, close_time, break_start, break_end').eq('business_id', business.id),
     supabase.from('transactions').select('amount').eq('business_id', business.id).eq('status', 'completed').gte('created_at', from).lt('created_at', to),
     inventoryOn
@@ -48,7 +48,7 @@ export async function BarberToday({ business }: { business: BusinessRow }) {
       nowMs={nowMs}
       accent={accentFor(business.brand_color)}
       barbers={barbersRes.data ?? []}
-      services={(servicesRes.data ?? []).map((s) => ({ ...s, price: Number(s.price) }))}
+      services={(servicesRes.data ?? []).map((s) => ({ ...s, price: Number(s.price), includes: s.includes ?? [] }))}
       hours={hoursRes.data ?? []}
       hasHours={(hoursRes.data ?? []).length > 0}
       initialAppts={(apptRes.data ?? []) as unknown as TodayAppointment[]}

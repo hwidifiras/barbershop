@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, nextFreeStart, formatMinutes,
+  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, isOverdue, nextFreeStart, formatMinutes,
   type TodayAppt,
 } from '@/lib/barbershop-today'
 import type { DayHours } from '@/lib/booking-availability'
@@ -56,14 +56,35 @@ describe('pickNextAppointment', () => {
   })
 })
 
-describe('countDoneRemaining', () => {
+describe('countDoneRemaining / isOverdue', () => {
   const list = [
     appt('a', 'x', 'y', 'confirmed'), appt('b', 'x', 'y', 'pending'), appt('c', 'x', 'y', 'completed'),
     appt('d', 'x', 'y', 'paid'), appt('e', 'x', 'y', 'cancelled'), appt('f', 'x', 'y', 'no_show'),
     appt('g', 'x', 'y', 'confirmed', 'b2'),
   ]
-  it('counts everyone', () => expect(countDoneRemaining(list)).toEqual({ done: 2, remaining: 3 }))
-  it('counts one barber', () => expect(countDoneRemaining(list, 'b2')).toEqual({ done: 0, remaining: 1 }))
+  it('counts everyone', () => expect(countDoneRemaining(list)).toEqual({ done: 2, remaining: 3, overdue: 0 }))
+  it('counts one barber', () => expect(countDoneRemaining(list, 'b2')).toEqual({ done: 0, remaining: 1, overdue: 0 }))
+
+  const now = new Date('2026-11-24T10:10:00Z').getTime()
+  const timed = [
+    appt('past', '2026-11-24T08:00:00Z', '2026-11-24T08:30:00Z', 'confirmed'),          // over, never closed
+    appt('past2', '2026-11-24T09:00:00Z', '2026-11-24T09:30:00Z', 'pending', 'b2'),     // over, never closed
+    appt('now', '2026-11-24T10:00:00Z', '2026-11-24T10:30:00Z', 'confirmed'),           // in progress
+    appt('later', '2026-11-24T11:00:00Z', '2026-11-24T11:30:00Z', 'confirmed'),
+    appt('doneOne', '2026-11-24T07:00:00Z', '2026-11-24T07:30:00Z', 'completed'),       // closed: not overdue
+    appt('gone', '2026-11-24T07:30:00Z', '2026-11-24T08:00:00Z', 'no_show'),            // closed: not overdue
+  ]
+  it('separates overdue from remaining so the tile agrees with the next-client card', () => {
+    expect(countDoneRemaining(timed, undefined, now)).toEqual({ done: 1, remaining: 2, overdue: 2 })
+    expect(countDoneRemaining(timed, 'b2', now)).toEqual({ done: 0, remaining: 0, overdue: 1 })
+  })
+  it('isOverdue only flags unfinished bookings that have ended', () => {
+    expect(isOverdue(timed[0], now)).toBe(true)
+    expect(isOverdue(timed[2], now)).toBe(false)
+    expect(isOverdue(timed[3], now)).toBe(false)
+    expect(isOverdue(timed[4], now)).toBe(false)
+    expect(isOverdue(timed[5], now)).toBe(false)
+  })
 })
 
 describe('nextFreeStart (walk-ins)', () => {

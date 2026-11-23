@@ -19,6 +19,21 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: Audit fixes for phase 2 (branch `fix/barbershop-today-audit`)
+- **What changed:**
+  1. **Auto-refresh:** the Today list re-syncs when the server sends new data, and refreshes every minute and on returning to the tab (not while the barber is saving). Online bookings and changes from another phone now appear without reloading.
+  2. **Overdue bookings:** unfinished bookings whose time has passed show **À clôturer**, leave the "restants" count, and a banner opens the first one; the tile and the next-client card no longer contradict each other.
+  3. **Walk-ins with supplements:** the walk-in sheet offers supplements with the booking page's rules ("Inclus", single-choice groups), saves price, duration and `appointment_items`, and the estimate uses the total duration. If the lines cannot be saved the booking is deleted so no under-priced booking is left behind.
+  4. **Empty state:** with no services the walk-in sheet explains and links to Settings → Prestations.
+  - Smaller: cancelled bookings hidden behind "Voir les annulés (n)"; Escape closes the walk-in sheet and the "Plus" menu; the status page no longer says phase 2 is "in review".
+- **Where:** `app/(dashboard)/dashboard/{today-view,barber-today}.tsx`, `components/layout/barber-shell.tsx`, `lib/barbershop-today.ts` (`isOverdue`, `countDoneRemaining(..., nowMs)`), `lib/barbershop-fr.ts`.
+- **Barbershop vs standard:** barbershop mode only; no change for other business types.
+- **Data/migrations:** none.
+- **Spec section(s):** 4.2 (new rows and decisions-log entry)
+- **Verified:** `tsc` clean; unit tests 120 pass (2 new for overdue counting); `npm test` 15 pass; `check:i18n` OK; lint 0 errors; full `next build` OK. **21 checks in headless Chrome at 390 px** with a temporary preview page (not committed): overdue banner and labels, counts, cancelled toggle, auto-refresh with no page reload, walk-in supplements (included item, single-choice replacement, total 115 TND / 100 min), Escape on both sheets, no-services hint and link, no sideways scroll, no script errors.
+- **Notes / follow-ups:** component-level automated tests are still missing (only the calculation helpers are unit-tested; the screens are checked in a browser). Phase 3 (Agenda, Caisse, Clients) next.
+
+
 ### 2026-11-23: Phase 2 — phone navigation bar and "Today" screen (branch `feat/barbershop-today-shell`)
 - **What changed:**
   - **Shell:** bottom tab bar on phones (Aujourd'hui · Agenda · Caisse · Clients · Plus) with a slim top bar; relabelled dark sidebar on desktop (adds Produits when the module is on); "Plus" sheet with Produits, Partager mon lien, Réglages, Se déconnecter. The dashboard language is switched to French once and the switcher is hidden.
