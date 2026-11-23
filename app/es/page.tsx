@@ -1,20 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Bricolage_Grotesque, DM_Sans } from 'next/font/google'
+import { bricolage, dmSans } from '@/lib/landing-fonts'
 import styles from '../landing.module.css'
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-bricolage',
-})
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-dm-sans',
-})
 
 export const metadata: Metadata = {
   title: 'Pronto — Software Gratis de POS, CRM y Reservas para Negocios de Servicios',
