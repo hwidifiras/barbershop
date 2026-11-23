@@ -444,9 +444,11 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
                         <span className={styles.box}>{(on || isIncluded) && <Check size={16} strokeWidth={3} />}</span>
                         <span className={styles.addonBody}>
                           <div className={styles.serviceName}>{a.name}</div>
-                          <div className={`${styles.serviceMeta} ${styles.num}`}>
-                            {isIncluded ? L.included : fmt(L.plusMinutes, { n: a.duration_min })}{a.description ? ` · ${a.description}` : ''}
-                          </div>
+                          {(!isIncluded || a.description) && (
+                            <div className={`${styles.serviceMeta} ${styles.num}`}>
+                              {isIncluded ? a.description : `${fmt(L.plusMinutes, { n: a.duration_min })}${a.description ? ` · ${a.description}` : ''}`}
+                            </div>
+                          )}
                         </span>
                         <span className={`${styles.price} ${styles.num}`}>{isIncluded ? L.included : `+${money(Number(a.price))}`}</span>
                       </button>
@@ -456,7 +458,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
               ))}
             </div>
             <div className={styles.totalLine}>
-              <span className={styles.muted}>{(offer ? offer.name : service.name)}{extras.length ? ` + ${extras.length}` : ''} · {fmt(L.minutes, { n: selection.totalDuration })}</span>
+              <span className={styles.muted}>{(offer ? offer.name : service.name)}{extras.length ? ` + ${fmt(L.extrasCount, { n: extras.length })}` : ''} · {fmt(L.minutes, { n: selection.totalDuration })}</span>
               <b className={styles.num}>{money(selection.totalPrice)}</b>
             </div>
             <div className={styles.cta}>

@@ -19,6 +19,19 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: Phase 2 — phone navigation bar and "Today" screen (branch `feat/barbershop-today-shell`)
+- **What changed:**
+  - **Shell:** bottom tab bar on phones (Aujourd'hui · Agenda · Caisse · Clients · Plus) with a slim top bar; relabelled dark sidebar on desktop (adds Produits when the module is on); "Plus" sheet with Produits, Partager mon lien, Réglages, Se déconnecter. The dashboard language is switched to French once and the switcher is hidden.
+  - **Today** replaces the dashboard for barbershops: barber filter chips; strip with done/remaining and the day's revenue; low-stock chip (only when Products is on and something is low); **next-client card** (En cours / countdown) with Terminé, Encaisser (opens the POS prefilled) and Absent; the day's timeline with tap-to-expand actions; **Client sans RDV** button and sheet (service, barber or first free, optional name/phone, next free time shown, booked as a normal appointment); a "Pour bien démarrer" checklist (barbers, hours, link); and the booking-link card.
+  - Booking page: barber name cards are wider (long names no longer split mid-word), the supplements screen label says "+ 2 suppl.", and an included supplement no longer says "Inclus" twice.
+- **Where:** `components/layout/barber-shell.tsx`, `app/(dashboard)/layout.tsx`, `app/(dashboard)/dashboard/{page,barber-today,today-view}.tsx`, `lib/barbershop-today.ts`, `lib/barbershop-fr.ts`, `app/book/[slug]/barber-booking.{tsx,module.css}`.
+- **Barbershop vs standard:** `layout.tsx` and `dashboard/page.tsx` branch on `isBarbershopMode`; every other type keeps the existing sidebar and dashboard unchanged.
+- **Data/migrations:** none. Walk-ins and status changes use existing tables (`appointments`, `clients`).
+- **Spec section(s):** 4.1, 4.2 (and the decisions log)
+- **Verified:** `tsc` clean; unit tests 118 pass (17 new for the shop's local day incl. daylight saving, next appointment, counts, next free time); `npm test` 15 pass; `check:i18n` OK; lint 0 errors; full `next build` OK. **Also checked in a real browser at 390 px and 1280 px** with a temporary preview page (not committed): no sideways scrolling, no script errors, walk-in estimate correct (11:10 → 11:30 with the free barber), and the supplement rules (Inclus, single-choice group, totals) behave on screen.
+- **Notes / follow-ups:** "Plus" does not yet show the small Pronto mark. Reminder messages still name only the main service. The Calendar, Caisse and Clients screens keep their current layouts until phase 3.
+
+
 ### 2026-11-23: Phase 1c — no contradictions between services (branch `feat/barbershop-service-conflicts`)
 - **What changed:**
   - **Inclut déjà** on a main service: its supplements show as "Inclus ✓" and cannot be added again; the service card on the booking page says "Inclut : barbe".
