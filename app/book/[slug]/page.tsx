@@ -83,7 +83,7 @@ export default async function PublicBookingPage(props: {
     const [{ data: bServices }, { data: bBarbers }, { data: bHours }, { data: bOffers }] = await Promise.all([
       supabase
         .from('services')
-        .select('id, name, description, price, duration_min, category, kind, bookable_alone, bookable_online, is_active')
+        .select('id, name, description, price, duration_min, category, kind, bookable_alone, bookable_online, is_active, includes, exclusive_group')
         .eq('business_id', business.id)
         .eq('is_active', true)
         .eq('bookable_online', true)
@@ -117,7 +117,7 @@ export default async function PublicBookingPage(props: {
           timezone: business.timezone, address: business.address ?? null, phone: business.phone ?? null,
           logo_url: business.logo_url ?? null,
         }}
-        services={(bServices ?? []).map((sv) => ({ ...sv, kind: sv.kind === 'supplement' ? 'supplement' : 'main' }))}
+        services={(bServices ?? []).map((sv) => ({ ...sv, kind: sv.kind === 'supplement' ? 'supplement' : 'main', includes: sv.includes ?? [] }))}
         offers={(bOffers ?? []).map((o) => ({ ...o, price: Number(o.price) }))}
         barbers={bBarbers ?? []}
         workingHours={bHours ?? []}

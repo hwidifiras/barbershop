@@ -17,6 +17,7 @@ export interface ServiceRow {
   id: string; name: string; description: string | null; price: number; duration_min: number
   category: string | null; is_active: boolean; capacity: number
   kind: string; bookable_alone: boolean; bookable_online: boolean
+  includes: string[]; exclusive_group: string | null
 }
 export interface OfferRow {
   id: string; name: string; price: number; service_ids: string[]; barber_ids: string[] | null
@@ -63,10 +64,17 @@ export function BarbershopServices({ businessId, currency, services: initService
   const nameOf = (id: string) => services.find((s) => s.id === id)?.name ?? '—'
 
   // ── services ──────────────────────────────────────────────────────────
-  const emptySvc = { id: '', name: '', description: '', price: '', duration: '30', category: '', kind: 'main', alone: false }
+  const emptySvc = {
+    id: '', name: '', description: '', price: '', duration: '30', category: '', kind: 'main', alone: false,
+    includes: [] as string[], groupChoice: '', newGroup: '',
+  }
   const [svcForm, setSvcForm] = useState<typeof emptySvc | null>(null)
   const [confirmDelSvc, setConfirmDelSvc] = useState<string | null>(null)
   const categories = Array.from(new Set(services.map((s) => s.category?.trim()).filter(Boolean))) as string[]
+  const groups = Array.from(new Set(services.map((s) => s.exclusive_group?.trim()).filter(Boolean))) as string[]
+  const supplements = services.filter((s) => s.kind === 'supplement')
+  const duplicateName = !!svcForm && svcForm.name.trim() !== '' &&
+    services.some((s) => s.id !== svcForm.id && s.name.trim().toLowerCase() === svcForm.name.trim().toLowerCase())
 
   async function saveService() {
     if (!svcForm) return
@@ -76,10 +84,14 @@ export function BarbershopServices({ businessId, currency, services: initService
     if (!name) return setMsg(fr.offers.errorName)
     if (!Number.isFinite(price) || price < 0 || !Number.isFinite(duration) || duration < 1) return setMsg(O.errorPrice)
     setBusy('svc'); setMsg(null)
+    const group = svcForm.groupChoice === '__new__' ? svcForm.newGroup.trim() : svcForm.groupChoice
     const row = {
       name, description: svcForm.description.trim() || null, price, duration_min: duration,
       category: svcForm.category.trim() || null, kind: svcForm.kind,
       bookable_alone: svcForm.kind === 'supplement' ? svcForm.alone : false,
+      // "Inclut déjà" only makes sense on a main service; a group only on a supplement.
+      includes: svcForm.kind === 'main' ? svcForm.includes : [],
+      exclusive_group: svcForm.kind === 'supplement' && group ? group : null,
     }
     if (svcForm.id) {
       const { data, error } = await supabase.from('services').update(row).eq('id', svcForm.id).select().single()
@@ -199,7 +211,7 @@ export function BarbershopServices({ businessId, currency, services: initService
         {svcForm && (
           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
-              <div><label className={label}>{S.name}</label><input className={input} value={svcForm.name} onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })} /></div>
+              <div><label className={label}>{S.name}</label><input className={input} value={svcForm.name} onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })} />{duplicateName && <p className="text-xs text-amber-700 mt-1">{S.duplicateName}</p>}</div>
               <div>
                 <label className={label}>{S.category}</label>
                 <input className={input} list="bb-cats" placeholder={S.categoryHint} value={svcForm.category} onChange={(e) => setSvcForm({ ...svcForm, category: e.target.value })} />
@@ -216,6 +228,40 @@ export function BarbershopServices({ businessId, currency, services: initService
                 <Chip on={svcForm.kind === 'supplement'} onClick={() => setSvcForm({ ...svcForm, kind: 'supplement' })}>{S.kindSupplement}</Chip>
               </div>
             </div>
+            {svcForm.kind === 'main' && (
+              <div>
+                <label className={label}>{S.includesTitle}</label>
+                {supplements.length === 0 ? (
+                  <p className="text-xs text-gray-400 mt-1">{S.includesNone}</p>
+                ) : (
+                  <>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {supplements.map((sp) => (
+                        <Chip key={sp.id} on={svcForm.includes.includes(sp.id)}
+                          onClick={() => setSvcForm({ ...svcForm, includes: svcForm.includes.includes(sp.id) ? svcForm.includes.filter((x) => x !== sp.id) : [...svcForm.includes, sp.id] })}>
+                          {sp.name}
+                        </Chip>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">{S.includesHint}</p>
+                  </>
+                )}
+              </div>
+            )}
+            {svcForm.kind === 'supplement' && (
+              <div>
+                <label className={label}>{S.groupTitle}</label>
+                <select className={input} value={svcForm.groupChoice} onChange={(e) => setSvcForm({ ...svcForm, groupChoice: e.target.value })}>
+                  <option value="">{S.groupNone}</option>
+                  {groups.map((g) => <option key={g} value={g}>{g}</option>)}
+                  <option value="__new__">{S.groupNew}</option>
+                </select>
+                {svcForm.groupChoice === '__new__' && (
+                  <input className={`${input} mt-2`} placeholder={S.groupNewPlaceholder} value={svcForm.newGroup} onChange={(e) => setSvcForm({ ...svcForm, newGroup: e.target.value })} />
+                )}
+                <p className="text-xs text-gray-400 mt-1">{S.groupHint}</p>
+              </div>
+            )}
             {svcForm.kind === 'supplement' && (
               <div className="flex items-start justify-between gap-4 rounded-lg bg-white border border-gray-200 p-3">
                 <div>
@@ -249,6 +295,12 @@ export function BarbershopServices({ businessId, currency, services: initService
                 <div className="text-xs text-gray-500 mt-0.5">
                   {fmt(S.minutes, { n: s.duration_min })} · {money(Number(s.price))}{s.category ? ` · ${s.category}` : ''}
                 </div>
+                {s.kind === 'main' && s.includes.length > 0 && (
+                  <div className="text-xs text-gray-500 mt-0.5">{fmt(S.badgeIncludes, { names: s.includes.map((id) => services.find((x) => x.id === id)?.name ?? '—').join(', ') })}</div>
+                )}
+                {s.kind === 'supplement' && s.exclusive_group && (
+                  <div className="text-xs text-gray-500 mt-0.5">{fmt(S.badgeGroup, { group: s.exclusive_group })}</div>
+                )}
                 {!s.bookable_online && <div className="text-xs text-gray-400 mt-0.5">{S.onlineOff}</div>}
               </div>
               <div className="flex flex-col items-center gap-0.5 shrink-0">
@@ -262,7 +314,7 @@ export function BarbershopServices({ businessId, currency, services: initService
                 </div>
               ) : (
                 <div className="flex items-center gap-1 shrink-0">
-                  <button type="button" aria-label={`${S.edit} ${s.name}`} onClick={() => { setMsg(null); setSvcForm({ id: s.id, name: s.name, description: s.description ?? '', price: String(s.price), duration: String(s.duration_min), category: s.category ?? '', kind: s.kind, alone: s.bookable_alone }) }} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"><Pencil className="w-4 h-4" /></button>
+                  <button type="button" aria-label={`${S.edit} ${s.name}`} onClick={() => { setMsg(null); setSvcForm({ id: s.id, name: s.name, description: s.description ?? '', price: String(s.price), duration: String(s.duration_min), category: s.category ?? '', kind: s.kind, alone: s.bookable_alone, includes: s.includes ?? [], groupChoice: s.exclusive_group ?? '', newGroup: '' }) }} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"><Pencil className="w-4 h-4" /></button>
                   <button type="button" aria-label={`${S.remove} ${s.name}`} onClick={() => setConfirmDelSvc(s.id)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"><Trash2 className="w-4 h-4" /></button>
                 </div>
               )}

@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     const [{ data: allServices }, { data: allOffers }] = await Promise.all([
       supabase
         .from('services')
-        .select('id, name, price, duration_min, kind, bookable_alone, bookable_online, is_active')
+        .select('id, name, price, duration_min, kind, bookable_alone, bookable_online, is_active, includes, exclusive_group')
         .eq('business_id', businessId),
       parsed.data.offerId
         ? supabase.from('offers').select('id, name, price, service_ids, barber_ids, valid_from, valid_to, is_active').eq('business_id', businessId)

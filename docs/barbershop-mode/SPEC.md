@@ -243,10 +243,26 @@ per supplement):
   choice on the booking page.
 - on: it also appears in the starting list and can be booked by itself.
 
-**Booking flow.** After a client picks a main service, an optional screen **"Ajouter un
-supplément ?"** lists the supplements (+ price, + minutes) with a running total. Skipped when the
-shop has no supplements, or when an offer or a stand-alone supplement was chosen. Duration and
+**Booking flow.** After a client picks a main service **or an offer**, an optional screen
+**"Ajouter un supplément ?"** lists the supplements (+ price, + minutes) with a running total.
+Skipped when there is nothing to add, or when a stand-alone supplement was chosen. Duration and
 price are summed; the booking blocks the barber for the total time.
+
+**No contradictions (rules, decided 2026-11-23).** The client picks **exactly one** main service
+(or one offer), so "Coupe", "Barbe" and "Coupe + Barbe" can never be combined: a combo is created
+as its own main service. Two optional settings stop overlaps between a main service and its
+supplements:
+1. **Inclut déjà** (`services.includes`, on a main service): the supplements it already covers,
+   for example *Coupe → inclut Barbe*. On the supplements screen they show as **Inclus ✓**
+   (greyed, not selectable) and the service card on the first screen shows "Inclut : barbe". For
+   an offer, the union of what its services include applies. The server refuses an included
+   supplement (`supplement_included`).
+2. **Un seul choix avec** (`services.exclusive_group`, on a supplement): supplements sharing the
+   same group name are a single choice (for example "Soins": masque / protéines). Ticking one
+   replaces the other; the server refuses two of the same group (`supplement_conflict`).
+   Supplements without a group are independent and can be combined freely. Groups are explicit,
+   never derived from the category.
+Also: saving a service whose name already exists shows a warning in Settings.
 
 **Online switch per service** (`services.bookable_online`, default on). Off = the service is
 hidden from the **public booking page only** and refused by `/api/book`. It stays visible in the
@@ -261,7 +277,10 @@ touched**: the change only applies to new online bookings.
 - applies to **all barbers by default**; the barber can limit it to chosen barbers with chips
   (no chips selected = everyone). If the client picked "Premier disponible" and the offer is
   limited, the page names an allowed free barber itself so the booking cannot land elsewhere;
-- booked as one appointment: total duration, package price, and a readable label.
+- booked as one appointment: total duration, package price, and a readable label;
+- supplements can be added **on top of an offer** (total = package price + supplements, the
+  regular total includes them too); a supplement the offer already contains or includes cannot
+  be added again.
 
 **Where the data lives.** `appointment_items` stores each line (name, price, duration frozen at
 booking time); `appointments.items_summary` ("Coupe + Barbe") keeps screens that only read
@@ -274,8 +293,9 @@ browser's totals are display only.
 equals the booked price.
 
 **Settings (barbershop mode).** Services tab becomes: list with type badges and an **En ligne**
-switch per row, add/edit form (type segmented control, "Réservable seul" for supplements,
-category, price, duration), and an **Offres** section (name, tap the services, price with
+switch per row, add/edit form (type segmented control, "Réservable seul" and "Un seul choix avec"
+for supplements, "Inclut déjà" chips for main services, category, price, duration), and an
+**Offres** section (name, tap the services, price with
 "au lieu de X", optional period, "Tous les barbiers" or chosen barbers, active switch).
 
 Not included (decided): the 💺 chair emoji and the "available barber" badge were skipped.
@@ -388,3 +408,4 @@ All five answered; see the decisions log (section 12) and sections 4.10 and 4.11
 | 2026-11-23 | **Service on/off** hides it from **online booking only**; it stays visible in the POS and calendar and existing bookings are untouched. | 4.12 |
 | 2026-11-23 | **Offers** are shop-wide by default, with optional per-barber limits via simple chips; period is optional and checked against the visit date. | 4.12 |
 | 2026-11-23 | The 💺 chair emoji and "available barber" badge are **skipped**. | 4.12 |
+| 2026-11-23 | **Conflict rules:** one main service per booking (combos are main services); optional **Inclut déjà** on a main service (supplement shown "Inclus ✓", server refuses it); optional explicit **single-choice group** on supplements; **offers accept supplements** on top. Chosen over a full "rubriques" redesign to keep the barber's setup light. | 4.12 |

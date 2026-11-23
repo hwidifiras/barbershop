@@ -15,7 +15,7 @@ import {
   computeBarberSlots, groupByDayPart, minutesInTimezone, unionSlots, type BookedRange,
 } from '@/lib/barbershop-slots'
 import {
-  addOnServices, isOfferValidOn, offerBarberIds, pickBarberFor, previewSelection, startingServices,
+  addOnsFor, includedIdsOf, isOfferValidOn, offerBarberIds, pickBarberFor, previewSelection, startingServices, toggleAddOn,
   type CartOffer, type CartService,
 } from '@/lib/barbershop-cart'
 import { fr, fmt } from '@/lib/barbershop-fr'
@@ -77,7 +77,6 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
 
   const allBarberIds = barbers.map((b) => b.id)
   const svcMap = new Map(services.map((s) => [s.id, s]))
-  const addOns = addOnServices(services) as Service[]
 
   const validBarber = barbers.some((b) => b.id === initialBarberId) ? (initialBarberId as string) : ''
   const [barberId, setBarberId] = useState<string>(validBarber)
@@ -101,7 +100,10 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
     service, offer, services,
     extras: extras.map((id) => svcMap.get(id)).filter((s): s is Service => !!s),
   })
-  const hasExtrasStep = !!service && service.kind === 'main' && !offer && addOns.length > 0
+  // Supplements that can be added to the current choice, and those it already covers ("Inclus").
+  const addOns = addOnsFor({ offer, services }) as Service[]
+  const includedSet = includedIdsOf({ service, offer, services })
+  const hasExtrasStep = !!service && (offer ? true : service.kind === 'main') && addOns.length > 0
 
   // Barbers who may take the current choice ("first available" is limited for restricted offers).
   const candidatesFor = useCallback((bId: string, o: CartOffer | null): (string | null)[] => {
@@ -168,7 +170,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
 
   function chooseService(s: Service, bId = barberId) {
     setOffer(null); setService(s); setExtras([]); setError(null)
-    if (s.kind === 'main' && addOns.length > 0) setStep('extras')
+    if (s.kind === 'main' && addOnsFor({ offer: null, services }).length > 0) setStep('extras')
     else void beginTime(s.duration_min, bId, null)
   }
 
@@ -176,11 +178,12 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
     const first = svcMap.get(o.service_ids[0]) ?? null
     const duration = o.service_ids.reduce((t, id) => t + (svcMap.get(id)?.duration_min ?? 0), 0)
     setOffer(o); setService(first); setExtras([]); setError(null)
-    void beginTime(duration, barberId, o)
+    if (addOnsFor({ offer: o, services }).length > 0) setStep('extras')
+    else void beginTime(duration, barberId, o)
   }
 
   function toggleExtra(id: string) {
-    setExtras((e) => (e.includes(id) ? e.filter((x) => x !== id) : [...e, id]))
+    setExtras((e) => toggleAddOn(e, id, services, includedSet))
   }
 
   // Prefill a returning client; honour ?b= and ?s= deep links.
@@ -222,7 +225,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           businessId: business.id, serviceId: service.id, employeeId,
-          extraServiceIds: offer ? [] : extras, offerId: offer?.id ?? null,
+          extraServiceIds: extras, offerId: offer?.id ?? null,
           date, time, name, phone, email: null,
         }),
       })
@@ -241,9 +244,13 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
         setError(
           code === 'offer_not_valid_on_date' ? L.errorOfferInvalidDate
             : code === 'offer_unavailable' || code === 'offer_barber_not_allowed' ? L.errorOfferUnavailable
-              : L.errorServiceUnavailable,
+              : code === 'supplement_included' ? L.errorAddOnIncluded
+                : code === 'supplement_conflict' ? L.errorAddOnConflict
+                  : L.errorServiceUnavailable,
         )
-        if (code === 'offer_not_valid_on_date') { setStep('time'); setTime('') } else { reset(); }
+        if (code === 'offer_not_valid_on_date') { setStep('time'); setTime('') }
+        else if (code === 'supplement_included' || code === 'supplement_conflict') { setExtras([]); setStep('extras') }
+        else { reset() }
         return
       }
       if (res.status === 429) { setSaving(false); setError(L.errorRateLimit); return }
@@ -284,12 +291,25 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
   const canWhatsapp = /^(\+|00)\d{8,}$/.test(phoneDigits)
   const hasDiscount = selection.listTotal > selection.totalPrice
 
+  // Supplements screen layout: independent ones first, then each single-choice group.
+  const addOnBlocks: { group: string | null; items: Service[] }[] = []
+  const independent = addOns.filter((a) => !a.exclusive_group)
+  if (independent.length) addOnBlocks.push({ group: null, items: independent })
+  for (const g of Array.from(new Set(addOns.map((a) => a.exclusive_group).filter((g): g is string => !!g)))) {
+    addOnBlocks.push({ group: g, items: addOns.filter((a) => a.exclusive_group === g) })
+  }
+  const extrasTotal = extras.reduce((t, id) => t + Number(svcMap.get(id)?.price ?? 0), 0)
+
   const priceView = (
     <span className={styles.rowPrice}>
       {hasDiscount && <span className={`${styles.strike} ${styles.num}`}>{money(selection.listTotal)}</span>}
       <span className={styles.num}>{money(selection.totalPrice)}</span>
     </span>
   )
+  const includesText = (s: Service) => {
+    const names = (s.includes ?? []).map((id) => svcMap.get(id)?.name).filter((n): n is string => !!n)
+    return names.length ? fmt(L.includesLine, { names: names.join(', ') }) : ''
+  }
   const periodText = (o: CartOffer) =>
     o.valid_to ? fmt(L.offerUntil, { date: frDate(o.valid_to, { day: 'numeric', month: 'long' }) })
       : o.valid_from && o.valid_from > today ? fmt(L.offerFrom, { date: frDate(o.valid_from, { day: 'numeric', month: 'long' }) }) : ''
@@ -393,6 +413,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
                       <div className={`${styles.serviceMeta} ${styles.num}`}>
                         {fmt(L.minutes, { n: s.duration_min })}{s.description ? ` · ${s.description}` : ''}
                       </div>
+                      {includesText(s) && <div className={styles.includes}>{includesText(s)}</div>}
                     </span>
                     <span className={`${styles.price} ${styles.num}`}>{money(Number(s.price))}</span>
                   </button>
@@ -411,28 +432,37 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
             <h2 className={`${styles.h2} ${styles.display}`} style={{ marginTop: 4 }}>{L.addOnTitle}</h2>
             <p className={styles.muted} style={{ marginTop: 0 }}>{L.addOnHint}</p>
             <div style={{ marginTop: 14 }}>
-              {addOns.map((a) => {
-                const on = extras.includes(a.id)
-                return (
-                  <button key={a.id} className={styles.addon} aria-pressed={on} onClick={() => toggleExtra(a.id)}>
-                    <span className={styles.box}>{on && <Check size={16} strokeWidth={3} />}</span>
-                    <span className={styles.addonBody}>
-                      <div className={styles.serviceName}>{a.name}</div>
-                      <div className={`${styles.serviceMeta} ${styles.num}`}>{fmt(L.plusMinutes, { n: a.duration_min })}{a.description ? ` · ${a.description}` : ''}</div>
-                    </span>
-                    <span className={`${styles.price} ${styles.num}`}>+{money(Number(a.price))}</span>
-                  </button>
-                )
-              })}
+              {addOnBlocks.map((blk) => (
+                <div key={blk.group ?? '_'}>
+                  {blk.group && <h3 className={styles.h3}>{fmt(L.singleChoiceGroup, { group: blk.group })}</h3>}
+                  {blk.items.map((a) => {
+                    const isIncluded = includedSet.has(a.id)
+                    const on = extras.includes(a.id)
+                    return (
+                      <button key={a.id} className={styles.addon} aria-pressed={on} disabled={isIncluded}
+                        data-included={isIncluded ? 'true' : undefined} onClick={() => toggleExtra(a.id)}>
+                        <span className={styles.box}>{(on || isIncluded) && <Check size={16} strokeWidth={3} />}</span>
+                        <span className={styles.addonBody}>
+                          <div className={styles.serviceName}>{a.name}</div>
+                          <div className={`${styles.serviceMeta} ${styles.num}`}>
+                            {isIncluded ? L.included : fmt(L.plusMinutes, { n: a.duration_min })}{a.description ? ` · ${a.description}` : ''}
+                          </div>
+                        </span>
+                        <span className={`${styles.price} ${styles.num}`}>{isIncluded ? L.included : `+${money(Number(a.price))}`}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
             <div className={styles.totalLine}>
-              <span className={styles.muted}>{service.name}{extras.length ? ` + ${extras.length}` : ''} · {fmt(L.minutes, { n: selection.totalDuration })}</span>
+              <span className={styles.muted}>{(offer ? offer.name : service.name)}{extras.length ? ` + ${extras.length}` : ''} · {fmt(L.minutes, { n: selection.totalDuration })}</span>
               <b className={styles.num}>{money(selection.totalPrice)}</b>
             </div>
             <div className={styles.cta}>
               <div className={styles.ctaInner}>
-                <button className={styles.btn} onClick={() => void beginTime(selection.totalDuration, barberId, null)}>
-                  {extras.length ? fmt(L.addOnContinue, { price: money(selection.totalPrice - Number(service.price)) }) : L.addOnSkip}
+                <button className={styles.btn} onClick={() => void beginTime(selection.totalDuration, barberId, offer)}>
+                  {extras.length ? fmt(L.addOnContinue, { price: money(extrasTotal) }) : L.addOnSkip}
                 </button>
               </div>
             </div>

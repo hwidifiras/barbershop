@@ -19,6 +19,21 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: Phase 1c — no contradictions between services (branch `feat/barbershop-service-conflicts`)
+- **What changed:**
+  - **Inclut déjà** on a main service: its supplements show as "Inclus ✓" and cannot be added again; the service card on the booking page says "Inclut : barbe".
+  - **Un seul choix avec** (group) on supplements: only one per group (tapping another replaces it); independent supplements combine freely.
+  - **Supplements on top of an offer** (package price + extras); items already in or included by the offer cannot be added.
+  - Settings → Prestations: chips for "Inclut déjà", a group selector for supplements, badges in the list, and a duplicate-name warning.
+  - `/api/book` enforces the rules (`supplement_included`, `supplement_conflict`) in addition to the screen.
+- **Where:** `lib/barbershop-cart.ts` (rules + `includedIdsOf`, `addOnsFor`, `toggleAddOn`), `app/api/book/route.ts`, `app/book/[slug]/{page,barber-booking}.tsx` + css, `components/settings/barbershop-services.tsx`, `app/(dashboard)/settings/{page,settings-tabs}.tsx`, `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`.
+- **Barbershop vs standard:** barbershop mode only; the two new fields default to "none", so existing services behave exactly as before.
+- **Data/migrations:** `041_service_includes_and_groups.sql`: `services.includes uuid[] default '{}'`, `services.exclusive_group text`. Additive. **Apply before deploying.**
+- **Spec section(s):** 4.12 (rules, offers)
+- **Verified:** `tsc` clean; unit tests 101 pass (14 new for includes, groups, offer + supplements, toggle behaviour); `npm test` 15 pass; `check:i18n` OK; lint 0 errors; full `next build` OK.
+- **Notes / follow-ups:** "Inclut" names only services that are online-bookable. Scheduled reminders still name only the main service.
+
+
 ### 2026-11-23: Phase 1b — smart services: supplements, online switch, offers (branch `feat/barbershop-smart-services`)
 - **What changed:**
   - Services have a type (main / supplement) and, for supplements, "Réservable seul" (per supplement).

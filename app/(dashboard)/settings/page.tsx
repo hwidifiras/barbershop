@@ -29,7 +29,7 @@ export default async function SettingsPage() {
   ] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, price, duration_min, category, is_active, capacity, kind, bookable_alone, bookable_online')
+      .select('id, name, description, price, duration_min, category, is_active, capacity, kind, bookable_alone, bookable_online, includes, exclusive_group')
       .eq('business_id', business.id)
       .order('name'),
     supabase
