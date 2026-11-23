@@ -138,7 +138,7 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 
 | Element | Decision |
 |---|---|
-| Module default | **Change**: OFF by default for barbershops. Onboarding asks "Do you sell products (pomade, oil…)?" and turns it on. |
+| Module default | **Change**: OFF by default for barbershops (**decided 2026-11-23**). It can be turned on at any time in Settings → Modules, or by answering "Do you sell products (pomade, oil, clippers…)?" in onboarding. Turning it on adds Products to More, the Charge products tab, and the low-stock alert chip; turning it off again hides them without deleting data. |
 | List | **Change**: name, price, stock; cost price, SKU, unit and category move under "Advanced". |
 | Sales tab | **Keep**. |
 | New product form | **Change**: name, price, stock first; the rest under "Advanced". |
@@ -278,3 +278,11 @@ Each phase ships behind the mode gate, as its own pull request(s), with a change
 3. Which language first for barbershop copy? (Determines translation order.)
 4. Payments beyond cash/card/transfer (mobile wallets, deposits against no-shows)?
 5. RTL/Arabic: planned later; confirm timing so we avoid hard-coded left/right now.
+
+---
+
+## 12. Decisions log
+
+| Date | Decision | Section |
+|---|---|---|
+| 2026-11-23 | Products (inventory) module is **off by default** for barbershops and can be re-enabled any time, for example by a shop that sells clippers or other tools. Existing data is kept when it is switched off. | 4.6, 7 |

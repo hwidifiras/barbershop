@@ -19,6 +19,12 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-23: Products default recorded (phase 0, docs only)
+- **What changed:** spec records that Products is off by default for barbershops and can be re-enabled.
+- **Where:** `docs/barbershop-mode/SPEC.md` (4.6, 7, 12)
+- **Barbershop vs standard:** no code change.
+- **Spec section(s):** 4.6, 7, 12
+
 ### 2026-11-23: spec drafted (phase 0, docs only)
 - **What changed:** added `docs/barbershop-mode/SPEC.md` and this changelog.
 - **Where:** `docs/barbershop-mode/`
