@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { findClientByPhone } from '@/lib/client-identity'
 import { normalizePhone } from '@/lib/phone'
+import { balanceOf, splitPayment } from '@/lib/kridi'
+import { fr, fmt } from '@/lib/barbershop-fr'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -79,6 +81,11 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
   // bookingId to update appointment status after checkout
   const [activeBookingId] = useState(bookingContext?.bookingId ?? '')
   const [showBookingBanner, setShowBookingBanner] = useState(!!bookingContext)
+  // Barbershop kridi: what the client really hands over ('' = the whole total); the rest goes to kridi.
+  const [receivedInput, setReceivedInput] = useState('')
+  const [owed, setOwed] = useState<{ clientId: string; amount: number } | null>(null)
+  const [successKridi, setSuccessKridi] = useState(0)
+  const [kridiError, setKridiError] = useState('')
 
   // Walk-in → save as client
   const [showSaveModal, setShowSaveModal] = useState(false)
@@ -221,12 +228,26 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
 
   const subtotal = cart.reduce((sum, i) => sum + i.service.price * i.qty, 0)
   const total = Math.max(0, subtotal - discount)
+  const clientForKridi = barbershop ? activeClients.find((c) => c.id === selectedClient) ?? null : null
+  const kridiAllowed = !!clientForKridi && !!clientForKridi.name?.trim() && !!normalizePhone(clientForKridi.phone) && isOnline
+  const split = splitPayment(total, kridiAllowed ? receivedInput : '')
   const categories = Array.from(new Set(activeServices.map((s) => s.category ?? 'Other')))
+
+  // What the selected client already owes (barbershop), shown next to the client.
+  useEffect(() => {
+    if (!barbershop || !selectedClient || !isOnline) return
+    let cancelled = false
+    supabase.from('client_ledger').select('kind, amount').eq('business_id', businessId).eq('client_id', selectedClient)
+      .then(({ data }) => { if (!cancelled) setOwed({ clientId: selectedClient, amount: balanceOf(data ?? []) }) })
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [barbershop, selectedClient, isOnline, businessId])
+  const owedNow = owed && owed.clientId === selectedClient ? owed.amount : 0
 
   // ─── Checkout ─────────────────────────────────────────────────────────────
   async function checkout() {
     if (cart.length === 0) return
-    setLoading(true)
+    setLoading(true); setKridiError('')
     const items = cart.map((i) => ({
       service_id: i.service.id,
       name: i.service.name,
@@ -242,7 +263,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
           client_id: selectedClient || null,
           employee_id: selectedEmployee || null,
           amount: total,
-          payment_method: paymentMethod,
+          payment_method: barbershop ? 'cash' : paymentMethod,
           items,
         })
         setReceiptNumber(queued.local_receipt)
@@ -256,8 +277,9 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
             business_id: businessId,
             client_id: selectedClient || null,
             employee_id: selectedEmployee || null,
-            amount: total,
-            payment_method: paymentMethod,
+            // Money really received; the full price stays in `items`. Without kridi this equals the total.
+            amount: split.received,
+            payment_method: barbershop ? 'cash' : paymentMethod,
             status: 'completed',
             items,
           })
@@ -265,6 +287,17 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
           .single()
 
         if (error) throw error
+        if (split.kridi > 0 && selectedClient) {
+          const { error: lErr } = await supabase.from('client_ledger').insert({
+            business_id: businessId, client_id: selectedClient, kind: 'credit', amount: split.kridi, transaction_id: data.id,
+          })
+          if (lErr) {
+            // Never keep a sale whose unpaid part was not recorded: remove it so the barber can retry.
+            await supabase.from('transactions').delete().eq('id', data.id)
+            setKridiError(fr.caisse.errorKridi)
+            return
+          }
+        }
         setReceiptNumber(data.receipt_number ?? '')
         router.refresh()
 
@@ -286,10 +319,12 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
         }
       }
 
-      setSuccessAmount(total)
+      setSuccessAmount(isOnline ? split.received : total)
+      setSuccessKridi(isOnline ? split.kridi : 0)
       setSuccess(true)
       setCart([])
       setDiscount(0)
+      setReceivedInput('')
       setSelectedClient('')
       setShowBookingBanner(false)
     } catch (err) {
@@ -344,7 +379,9 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
                   Saved offline. Will sync when internet is restored.
                 </p>
               )}
-              <p className="text-2xl font-bold text-gray-900 mb-6">{formatCurrency(successAmount, currency, locale)}</p>
+              <p className="text-2xl font-bold text-gray-900 mb-1">{formatCurrency(successAmount, currency, locale)}</p>
+              {successKridi > 0 && <p className="text-sm font-semibold text-orange-600 mb-1">{fmt(fr.caisse.kridiDone, { amount: formatCurrency(successKridi, currency, locale) })}</p>}
+              <div className="mb-5" />
               <Button onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full">{t('success.newSale')}</Button>
             </CardContent>
           </Card>
@@ -531,6 +568,10 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
               </select>
             </div>
 
+            {barbershop && owedNow > 0 && (
+              <p className="text-sm font-semibold text-orange-600">{fmt(fr.caisse.owes, { amount: formatCurrency(owedNow, currency, locale) })}</p>
+            )}
+
             {activeEmployees.length > 0 && (
               <div>
                 <label className="text-xs font-medium text-gray-500 uppercase">{t('employeeLabel')}</label>
@@ -592,7 +633,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
           </div>
 
           <div className="p-4 border-t border-gray-100 space-y-3">
-            <div className="grid grid-cols-3 gap-1">
+            <div className={barbershop ? 'hidden' : 'grid grid-cols-3 gap-1'}>
               {(['cash', 'card', 'transfer'] as PaymentMethod[]).map((m) => (
                 <button
                   key={m}
@@ -609,6 +650,26 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
               <span className="text-sm text-gray-500">{t('totalLabel')}</span>
               <span className="text-xl font-bold text-gray-900">{formatCurrency(total, currency, locale)}</span>
             </div>
+            {barbershop && cart.length > 0 && (
+              kridiAllowed ? (
+                <div className="space-y-2">
+                  <label className="block">
+                    <span className="text-xs font-medium text-gray-500 uppercase">{fr.caisse.received}</span>
+                    <input type="text" inputMode="decimal" value={receivedInput} placeholder={String(total)}
+                      onChange={(e) => setReceivedInput(e.target.value)}
+                      className="w-full mt-1 border border-gray-200 rounded-lg px-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </label>
+                  <button type="button" onClick={() => setReceivedInput('0')}
+                    className="w-full min-h-[44px] rounded-lg border border-orange-300 text-orange-700 text-sm font-semibold">{fr.caisse.allKridi}</button>
+                  {split.kridi > 0 && (
+                    <p className="text-sm font-semibold text-orange-600" aria-live="polite">{fmt(fr.caisse.rest, { amount: formatCurrency(split.kridi, currency, locale) })}</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">{isOnline ? fr.caisse.needClient : fr.caisse.offline}</p>
+              )
+            )}
+            {kridiError && <p role="alert" className="text-sm text-red-600">{kridiError}</p>}
             <Button
               onClick={checkout}
               disabled={cart.length === 0 || loading}

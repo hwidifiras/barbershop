@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Caisse with kridi (phase 3e)
+- **What changed:** in barbershop mode the POS is cash only (card/transfer hidden). For a client with a name and a number, a "Montant reçu" field (default = the total) lets the barber take less; the rest becomes kridi, and "Tout en kridi" sets the received amount to 0. The client's existing debt shows as "Doit X DT". `transactions.amount` stays "money really received" and the full price stays in `items`, so the day's takings only count cash in hand. Kridi needs a connection (hidden offline). If the kridi line cannot be saved, the sale is removed so nothing is half-recorded.
+- **Where:** `app/(dashboard)/pos/pos-terminal.tsx`, `lib/kridi.ts` (+ `tests/unit/kridi.spec.ts`), `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`.
+- **Barbershop vs standard:** all changes are behind the `barbershop` prop; other business types keep every payment method and no kridi.
+- **Data/migrations:** `043_client_ledger.sql`: new table `client_ledger` (credit / payment / writeoff per client, tenant RLS). Additive only.
+- **Spec section(s):** 4.13 (kridi)
+- **Verified:** tsc, eslint (only pre-existing warnings), check:i18n, 141 unit tests.
+- **Notes / follow-ups:** repaying and forgiving a debt, and the Kridi list, come in 3f (Clients). Until then debt can be created and seen in the Caisse only.
+
 ### 2026-11-24: Create an appointment from the phone Agenda (phase 3d)
 - **What changed:** a "Nouveau RDV" button on the Agenda day view opens a sheet: service (+ supplements), barber, a free time (same slot rules as the public page, past times hidden), and the client by phone number. A known number brings back the existing client (name shown, not duplicated); a new number plus name creates one. The appointment is `confirmed`, source `manual`, with the price and `appointment_items` like a walk-in.
 - **Where:** `app/(dashboard)/booking/new-appointment-sheet.tsx` (new), `agenda-view.tsx`, `barber-agenda.tsx` (also loads services and opening hours), `lib/barbershop-fr.ts`.

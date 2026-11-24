@@ -180,6 +180,17 @@ export const fr = {
       overdue: 'À clôturer',
     },
   },
+  caisse: {
+    received: 'Montant reçu',
+    allKridi: 'Tout en kridi',
+    rest: 'Reste en kridi : {amount}',
+    owes: 'Doit déjà {amount}',
+    needClient: 'Pour le kridi, choisissez un client avec nom et numéro.',
+    offline: 'Hors ligne : le kridi n’est pas disponible.',
+    received_done: 'Reçu : {amount}',
+    kridiDone: 'En kridi : {amount}',
+    errorKridi: 'Impossible d’enregistrer le kridi. Réessayez.',
+  },
   today: {
     title: "Aujourd'hui",
     done: '{n} faits',
