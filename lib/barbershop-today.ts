@@ -132,3 +132,10 @@ export function addDaysYmd(ymd: string, n: number): string {
   const [y, m, d] = ymd.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
+
+/** The Monday of the week (Monday to Sunday) that contains a YYYY-MM-DD date. */
+export function weekStartYmd(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number)
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay() // 0 = Sunday
+  return addDaysYmd(ymd, -((dow + 6) % 7))
+}

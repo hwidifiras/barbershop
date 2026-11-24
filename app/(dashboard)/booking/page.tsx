@@ -8,8 +8,8 @@ import { getTranslations } from 'next-intl/server'
 import { isBarbershopMode } from '@/lib/vertical'
 import { BarberAgenda } from './barber-agenda'
 
-export default async function BookingPage(props: { searchParams: Promise<{ d?: string }> }) {
-  const { d } = await props.searchParams
+export default async function BookingPage(props: { searchParams: Promise<{ d?: string; v?: string }> }) {
+  const { d, v } = await props.searchParams
   const supabase = await createClient()
   const t = await getTranslations('booking')
   const user = await getAuthUser()
@@ -76,7 +76,7 @@ export default async function BookingPage(props: { searchParams: Promise<{ d?: s
   if (isBarbershopMode(business)) {
     return (
       <>
-        <div className="md:hidden"><BarberAgenda business={business} dayParam={d} /></div>
+        <div className="md:hidden"><BarberAgenda business={business} dayParam={d} viewParam={v} /></div>
         <div className="hidden md:block">{calendar}</div>
       </>
     )

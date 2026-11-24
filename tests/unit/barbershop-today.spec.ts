@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, isOverdue, nextFreeStart, formatMinutes, isYmd, addDaysYmd,
+  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, isOverdue, nextFreeStart, formatMinutes, isYmd, addDaysYmd, weekStartYmd,
   type TodayAppt,
 } from '@/lib/barbershop-today'
 import type { DayHours } from '@/lib/booking-availability'
@@ -129,5 +129,15 @@ describe('isYmd / addDaysYmd', () => {
     expect(addDaysYmd('2026-12-31', 1)).toBe('2027-01-01')
     expect(addDaysYmd('2026-03-01', -1)).toBe('2026-02-28')
     expect(addDaysYmd('2026-11-24', 0)).toBe('2026-11-24')
+  })
+})
+
+describe('weekStartYmd', () => {
+  it('returns the Monday of the week, Sunday included', () => {
+    expect(weekStartYmd('2026-11-24')).toBe('2026-11-23') // Tuesday
+    expect(weekStartYmd('2026-11-23')).toBe('2026-11-23') // Monday
+    expect(weekStartYmd('2026-11-29')).toBe('2026-11-23') // Sunday belongs to the week before
+    expect(weekStartYmd('2026-11-30')).toBe('2026-11-30')
+    expect(weekStartYmd('2027-01-01')).toBe('2026-12-28') // across the year end
   })
 })

@@ -11,7 +11,7 @@ import { ChevronLeft, ChevronRight, Phone, MessageCircle, X } from 'lucide-react
 import { Header } from '@/components/layout/header'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
-import { isOverdue } from '@/lib/barbershop-today'
+import { isOverdue, localYmd } from '@/lib/barbershop-today'
 import { formatPhone, whatsappNumber } from '@/lib/phone'
 import { fr, fmt } from '@/lib/barbershop-fr'
 
@@ -32,6 +32,10 @@ interface Props {
   today: string
   prevYmd: string
   nextYmd: string
+  view: 'day' | 'week'
+  weekDays: { ymd: string; closed: boolean }[]
+  prevWeekYmd: string
+  nextWeekYmd: string
   nowMs: number
   accent: string
   barbers: Barber[]
@@ -52,7 +56,7 @@ const STATUS_STYLE: Record<string, string> = {
 const REFRESH_EVERY_MS = 60_000
 const SWIPE_MIN_PX = 70
 
-export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, accent, barbers, closed, initialAppts }: Props) {
+export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, initialAppts }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const tz = business.timezone
@@ -98,7 +102,19 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
     return () => window.removeEventListener('keydown', onKey)
   }, [openId])
 
-  const goTo = (d: string) => { setOpenId(null); router.push(d === today ? '/booking' : `/booking?d=${d}`) }
+  // One place builds the address: view (day or week) + the date shown.
+  const go = (v: 'day' | 'week', d: string) => {
+    setOpenId(null)
+    const q = new URLSearchParams()
+    if (v === 'week') q.set('v', 'week')
+    if (d !== today) q.set('d', d)
+    const qs = q.toString()
+    router.push(qs ? `/booking?${qs}` : '/booking')
+  }
+  const goTo = (d: string) => go('day', d)
+  const weekStart = weekDays[0].ymd
+  const weekEnd = weekDays[6].ymd
+  const weekHasToday = today >= weekStart && today <= weekEnd
 
   // Swipe left = next day, right = previous day (ignored when mostly vertical, or inside the sheet).
   const touch = useRef<{ x: number; y: number } | null>(null)
@@ -109,7 +125,8 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
     const dx = e.changedTouches[0].clientX - s.x
     const dy = e.changedTouches[0].clientY - s.y
     if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    goTo(dx < 0 ? nextYmd : prevYmd)
+    if (view === 'week') go('week', dx < 0 ? nextWeekYmd : prevWeekYmd)
+    else goTo(dx < 0 ? nextYmd : prevYmd)
   }
 
   const barberName = (id: string | null) => barbers.find((b) => b.id === id)?.name ?? null
@@ -122,6 +139,16 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
   const active = forBarber.filter((a) => a.status !== 'cancelled').length
   const opened = appts.find((a) => a.id === openId) ?? null
 
+  const fmtDay = (d: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('fr-FR', { ...o, timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`))
+  const byDay = useMemo(() => {
+    const m = new Map<string, AgendaAppointment[]>()
+    for (const a of forBarber) {
+      if (a.status === 'cancelled') continue
+      const k = localYmd(new Date(a.starts_at), tz)
+      m.set(k, [...(m.get(k) ?? []), a])
+    }
+    return m
+  }, [forBarber, tz])
   const dayLabel = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${ymd}T12:00:00Z`))
   const clientOf = (a: AgendaAppointment) => a.clients?.name ?? A.walkIn
   const summaryOf = (a: AgendaAppointment) => a.items_summary ?? a.services?.name ?? ''
@@ -150,6 +177,18 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
     <div className="min-h-[60vh]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Header title={A.title} />
       <main className="p-4 pb-28 max-w-lg mx-auto space-y-3">
+        {/* Jour / Semaine switch */}
+        <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1" role="group">
+          {(['day', 'week'] as const).map((v) => (
+            <button key={v} type="button" aria-pressed={view === v}
+              onClick={() => { if (v !== view) go(v, v === 'week' ? ymd : (weekHasToday ? today : weekStart)) }}
+              className={`min-h-[44px] rounded-lg text-sm font-semibold ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+              {v === 'day' ? A.viewDay : A.viewWeek}
+            </button>
+          ))}
+        </div>
+
+        {view === 'day' && (<>
         {/* Day navigation */}
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => goTo(prevYmd)} aria-label={A.prevDay}
@@ -164,6 +203,22 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
         {ymd !== today && (
           <button type="button" onClick={() => goTo(today)} className="w-full min-h-[44px] rounded-xl text-sm font-semibold text-white" style={{ background: '#0e0e0f' }}>{A.today}</button>
         )}
+        </>)}
+
+        {view === 'week' && (<>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => go('week', prevWeekYmd)} aria-label={A.prevWeek}
+            className="min-w-[48px] min-h-[48px] rounded-xl border border-gray-300 bg-white flex items-center justify-center"><ChevronLeft className="w-5 h-5" /></button>
+          <div className="flex-1 text-center">
+            <div className="text-base font-bold text-gray-900 leading-tight">{fmt(A.weekOf, { from: fmtDay(weekStart, { day: 'numeric', month: 'short' }), to: fmtDay(weekEnd, { day: 'numeric', month: 'short' }) })}</div>
+          </div>
+          <button type="button" onClick={() => go('week', nextWeekYmd)} aria-label={A.nextWeek}
+            className="min-w-[48px] min-h-[48px] rounded-xl border border-gray-300 bg-white flex items-center justify-center"><ChevronRight className="w-5 h-5" /></button>
+        </div>
+        {!weekHasToday && (
+          <button type="button" onClick={() => go('week', today)} className="w-full min-h-[44px] rounded-xl text-sm font-semibold text-white" style={{ background: '#0e0e0f' }}>{A.thisWeek}</button>
+        )}
+        </>)}
 
         {/* Barber filter */}
         {barbers.length > 1 && (
@@ -178,8 +233,46 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
 
         {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3" role="alert">{error}</div>}
 
+        {/* The week: one row per day, tap a day to open it */}
+        {view === 'week' && (
+          <ul className="space-y-2">
+            {weekDays.map((w) => {
+              const list = (byDay.get(w.ymd) ?? []).sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+              const isToday = w.ymd === today
+              return (
+                <li key={w.ymd}>
+                  <button type="button" onClick={() => goTo(w.ymd)}
+                    className={`w-full flex gap-3 p-3 text-left min-h-[64px] rounded-xl bg-white border ${isToday ? 'border-2' : 'border-gray-200'} ${w.closed && list.length === 0 ? 'opacity-60' : ''}`}
+                    style={isToday ? { borderColor: accent } : undefined}>
+                    <div className="w-14 shrink-0 text-center">
+                      <div className="text-xs font-semibold text-gray-500 uppercase">{fmtDay(w.ymd, { weekday: 'short' }).replace('.', '')}</div>
+                      <div className="text-xl font-extrabold text-gray-900 tabular-nums leading-tight">{fmtDay(w.ymd, { day: 'numeric' })}</div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {list.length === 0 ? (
+                        <div className="text-sm text-gray-400 pt-2">{w.closed ? A.closed : A.free}</div>
+                      ) : (
+                        <>
+                          <div className="text-sm font-semibold text-gray-900">{list.length === 1 ? A.countOne : fmt(A.count, { n: list.length })}</div>
+                          <ul className="mt-0.5 space-y-0.5">
+                            {list.slice(0, 3).map((a) => (
+                              <li key={a.id} className="text-xs text-gray-600 truncate"><span className="tabular-nums font-medium">{timeOf(a.starts_at)}</span> {clientOf(a)}</li>
+                            ))}
+                          </ul>
+                          {list.length > 3 && <div className="text-xs text-gray-400 mt-0.5">{fmt(A.more, { n: list.length - 3 })}</div>}
+                        </>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 shrink-0 self-center text-gray-400" />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
         {/* The day */}
-        {visible.length === 0 ? (
+        {view === 'day' && (visible.length === 0 ? (
           <div className="rounded-xl bg-white border border-gray-200 p-6 text-center">
             <div className="font-medium text-gray-900">{closed ? A.closed : ymd === today ? A.emptyToday : A.empty}</div>
           </div>
@@ -207,8 +300,8 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, nowMs, acce
               )
             })}
           </ul>
-        )}
-        {cancelledCount > 0 && (
+        ))}
+        {view === 'day' && cancelledCount > 0 && (
           <button type="button" onClick={() => setShowCancelled((v) => !v)} className="min-h-[44px] text-sm text-gray-500 underline">
             {showCancelled ? A.hideCancelled : fmt(A.showCancelled, { n: cancelledCount })}
           </button>
