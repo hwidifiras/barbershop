@@ -50,6 +50,8 @@ interface Props {
   telegramBotUsername: string | null
   /** Barbershop mode: the phone number identifies the client (no duplicates). */
   barbershop?: boolean
+  /** Barbershop: what the client still owes (kridi). A client with debt cannot be deleted. */
+  owed?: number
 }
 
 const statusColors: Record<string, string> = {
@@ -76,7 +78,7 @@ function validateBirthday(birthday: string): string | null {
   return null
 }
 
-export function ClientDetailView({ client: initial, appointments, currency, timezone, businessId, telegramBotUsername, barbershop = false }: Props) {
+export function ClientDetailView({ client: initial, appointments, currency, timezone, businessId, telegramBotUsername, barbershop = false, owed = 0 }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('clientDetail')
@@ -95,6 +97,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleteBlocked, setDeleteBlocked] = useState(false)
   const [editErrors, setEditErrors] = useState<{ phone?: string; birthday?: string }>({})
 
   const telegramInviteLink = telegramBotUsername
@@ -197,7 +200,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => setConfirmDelete(true)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                  <button onClick={() => (barbershop && owed > 0 ? setDeleteBlocked(true) : setConfirmDelete(true))} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </button>
                 )}
@@ -205,6 +208,9 @@ export function ClientDetailView({ client: initial, appointments, currency, time
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {deleteBlocked && (
+              <p role="alert" className="mb-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm p-3">{fmt(fr.caisse.deleteBlocked, { amount: formatCurrency(owed, currency, 'fr-FR') })}</p>
+            )}
             {editing ? (
               <div className="space-y-3">
                 <div>

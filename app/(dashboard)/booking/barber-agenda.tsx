@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { addDaysYmd, dayRangeIso, isYmd, localYmd, weekStartYmd } from '@/lib/barbershop-today'
 import { accentFor } from '@/lib/barbershop-theme'
+import { balanceOf } from '@/lib/kridi'
 import { AgendaView, type AgendaAppointment } from './agenda-view'
 
 interface BusinessRow {
@@ -45,6 +46,16 @@ export async function BarberAgenda({ business, dayParam, viewParam }: { business
     return { ymd: day, closed: isClosedOn(day) }
   })
 
+  // Who owes kridi among the clients on screen, so the barber knows before the cut.
+  const clientIds = Array.from(new Set((apptRes.data ?? []).map((a) => a.client_id).filter((id): id is string => !!id)))
+  const owed: Record<string, number> = {}
+  if (clientIds.length > 0) {
+    const { data: ledger } = await supabase.from('client_ledger').select('client_id, kind, amount').eq('business_id', business.id).in('client_id', clientIds)
+    const byClient = new Map<string, { kind: string; amount: number }[]>()
+    for (const r of ledger ?? []) byClient.set(r.client_id, [...(byClient.get(r.client_id) ?? []), r])
+    for (const [id, list] of byClient) { const b = balanceOf(list); if (b > 0) owed[id] = b }
+  }
+
   return (
     <AgendaView
       business={{ id: business.id, currency: business.currency, timezone: tz }}
@@ -60,6 +71,7 @@ export async function BarberAgenda({ business, dayParam, viewParam }: { business
       accent={accentFor(business.brand_color)}
       barbers={barbersRes.data ?? []}
       closed={closed}
+      owed={owed}
       hours={hoursRows}
       services={(servicesRes.data ?? []).map((sv) => ({ ...sv, price: Number(sv.price), includes: sv.includes ?? [] }))}
       initialAppts={(apptRes.data ?? []) as unknown as AgendaAppointment[]}

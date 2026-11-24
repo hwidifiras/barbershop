@@ -218,6 +218,11 @@ export const fr = {
     received_done: 'Reçu : {amount}',
     kridiDone: 'En kridi : {amount}',
     errorKridi: 'Impossible d’enregistrer le kridi. Réessayez.',
+    history: 'Historique',
+    skip: 'Passer',
+    alreadyPaid: 'Ce rendez-vous est déjà encaissé.',
+    cancelledAppt: 'Ce rendez-vous est annulé ou absent : rien à encaisser.',
+    deleteBlocked: 'Ce client doit {amount}. Encaissez ou effacez la dette avant de le supprimer.',
   },
   today: {
     title: "Aujourd'hui",

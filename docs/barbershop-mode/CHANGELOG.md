@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Caisse pilot hardening (after tracing booking to payment in code)
+- **What changed:** (1) the Caisse opens on the cart/total when started from an appointment (it opened on the service grid); (2) the sale is linked to its appointment (`transactions.appointment_id`) and the Caisse refuses an appointment that is already paid, cancelled or absent (no double charge from a back button); (3) the appointment's client is always in the client picker (the list is capped at 200); (4) a client who owes cannot be deleted (the ledger would be deleted with them); (5) "Doit X DT" shows in the Agenda list and appointment sheet; (6) the two English leftovers in the barbershop Caisse ("Sales history", "Skip") are French.
+- **Where:** `pos/page.tsx`, `pos/pos-terminal.tsx`, `crm/[id]/*`, `booking/barber-agenda.tsx`, `booking/agenda-view.tsx`, `lib/barbershop-fr.ts`.
+- **Barbershop vs standard:** all behind the barbershop check (appointment link, guard and picker fix included); other types unchanged.
+- **Data/migrations:** none.
+- **Verified:** tsc, eslint, check:i18n, 141 unit tests.
+- **Notes / follow-ups:** client picker has no search by number; a fully-kridi sale marks the appointment "Payé"; `transactions.amount` keeps 2 decimals while the ledger keeps 3.
+
 ### 2026-11-24: Clients and Kridi list (phase 3f)
 - **What changed:** a client's page shows the kridi balance, "Encaisser un paiement" (partial allowed, capped at the balance), "Effacer la dette" (with a confirmation) and the last entries. Clients has a Tous / Kridi switch: the Kridi list shows who owes what (biggest first, then oldest), with Call and WhatsApp; the normal list shows "Doit X DT" next to a debtor. The Today revenue tile now counts sales' received money plus repayments, and shows "Kridi donné : X" when kridi was given that day.
 - **Where:** `app/(dashboard)/crm/[id]/kridi-panel.tsx` (new), `crm/[id]/page.tsx`, `crm/page.tsx`, `dashboard/barber-today.tsx`, `dashboard/today-view.tsx`, `lib/barbershop-fr.ts`.
