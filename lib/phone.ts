@@ -43,3 +43,10 @@ export function lookupKey(raw: string | null | undefined): string | null {
   if (!key) return null
   return key.length === TN_LOCAL_LENGTH || key.length >= 10 ? key : null
 }
+
+/** Number for a WhatsApp link (wa.me): country code included, digits only. Null if unusable. */
+export function whatsappNumber(raw: string | null | undefined): string | null {
+  const n = normalizePhone(raw)
+  if (!n) return null
+  return n.length === TN_LOCAL_LENGTH ? `${TN_CODE}${n}` : n
+}

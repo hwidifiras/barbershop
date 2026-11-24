@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, isOverdue, nextFreeStart, formatMinutes,
+  localYmd, zonedDateTime, dayRangeIso, pickNextAppointment, countDoneRemaining, isOverdue, nextFreeStart, formatMinutes, isYmd, addDaysYmd,
   type TodayAppt,
 } from '@/lib/barbershop-today'
 import type { DayHours } from '@/lib/booking-availability'
@@ -114,4 +114,20 @@ describe('nextFreeStart (walk-ins)', () => {
     expect(nextFreeStart({ dayHours: undefined, durationMin: 30, busy: [], nowMinutes: 600 })).toBeNull()
   })
   it('formatMinutes', () => expect(formatMinutes(13 * 60 + 5)).toBe('13:05'))
+})
+
+describe('isYmd / addDaysYmd', () => {
+  it('accepts only real dates', () => {
+    expect(isYmd('2026-11-24')).toBe(true)
+    expect(isYmd('2026-02-30')).toBe(false)
+    expect(isYmd('2026-1-5')).toBe(false)
+    expect(isYmd('')).toBe(false)
+    expect(isYmd(undefined)).toBe(false)
+  })
+  it('moves across month and year ends', () => {
+    expect(addDaysYmd('2026-11-30', 1)).toBe('2026-12-01')
+    expect(addDaysYmd('2026-12-31', 1)).toBe('2027-01-01')
+    expect(addDaysYmd('2026-03-01', -1)).toBe('2026-02-28')
+    expect(addDaysYmd('2026-11-24', 0)).toBe('2026-11-24')
+  })
 })

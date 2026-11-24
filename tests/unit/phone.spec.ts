@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizePhone, samePhone, formatPhone, lookupKey } from '@/lib/phone'
+import { normalizePhone, samePhone, formatPhone, lookupKey, whatsappNumber } from '@/lib/phone'
 
 describe('normalizePhone', () => {
   it('gives the same key for every way of typing a Tunisian number', () => {
@@ -60,5 +60,14 @@ describe('lookupKey', () => {
     expect(lookupKey('+33 6 12 34 56 78')).toBe('33612345678')
     expect(lookupKey('123456789')).toBeNull()
     expect(lookupKey('')).toBeNull()
+  })
+})
+
+describe('whatsappNumber', () => {
+  it('adds the Tunisian country code to local numbers only', () => {
+    expect(whatsappNumber('50 300 200')).toBe('21650300200')
+    expect(whatsappNumber('+216 50 300 200')).toBe('21650300200')
+    expect(whatsappNumber('+33 6 12 34 56 78')).toBe('33612345678')
+    expect(whatsappNumber('')).toBeNull()
   })
 })

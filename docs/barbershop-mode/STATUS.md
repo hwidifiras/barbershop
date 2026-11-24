@@ -10,8 +10,10 @@ Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 1c | No contradictions: "Inclut déjà", single-choice groups, supplements on offers | Done, live |
 | 2 | Phone navigation bar + "Today" screen | Done, live (audit fixes merged, PR #10) |
 | 3a | Client identity: one phone number = one client (normalised), search by name/number, rename | Done, live (migration 042 applied) |
-| 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | In review (no migration) |
-| 3 | Day agenda calendar, Charge (cash), Clients (phone layout) | Planned |
+| 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | Done, live (no migration) |
+| 3c | Phone Agenda (day view, swipe, barber filter, appointment sheet with actions) | In review (no migration) |
+| 3d | Agenda: create an appointment from the phone | Planned |
+| 3e | Caisse (cash) with kridi (partial or no payment), then Clients + Kridi list | Planned, design agreed 2026-11-24 |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
 | 5 | Team access: barber logins and own schedule | Planned |
 | 6 | Arabic / RTL, then extras | Planned |
