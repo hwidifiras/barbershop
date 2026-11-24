@@ -11,12 +11,13 @@ import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
 import { isBarbershopMode } from '@/lib/vertical'
-import { fr } from '@/lib/barbershop-fr'
-import { formatPhone } from '@/lib/phone'
+import { fr, fmt } from '@/lib/barbershop-fr'
+import { formatPhone, whatsappNumber } from '@/lib/phone'
+import { balanceOf } from '@/lib/kridi'
 
 export default async function CRMPage(
   props: {
-    searchParams: Promise<{ q?: string; tag?: string }>
+    searchParams: Promise<{ q?: string; tag?: string; view?: string }>
   }
 ) {
   const searchParams = await props.searchParams;
@@ -30,6 +31,64 @@ export default async function CRMPage(
   if (!business) redirect('/onboarding')
 
   const barbershop = isBarbershopMode(business)
+
+  // Barbershop: who owes what (kridi). One small read of the ledger, grouped per client.
+  const owed = new Map<string, { amount: number; since: string }>()
+  if (barbershop) {
+    const { data: rows } = await supabase.from('client_ledger').select('client_id, kind, amount, created_at')
+      .eq('business_id', business.id).order('created_at', { ascending: true })
+    const byClient = new Map<string, { kind: string; amount: number; created_at: string }[]>()
+    for (const r of rows ?? []) byClient.set(r.client_id, [...(byClient.get(r.client_id) ?? []), r])
+    for (const [id, list] of byClient) {
+      const amount = balanceOf(list)
+      if (amount > 0) owed.set(id, { amount, since: list.find((e) => e.kind === 'credit')?.created_at ?? list[0].created_at })
+    }
+    if (searchParams.view === 'kridi') {
+      const ids = Array.from(owed.keys())
+      const { data: debtors } = ids.length
+        ? await supabase.from('clients').select('id, name, phone').eq('business_id', business.id).in('id', ids)
+        : { data: [] as { id: string; name: string; phone: string | null }[] }
+      const list = (debtors ?? []).sort((a, b) => owed.get(b.id)!.amount - owed.get(a.id)!.amount || owed.get(a.id)!.since.localeCompare(owed.get(b.id)!.since))
+      const total = list.reduce((t, c) => t + owed.get(c.id)!.amount, 0)
+      const money = (n: number) => formatCurrency(n, business.currency, 'fr-FR')
+      return (
+        <>
+          <Header title={t('title')} />
+          <main className="p-4 md:p-6 max-w-lg space-y-3">
+            <KridiTabs active="kridi" />
+            <div className="text-sm font-semibold text-gray-900">{fmt(fr.kridi.totalOwed, { amount: money(total) })}</div>
+            {list.length === 0 ? (
+              <div className="rounded-xl bg-white border border-gray-200 p-6 text-center text-gray-700">{fr.kridi.nobody}</div>
+            ) : (
+              <ul className="space-y-2">
+                {list.map((c) => {
+                  const o = owed.get(c.id)!
+                  const wa = whatsappNumber(c.phone)
+                  return (
+                    <li key={c.id} className="rounded-xl bg-white border border-gray-200 p-3">
+                      <Link href={`/crm/${c.id}`} className="flex items-center justify-between gap-3 min-h-[44px]">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 truncate">{c.name}</div>
+                          <div className="text-xs text-gray-500">{c.phone ? formatPhone(c.phone) : ''} · {fmt(fr.kridi.since, { date: formatInBusinessTimezone(o.since, business.timezone, 'date', 'fr') })}</div>
+                        </div>
+                        <span className="shrink-0 text-lg font-bold tabular-nums text-orange-600">{money(o.amount)}</span>
+                      </Link>
+                      {c.phone && (
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          <a href={`tel:${c.phone.replace(/[^\d+]/g, '')}`} className="min-h-[44px] rounded-xl border border-gray-300 flex items-center justify-center gap-2 text-sm font-semibold text-gray-800"><Phone className="w-4 h-4" />{fr.kridi.call}</a>
+                          {wa && <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" className="min-h-[44px] rounded-xl border border-gray-300 flex items-center justify-center text-sm font-semibold text-gray-800">{fr.kridi.whatsapp}</a>}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </main>
+        </>
+      )
+    }
+  }
 
   let query = supabase.from('clients')
     .select('id, name, phone, email, tags, created_at')
@@ -96,6 +155,7 @@ export default async function CRMPage(
         }
       />
       <main className="p-6">
+        {barbershop && <div className="mb-3 max-w-sm"><KridiTabs active="all" /></div>}
         <div className="mb-4 relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <form>
@@ -132,6 +192,7 @@ export default async function CRMPage(
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-0">
                     <td className="px-4 py-3">
                       <Link href={`/crm/${c.id}`} className="font-medium text-gray-900 hover:text-blue-600">{c.name}</Link>
+                      {barbershop && owed.has(c.id) && <span className="ml-2 text-xs font-semibold text-orange-600">{fmt(fr.kridi.owes, { amount: formatCurrency(owed.get(c.id)!.amount, business.currency, 'fr-FR') })}</span>}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       <div className="flex flex-col gap-0.5">
@@ -162,5 +223,15 @@ export default async function CRMPage(
         </div>
       </main>
     </>
+  )
+}
+
+function KridiTabs({ active }: { active: 'all' | 'kridi' }) {
+  const cls = (on: boolean) => `min-h-[44px] rounded-lg text-sm font-semibold flex items-center justify-center ${on ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`
+  return (
+    <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1">
+      <Link href="/crm" className={cls(active === 'all')}>{fr.kridi.all}</Link>
+      <Link href="/crm?view=kridi" className={cls(active === 'kridi')}>{fr.kridi.list}</Link>
+    </div>
   )
 }

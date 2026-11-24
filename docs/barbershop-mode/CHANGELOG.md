@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Clients and Kridi list (phase 3f)
+- **What changed:** a client's page shows the kridi balance, "Encaisser un paiement" (partial allowed, capped at the balance), "Effacer la dette" (with a confirmation) and the last entries. Clients has a Tous / Kridi switch: the Kridi list shows who owes what (biggest first, then oldest), with Call and WhatsApp; the normal list shows "Doit X DT" next to a debtor. The Today revenue tile now counts sales' received money plus repayments, and shows "Kridi donné : X" when kridi was given that day.
+- **Where:** `app/(dashboard)/crm/[id]/kridi-panel.tsx` (new), `crm/[id]/page.tsx`, `crm/page.tsx`, `dashboard/barber-today.tsx`, `dashboard/today-view.tsx`, `lib/barbershop-fr.ts`.
+- **Barbershop vs standard:** every change is behind the barbershop check; other business types render exactly as before.
+- **Data/migrations:** none (uses `client_ledger` from 043).
+- **Spec section(s):** 4.13
+- **Verified:** tsc, eslint, check:i18n, 141 unit tests.
+- **Notes / follow-ups:** phase 5: only the owner may forgive debt (roles). The Clients list is still a table; a phone card list is a later step.
+
 ### 2026-11-24: Caisse with kridi (phase 3e)
 - **What changed:** in barbershop mode the POS is cash only (card/transfer hidden). For a client with a name and a number, a "Montant reçu" field (default = the total) lets the barber take less; the rest becomes kridi, and "Tout en kridi" sets the received amount to 0. The client's existing debt shows as "Doit X DT". `transactions.amount` stays "money really received" and the full price stays in `items`, so the day's takings only count cash in hand. Kridi needs a connection (hidden offline). If the kridi line cannot be saved, the sale is removed so nothing is half-recorded.
 - **Where:** `app/(dashboard)/pos/pos-terminal.tsx`, `lib/kridi.ts` (+ `tests/unit/kridi.spec.ts`), `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`.

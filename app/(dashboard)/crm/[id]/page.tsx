@@ -9,6 +9,8 @@ import { getTelegramBotInfo } from '@/lib/telegram'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
 import { isBarbershopMode } from '@/lib/vertical'
+import { normalizePhone } from '@/lib/phone'
+import { KridiPanel } from './kridi-panel'
 
 export default async function ClientDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -43,6 +45,11 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
     .order('starts_at', { ascending: false })
     .limit(20)
 
+  const barbershop = isBarbershopMode(business)
+  const { data: ledger } = barbershop
+    ? await supabase.from('client_ledger').select('id, kind, amount, created_at').eq('business_id', business.id).eq('client_id', client.id)
+    : { data: null }
+
   return (
     <>
       <Header
@@ -53,6 +60,14 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
           </Link>
         }
       />
+      {barbershop && (
+        <div className="px-6 pt-6 max-w-4xl">
+          <KridiPanel
+            businessId={business.id} clientId={client.id} currency={business.currency} timezone={business.timezone ?? 'UTC'}
+            eligible={!!client.name?.trim() && !!normalizePhone(client.phone)} entries={ledger ?? []}
+          />
+        </div>
+      )}
       <ClientDetailView
         client={client}
         appointments={appointments ?? []}
@@ -60,7 +75,7 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
         timezone={business.timezone}
         businessId={business.id}
         telegramBotUsername={telegramBotUsername}
-        barbershop={isBarbershopMode(business)}
+        barbershop={barbershop}
       />
     </>
   )

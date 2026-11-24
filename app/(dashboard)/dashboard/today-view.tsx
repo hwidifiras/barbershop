@@ -48,6 +48,7 @@ interface Props {
   hasHours: boolean
   initialAppts: TodayAppointment[]
   revenueToday: number
+  kridiToday?: number
   lowStock: number
 }
 
@@ -67,7 +68,7 @@ const STATUS_STYLE: Record<string, string> = {
 const REFRESH_EVERY_MS = 60_000
 
 export function TodayView({
-  business, ymd, nowMs, accent, barbers, services, hours, hasHours, initialAppts, revenueToday, lowStock,
+  business, ymd, nowMs, accent, barbers, services, hours, hasHours, initialAppts, revenueToday, kridiToday = 0, lowStock,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -350,6 +351,7 @@ export function TodayView({
           <div className="rounded-xl bg-white border border-gray-200 p-4">
             <div className="text-2xl font-bold text-gray-900 tabular-nums">{money(revenueToday)}</div>
             <div className="text-xs text-gray-500 mt-0.5">{T.revenue}</div>
+            {kridiToday > 0 && <div className="text-xs font-semibold text-orange-600 mt-0.5">{fmt(fr.kridi.kridiToday, { amount: money(kridiToday) })}</div>}
           </div>
         </div>
 

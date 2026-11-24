@@ -13,11 +13,11 @@ Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | Done, live (no migration) |
 | 3c | Phone Agenda (Jour / Semaine switch, swipe, barber filter, appointment sheet with actions) | Done, live (no migration) |
 | 3d | Agenda: create an appointment from the phone ("Nouveau RDV") | Done, live (no migration) |
-| 3e | Caisse (cash) with kridi (partial or no payment) | In review, needs migration 043 (client_ledger) |
-| 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | Planned |
-| 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
-| 5 | Team access: barber logins and own schedule | Planned |
-| 6 | Arabic / RTL, then extras | Planned |
+| 3e | Caisse (cash) with kridi (partial or no payment) | Done, live (migration 043 applied) |
+| 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | In review (no migration) |
+| 4 | Settings reorganisation, onboarding presets, Products off by default | In review (no migration) |
+| 5 | Team access: barber logins and own schedule | In review (no migration) |
+| 6 | Arabic / RTL, then extras | In review (no migration) |
 
 ## How to try what is live
 1. Settings → Général → set **Type d'activité** to Barbershop, save, reload.
