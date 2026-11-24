@@ -312,6 +312,14 @@ Not included (decided): the 💺 chair emoji and the "available barber" badge we
 
 ---
 
+### 4.13 Kridi: pay now, rest later (barbershop only)
+
+- One running balance per client, kept in `client_ledger` (`credit` = unpaid part of a sale, `payment` = money handed over later, `writeoff` = owner forgives). Balance = credits - payments - writeoffs.
+- Only for clients with a name and a phone number. Clients with debt can still book online; only the barber sees "Doit X DT".
+- Caisse: cash only. "Montant reçu" defaults to the total; the remainder becomes kridi; "Tout en kridi" sets it to 0. Needs a connection.
+- `transactions.amount` = money really received; the full price stays in `items`. The day's takings therefore count only cash in hand (repayments included once 3f lands).
+- Out of scope: interest, due dates, limits, automatic reminders, per-barber debts and roles.
+
 ## 5. What stays standard for everyone else
 
 All screens listed in section 4 keep their current code path for non-barbershop types.
