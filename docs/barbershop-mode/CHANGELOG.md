@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: phone Agenda, day view (phase 3, part 1: Agenda)
+- **What changed:** in barbershop mode, `/booking` shows on phones (below `md`) a **day agenda**: one day as a vertical list (start/end time, client, services, barber, status), previous/next day by arrows or swipe, an "Aujourd'hui" button, a barber filter (chips), "Fermé ce jour" on closed days and a "Voir les annulés" toggle. Tapping an appointment opens a bottom sheet with its details and the actions **Terminé**, **Encaisser** (opens the Caisse with the booking, client, service and barber prefilled), **Confirmer** (pending only), **Absent**, **Annuler**, plus **Appeler** and **WhatsApp** for the client. Past days work too; bookings past their end time show "À clôturer". The screen refreshes every minute and when the app comes back to the front. The date is the `?d=YYYY-MM-DD` parameter (shareable, default today).
+- **Where:** `app/(dashboard)/booking/page.tsx`, `barber-agenda.tsx` (server), `agenda-view.tsx` (client), `lib/barbershop-today.ts` (`isYmd`, `addDaysYmd`), `lib/phone.ts` (`whatsappNumber`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** gated by `isBarbershopMode`; from `md` up barbershops keep the existing week calendar, and every other business type keeps the calendar on all screen sizes, unchanged.
+- **Data/migrations:** none (existing `appointments`, `employees`, `business_hours`).
+- **Spec section(s):** 4.3 (day agenda, barber filter, detail sheet with status actions and Charge)
+- **Verified:** `tsc --noEmit`, eslint 0 errors, `test:unit` 131 pass (3 new), full `next build` OK. Not tested on a phone.
+- **Not in this PR (next, part 1b):** creating an appointment from the agenda (bottom sheet: client by number, service, barber, free time) and "Reporter" (parked idea). Then Caisse with kridi, then Clients.
+
 ### 2026-11-24: "do I already have an appointment?" on the booking page (phase 3b)
 - **What changed:** on the public barbershop booking page, (1) as soon as the visitor has typed the **8th digit** of their number (any spelling, or a complete international number) a notice appears under the phone field, "Vous avez déjà un rendez-vous cette semaine", with no button to press; tapping it shows the day, time and barber; (2) a link **"Possédez-vous déjà un rendez-vous ?"** at the top right opens a sheet where the visitor enters only their number and sees their appointment(s) for the week. Only upcoming (not past), pending or confirmed appointments in the next 7 days count. It never blocks a booking.
 - **Privacy rules:** the new endpoint `POST /api/book/lookup` returns only the start time and barber name of the number's own upcoming appointments (max 3): no client name, service, price or contact details. An unknown number and a number with nothing booked answer the same way. Rate limited to 20 calls / 10 min per IP and 10 calls / 10 min per number. Barbershop mode only (404 otherwise).

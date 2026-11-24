@@ -5,8 +5,11 @@ import { BookingCalendar } from './booking-calendar'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
 import { getTranslations } from 'next-intl/server'
+import { isBarbershopMode } from '@/lib/vertical'
+import { BarberAgenda } from './barber-agenda'
 
-export default async function BookingPage() {
+export default async function BookingPage(props: { searchParams: Promise<{ d?: string }> }) {
+  const { d } = await props.searchParams
   const supabase = await createClient()
   const t = await getTranslations('booking')
   const user = await getAuthUser()
@@ -52,7 +55,7 @@ export default async function BookingPage() {
         .eq('business_id', business.id),
     ])
 
-  return (
+  const calendar = (
     <>
       <Header title={t('title')} />
       <BookingCalendar
@@ -67,4 +70,16 @@ export default async function BookingPage() {
       />
     </>
   )
+
+  // Barbershop mode (docs/barbershop-mode/SPEC.md 4.3): day agenda on phones, the existing week
+  // calendar from md and up. Every other business type keeps the calendar exactly as it was.
+  if (isBarbershopMode(business)) {
+    return (
+      <>
+        <div className="md:hidden"><BarberAgenda business={business} dayParam={d} /></div>
+        <div className="hidden md:block">{calendar}</div>
+      </>
+    )
+  }
+  return calendar
 }
