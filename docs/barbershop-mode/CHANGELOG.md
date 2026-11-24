@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: labelled "Modifier" button on the client page (phase 3 prep)
+- **What changed:** in barbershop mode the client page shows a labelled **Modifier** button (name, number, notes) instead of only a small pencil icon that was hard to find on a phone.
+- **Where:** `app/(dashboard)/crm/[id]/client-detail-view.tsx`, `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** gated by the existing `barbershop` prop; other types keep the pencil icon.
+- **Data/migrations:** none
+- **Spec section(s):** 4.5
+- **Verified:** `tsc --noEmit`, eslint, unit tests. Not checked on a phone.
+
 ### 2026-11-24: client identity = normalised phone number (phase 3 prep)
 - **What changed:** one phone number = one client. New `lib/phone.ts` (`normalizePhone`, `samePhone`, `formatPhone`) turns every spelling (`50 300 200`, `503 00 200`, `+216 50 300 200`, `21650300200`, `0021650300200`) into `50300200`. Online booking, the walk-in sheet, POS "save as client" and the new-client form now find the client by that key and reuse the record instead of creating a duplicate (the new-client form shows "Ce numéro appartient déjà à …" with a link). In the client page, changing a number to one used by another client is refused. A booking no longer overwrites the name the barber stored. The Clients search finds a client by name or any part (3+ digits) of the number in any spelling, and shows numbers as `50 300 200`.
 - **Where:** `lib/phone.ts`, `lib/client-identity.ts`, `app/api/book/route.ts`, `app/(dashboard)/dashboard/today-view.tsx`, `app/(dashboard)/pos/*`, `app/(dashboard)/crm/page.tsx`, `crm/new/*`, `crm/[id]/*`, `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`

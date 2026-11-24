@@ -181,11 +181,17 @@ export function ClientDetailView({ client: initial, appointments, currency, time
             <CardTitle className="flex items-center justify-between text-base">
               {client.name}
               <div className="flex items-center gap-2">
-                {!editing && (
+                {!editing && (barbershop ? (
+                  // Barbershop mode: a clear labelled button (the bare pencil icon was easy to miss on a phone).
+                  <button onClick={() => setEditing(true)}
+                    className="flex items-center gap-1.5 min-h-[40px] px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50">
+                    <Pencil className="w-4 h-4" />{fr.clients.edit}
+                  </button>
+                ) : (
                   <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
                     <Pencil className="w-4 h-4 text-gray-500" />
                   </button>
-                )}
+                ))}
                 {confirmDelete ? (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-500">{t('deleteConfirm')}</span>
