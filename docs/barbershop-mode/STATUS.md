@@ -9,8 +9,8 @@ Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 1b | Smart services: supplements, per-service online switch, offers | Done, live |
 | 1c | No contradictions: "Inclut déjà", single-choice groups, supplements on offers | Done, live |
 | 2 | Phone navigation bar + "Today" screen | Done, live (audit fixes merged, PR #10) |
-| 3a | Client identity: one phone number = one client (normalised), search by name/number, rename | In review (needs migration 042 before deploy) |
-| 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | Planned (reuses 3a) |
+| 3a | Client identity: one phone number = one client (normalised), search by name/number, rename | Done, live (migration 042 applied) |
+| 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | In review (no migration) |
 | 3 | Day agenda calendar, Charge (cash), Clients (phone layout) | Planned |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
 | 5 | Team access: barber logins and own schedule | Planned |

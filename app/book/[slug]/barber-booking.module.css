@@ -174,3 +174,21 @@
 .addon:disabled, .addon[data-included='true'] { cursor: default; opacity: 0.6; background: var(--surface-2); }
 .addon[data-included='true'] .box { background: color-mix(in srgb, var(--accent) 35%, transparent); border-color: transparent; }
 .includes { font-size: 12px; margin-top: 3px; color: var(--accent); }
+
+/* "Do I already have an appointment?" (hint, link, sheet) */
+.lookupRow { max-width: 480px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: flex-end; }
+.lookupLink { background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0; min-height: 40px; cursor: pointer; }
+.lookupLink:hover { color: var(--text); }
+.notice { margin: -4px 0 14px; background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: var(--radius); }
+.noticeBtn { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; background: none; border: 0; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; padding: 12px 14px; min-height: 48px; cursor: pointer; }
+.noticeBtn > span { flex: 1; display: flex; flex-direction: column; }
+.noticeBtn small { font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.noticeBtn svg:first-child { color: var(--accent); flex-shrink: 0; }
+.apptList { list-style: none; margin: 0; padding: 0 14px 12px; display: grid; gap: 8px; font-size: 15px; font-weight: 600; text-transform: capitalize; }
+.apptList li { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.apptBarber { color: var(--muted); font-weight: 400; text-transform: none; }
+.sheetBackdrop { position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.6); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 480px; max-height: 88dvh; overflow-y: auto; background: var(--bg); border: 1.5px solid var(--border); border-radius: 18px 18px 0 0; padding: 18px 16px; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.sheetClose { background: none; border: 0; color: var(--muted); min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.sheet .apptList { padding: 0; }

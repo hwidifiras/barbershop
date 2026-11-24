@@ -21,6 +21,7 @@ import {
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { bricolage, dmSans } from '@/lib/landing-fonts'
 import styles from './barber-booking.module.css'
+import { ExistingAppointmentHint, ExistingAppointmentLookup } from './my-appointments'
 
 type Service = CartService & { description: string | null; category: string | null }
 interface Barber { id: string; name: string; avatar_url: string | null }
@@ -346,6 +347,8 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
         </div>
       </header>
 
+      <ExistingAppointmentLookup businessId={business.id} timezone={tz} />
+
       <main className={styles.main}>
         {error && <div className={styles.error} role="alert">{error}</div>}
 
@@ -548,6 +551,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
                 value={contact.phone} onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))} />
               <div className={styles.hint}>{L.phoneHint}</div>
             </div>
+            <ExistingAppointmentHint businessId={business.id} phone={contact.phone} timezone={tz} />
 
             <h3 className={styles.h3}>{L.summary}</h3>
             {summaryRows}

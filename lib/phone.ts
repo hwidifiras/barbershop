@@ -33,3 +33,13 @@ export function formatPhone(raw: string | null | undefined): string {
   if (n.length === TN_LOCAL_LENGTH) return `${n.slice(0, 2)} ${n.slice(2, 5)} ${n.slice(5)}`
   return n
 }
+
+/**
+ * Key to look an existing booking up with, only once the number looks complete: the 8 local digits of a
+ * Tunisian number, or a full international number (10+ digits). Fewer digits = still typing = null.
+ */
+export function lookupKey(raw: string | null | undefined): string | null {
+  const key = normalizePhone(raw)
+  if (!key) return null
+  return key.length === TN_LOCAL_LENGTH || key.length >= 10 ? key : null
+}

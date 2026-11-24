@@ -19,6 +19,16 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: "do I already have an appointment?" on the booking page (phase 3b)
+- **What changed:** on the public barbershop booking page, (1) as soon as the visitor has typed the **8th digit** of their number (any spelling, or a complete international number) a notice appears under the phone field, "Vous avez déjà un rendez-vous cette semaine", with no button to press; tapping it shows the day, time and barber; (2) a link **"Possédez-vous déjà un rendez-vous ?"** at the top right opens a sheet where the visitor enters only their number and sees their appointment(s) for the week. Only upcoming (not past), pending or confirmed appointments in the next 7 days count. It never blocks a booking.
+- **Privacy rules:** the new endpoint `POST /api/book/lookup` returns only the start time and barber name of the number's own upcoming appointments (max 3): no client name, service, price or contact details. An unknown number and a number with nothing booked answer the same way. Rate limited to 20 calls / 10 min per IP and 10 calls / 10 min per number. Barbershop mode only (404 otherwise).
+- **Where:** `app/api/book/lookup/route.ts`, `app/book/[slug]/my-appointments.tsx`, `barber-booking.tsx` and `.module.css`, `lib/phone.ts` (`lookupKey`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** barbershop booking page and endpoint only; the standard booking page is untouched.
+- **Data/migrations:** none (uses `clients.phone_key` from migration 042).
+- **Spec section(s):** 4.9, 4.5
+- **Verified:** `tsc --noEmit`, eslint 0 errors, `test:unit` 128 pass (2 new for `lookupKey`), full `next build` OK. Not tested on a phone.
+- **Notes / follow-ups:** the rate limiter is per server instance (see `lib/rate-limit.ts`), so it is a brake, not a hard cap.
+
 ### 2026-11-24: client identity = normalised phone number (phase 3 prep)
 - **What changed:** one phone number = one client. New `lib/phone.ts` (`normalizePhone`, `samePhone`, `formatPhone`) turns every spelling (`50 300 200`, `503 00 200`, `+216 50 300 200`, `21650300200`, `0021650300200`) into `50300200`. Online booking, the walk-in sheet, POS "save as client" and the new-client form now find the client by that key and reuse the record instead of creating a duplicate (the new-client form shows "Ce numéro appartient déjà à …" with a link). In the client page, changing a number to one used by another client is refused. A booking no longer overwrites the name the barber stored. The Clients search finds a client by name or any part (3+ digits) of the number in any spelling, and shows numbers as `50 300 200`.
 - **Where:** `lib/phone.ts`, `lib/client-identity.ts`, `app/api/book/route.ts`, `app/(dashboard)/dashboard/today-view.tsx`, `app/(dashboard)/pos/*`, `app/(dashboard)/crm/page.tsx`, `crm/new/*`, `crm/[id]/*`, `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`
