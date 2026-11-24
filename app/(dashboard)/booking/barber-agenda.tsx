@@ -2,7 +2,7 @@
 // (`?d=YYYY-MM-DD`, default today) and hands it to the interactive AgendaView.
 
 import { createClient } from '@/lib/supabase/server'
-import { addDaysYmd, dayRangeIso, isYmd, localYmd } from '@/lib/barbershop-today'
+import { addDaysYmd, dayRangeIso, isYmd, localYmd, weekStartYmd } from '@/lib/barbershop-today'
 import { accentFor } from '@/lib/barbershop-theme'
 import { AgendaView, type AgendaAppointment } from './agenda-view'
 
@@ -13,13 +13,18 @@ interface BusinessRow {
 const SELECT =
   'id, starts_at, ends_at, status, price, items_summary, notes, source, employee_id, service_id, client_id, clients(id, name, phone), services(id, name)'
 
-export async function BarberAgenda({ business, dayParam }: { business: BusinessRow; dayParam?: string }) {
+export async function BarberAgenda({ business, dayParam, viewParam }: { business: BusinessRow; dayParam?: string; viewParam?: string }) {
   const supabase = await createClient()
   const tz = business.timezone ?? 'UTC'
   const nowMs = Date.now()
   const today = localYmd(new Date(nowMs), tz)
   const ymd = isYmd(dayParam) ? dayParam : today
-  const { from, to } = dayRangeIso(ymd, tz)
+  const view = viewParam === 'week' ? 'week' : 'day'
+  // Day view loads one day; week view loads Monday to Sunday of the week that contains `ymd`.
+  const weekStart = weekStartYmd(ymd)
+  const { from, to } = view === 'week'
+    ? { from: dayRangeIso(weekStart, tz).from, to: dayRangeIso(addDaysYmd(weekStart, 6), tz).to }
+    : dayRangeIso(ymd, tz)
 
   const [apptRes, barbersRes, hoursRes] = await Promise.all([
     supabase.from('appointments').select(SELECT).eq('business_id', business.id).gte('starts_at', from).lt('starts_at', to).order('starts_at'),
@@ -27,9 +32,17 @@ export async function BarberAgenda({ business, dayParam }: { business: BusinessR
     supabase.from('business_hours').select('day_of_week, is_open').eq('business_id', business.id),
   ])
 
-  const dow = new Date(`${ymd}T12:00:00Z`).getUTCDay()
-  const dayHours = (hoursRes.data ?? []).find((h) => h.day_of_week === dow)
-  const closed = (hoursRes.data ?? []).length > 0 && !dayHours?.is_open
+  const hoursRows = hoursRes.data ?? []
+  const isClosedOn = (day: string) => {
+    if (hoursRows.length === 0) return false
+    const dow = new Date(`${day}T12:00:00Z`).getUTCDay()
+    return !hoursRows.find((h) => h.day_of_week === dow)?.is_open
+  }
+  const closed = isClosedOn(ymd)
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const day = addDaysYmd(weekStart, i)
+    return { ymd: day, closed: isClosedOn(day) }
+  })
 
   return (
     <AgendaView
@@ -38,6 +51,10 @@ export async function BarberAgenda({ business, dayParam }: { business: BusinessR
       today={today}
       prevYmd={addDaysYmd(ymd, -1)}
       nextYmd={addDaysYmd(ymd, 1)}
+      view={view}
+      weekDays={weekDays}
+      prevWeekYmd={addDaysYmd(weekStart, -7)}
+      nextWeekYmd={addDaysYmd(weekStart, 7)}
       nowMs={nowMs}
       accent={accentFor(business.brand_color)}
       barbers={barbersRes.data ?? []}

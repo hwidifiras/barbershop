@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Agenda, Jour / Semaine switch (phase 3, part 1 follow-up)
+- **What changed:** the phone Agenda has a **Jour | Semaine** switch at the top. **Semaine** is a week list (Monday to Sunday): one row per day with the number of appointments, the first three (time and client name), "+N autres", "Fermé" or "Libre"; today is outlined. Previous/next week by arrows or swipe, "Cette semaine" to come back, and the barber filter applies. Tapping a day opens it in the **Jour** view. Switching back to Jour opens today (or the first day of the week shown). The address is `/booking?v=week&d=YYYY-MM-DD`.
+- **Where:** `app/(dashboard)/booking/agenda-view.tsx`, `barber-agenda.tsx`, `page.tsx`, `lib/barbershop-today.ts` (`weekStartYmd`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** phone barbershop Agenda only; computers keep the existing week table and other business types are unchanged.
+- **Data/migrations:** none.
+- **Spec section(s):** 4.3
+- **Verified:** `tsc --noEmit`, eslint 0 errors, `test:unit` 132 pass (1 new), full `next build` run. Not tested on a phone.
+- **Notes:** chosen by the owner over a sideways-scrolling full week table (hard to read and tap on a phone).
+
 ### 2026-11-24: phone Agenda, day view (phase 3, part 1: Agenda)
 - **What changed:** in barbershop mode, `/booking` shows on phones (below `md`) a **day agenda**: one day as a vertical list (start/end time, client, services, barber, status), previous/next day by arrows or swipe, an "Aujourd'hui" button, a barber filter (chips), "Fermé ce jour" on closed days and a "Voir les annulés" toggle. Tapping an appointment opens a bottom sheet with its details and the actions **Terminé**, **Encaisser** (opens the Caisse with the booking, client, service and barber prefilled), **Confirmer** (pending only), **Absent**, **Annuler**, plus **Appeler** and **WhatsApp** for the client. Past days work too; bookings past their end time show "À clôturer". The screen refreshes every minute and when the app comes back to the front. The date is the `?d=YYYY-MM-DD` parameter (shareable, default today).
 - **Where:** `app/(dashboard)/booking/page.tsx`, `barber-agenda.tsx` (server), `agenda-view.tsx` (client), `lib/barbershop-today.ts` (`isYmd`, `addDaysYmd`), `lib/phone.ts` (`whatsappNumber`), `lib/barbershop-fr.ts`
