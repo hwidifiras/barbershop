@@ -23,3 +23,11 @@ alter table public.client_ledger enable row level security;
 drop policy if exists "tenant_access_client_ledger" on public.client_ledger;
 create policy "tenant_access_client_ledger" on public.client_ledger
   for all using (business_id in (select public.my_business_ids()));
+
+-- Data API privileges (repo rule, tests/migration-grants-rule.test.js): explicit grants, none for anon.
+-- Append-only on purpose: the app only ever reads and inserts ledger rows (a repayment or a write-off is a
+-- new row), so signed-in users get SELECT and INSERT only. Rows disappear only with their client (cascade).
+REVOKE ALL ON public.client_ledger FROM anon;
+REVOKE ALL ON public.client_ledger FROM authenticated;
+GRANT SELECT, INSERT ON public.client_ledger TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.client_ledger TO service_role;
