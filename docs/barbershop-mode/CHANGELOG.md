@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Create an appointment from the phone Agenda (phase 3d)
+- **What changed:** a "Nouveau RDV" button on the Agenda day view opens a sheet: service (+ supplements), barber, a free time (same slot rules as the public page, past times hidden), and the client by phone number. A known number brings back the existing client (name shown, not duplicated); a new number plus name creates one. The appointment is `confirmed`, source `manual`, with the price and `appointment_items` like a walk-in.
+- **Where:** `app/(dashboard)/booking/new-appointment-sheet.tsx` (new), `agenda-view.tsx`, `barber-agenda.tsx` (also loads services and opening hours), `lib/barbershop-fr.ts`.
+- **Barbershop vs standard:** only inside the barbershop phone Agenda; the desktop calendar and other business types are untouched.
+- **Data/migrations:** none (the database's slot check still prevents double booking).
+- **Spec section(s):** 4.3, 4.5
+- **Verified:** tsc, eslint, check:i18n, 132 unit tests.
+- **Notes / follow-ups:** moving or postponing an appointment ("Reporter") is not built. STATUS.md: 3c set to live.
+
 ### 2026-11-24: Agenda, Jour / Semaine switch (phase 3, part 1 follow-up)
 - **What changed:** the phone Agenda has a **Jour | Semaine** switch at the top. **Semaine** is a week list (Monday to Sunday): one row per day with the number of appointments, the first three (time and client name), "+N autres", "Fermé" or "Libre"; today is outlined. Previous/next week by arrows or swipe, "Cette semaine" to come back, and the barber filter applies. Tapping a day opens it in the **Jour** view. Switching back to Jour opens today (or the first day of the week shown). The address is `/booking?v=week&d=YYYY-MM-DD`.
 - **Where:** `app/(dashboard)/booking/agenda-view.tsx`, `barber-agenda.tsx`, `page.tsx`, `lib/barbershop-today.ts` (`weekStartYmd`), `lib/barbershop-fr.ts`

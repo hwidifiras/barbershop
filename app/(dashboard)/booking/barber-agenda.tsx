@@ -26,10 +26,11 @@ export async function BarberAgenda({ business, dayParam, viewParam }: { business
     ? { from: dayRangeIso(weekStart, tz).from, to: dayRangeIso(addDaysYmd(weekStart, 6), tz).to }
     : dayRangeIso(ymd, tz)
 
-  const [apptRes, barbersRes, hoursRes] = await Promise.all([
+  const [apptRes, barbersRes, hoursRes, servicesRes] = await Promise.all([
     supabase.from('appointments').select(SELECT).eq('business_id', business.id).gte('starts_at', from).lt('starts_at', to).order('starts_at'),
     supabase.from('employees').select('id, name, avatar_url').eq('business_id', business.id).eq('is_active', true).order('name'),
-    supabase.from('business_hours').select('day_of_week, is_open').eq('business_id', business.id),
+    supabase.from('business_hours').select('day_of_week, is_open, open_time, close_time, break_start, break_end').eq('business_id', business.id),
+    supabase.from('services').select('id, name, price, duration_min, kind, bookable_alone, includes, exclusive_group').eq('business_id', business.id).eq('is_active', true).order('name'),
   ])
 
   const hoursRows = hoursRes.data ?? []
@@ -59,6 +60,8 @@ export async function BarberAgenda({ business, dayParam, viewParam }: { business
       accent={accentFor(business.brand_color)}
       barbers={barbersRes.data ?? []}
       closed={closed}
+      hours={hoursRows}
+      services={(servicesRes.data ?? []).map((sv) => ({ ...sv, price: Number(sv.price), includes: sv.includes ?? [] }))}
       initialAppts={(apptRes.data ?? []) as unknown as AgendaAppointment[]}
     />
   )
