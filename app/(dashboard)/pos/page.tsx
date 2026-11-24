@@ -8,6 +8,7 @@ import { formatInBusinessTimezone } from '@/lib/utils'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 interface SearchParams {
   bookingId?: string
@@ -109,6 +110,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
       />
       <POSTerminal
         businessId={business.id}
+        barbershop={isBarbershopMode(business)}
         currency={business.currency}
         services={services ?? []}
         employees={employees ?? []}

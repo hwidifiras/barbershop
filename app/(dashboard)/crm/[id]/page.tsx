@@ -8,6 +8,7 @@ import { ChevronLeft } from 'lucide-react'
 import { getTelegramBotInfo } from '@/lib/telegram'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 export default async function ClientDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -59,6 +60,7 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
         timezone={business.timezone}
         businessId={business.id}
         telegramBotUsername={telegramBotUsername}
+        barbershop={isBarbershopMode(business)}
       />
     </>
   )

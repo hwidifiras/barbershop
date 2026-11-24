@@ -5,9 +5,14 @@ import { createClient } from '@/lib/supabase/client'
 import { DatePicker } from '@/components/ui/date-picker'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { findClientByPhone } from '@/lib/client-identity'
+import { normalizePhone } from '@/lib/phone'
+import { fr, fmt } from '@/lib/barbershop-fr'
 
 interface Props {
   businessId: string
+  /** Barbershop mode: the phone number identifies the client (no duplicates). */
+  barbershop?: boolean
 }
 
 function validatePhone(phone: string, invalidMessage: string): string | null {
@@ -25,7 +30,7 @@ function validateBirthday(birthday: string, invalidMessage: string): string | nu
   return null
 }
 
-export function NewClientForm({ businessId }: Props) {
+export function NewClientForm({ businessId, barbershop = false }: Props) {
   const supabase = createClient()
   const t = useTranslations('newClient')
   const validationT = useTranslations('clientDetail')
@@ -41,6 +46,7 @@ export function NewClientForm({ businessId }: Props) {
   })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ phone?: string; birthday?: string }>({})
+  const [duplicate, setDuplicate] = useState<{ id: string; name: string } | null>(null)
 
   function blurPhone() {
     const e = validatePhone(form.phone, validationT('phoneInvalid'))
@@ -64,12 +70,22 @@ export function NewClientForm({ businessId }: Props) {
     }
 
     setSaving(true)
+    setDuplicate(null)
+    if (barbershop && form.phone) {
+      // Same number = same client: never create a second record, point to the existing one.
+      const existing = await findClientByPhone(supabase, businessId, form.phone)
+      if (existing) {
+        setDuplicate({ id: existing.id, name: existing.name })
+        setSaving(false)
+        return
+      }
+    }
     const tags = form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
 
     const { data: client } = await supabase.from('clients').insert({
       business_id: businessId,
       name: form.name.trim(),
-      phone: form.phone || null,
+      phone: (barbershop ? normalizePhone(form.phone) : null) ?? (form.phone || null),
       email: form.email || null,
       whatsapp_number: form.whatsapp_number || null,
       birthday: form.birthday || null,
@@ -107,6 +123,12 @@ export function NewClientForm({ businessId }: Props) {
           className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-400' : 'border-gray-200'}`}
         />
         {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+        {duplicate && (
+          <p className="text-xs text-red-600 mt-1">
+            {fmt(fr.clients.numberTaken, { name: duplicate.name })}{' '}
+            <Link href={`/crm/${duplicate.id}`} className="underline font-medium">{fr.clients.openRecord}</Link>
+          </p>
+        )}
       </div>
 
       <div>

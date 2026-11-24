@@ -1,6 +1,6 @@
 # Barbershop mode: status at a glance
 
-Last updated: 2026-11-23 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
+Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
 
 | Phase | What | State |
 |---|---|---|
@@ -8,8 +8,10 @@ Last updated: 2026-11-23 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 1 | Public booking link (3 screens, French, dark), barber photos, QR + links, online on/off | Done, live |
 | 1b | Smart services: supplements, per-service online switch, offers | Done, live |
 | 1c | No contradictions: "Inclut déjà", single-choice groups, supplements on offers | Done, live |
-| 2 | Phone navigation bar + "Today" screen | Done, live; audit fixes in review (no migration) |
-| 3 | Day agenda calendar, Charge (cash), Clients | Planned |
+| 2 | Phone navigation bar + "Today" screen | Done, live (audit fixes merged, PR #10) |
+| 3a | Client identity: one phone number = one client (normalised), search by name/number, rename | In review (needs migration 042 before deploy) |
+| 3b | Booking-page hint + "Possédez-vous déjà un rendez-vous ?" | Planned (reuses 3a) |
+| 3 | Day agenda calendar, Charge (cash), Clients (phone layout) | Planned |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Planned |
 | 5 | Team access: barber logins and own schedule | Planned |
 | 6 | Arabic / RTL, then extras | Planned |

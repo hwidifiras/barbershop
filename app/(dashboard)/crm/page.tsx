@@ -10,6 +10,9 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
+import { fr } from '@/lib/barbershop-fr'
+import { formatPhone } from '@/lib/phone'
 
 export default async function CRMPage(
   props: {
@@ -26,6 +29,8 @@ export default async function CRMPage(
 
   if (!business) redirect('/onboarding')
 
+  const barbershop = isBarbershopMode(business)
+
   let query = supabase.from('clients')
     .select('id, name, phone, email, tags, created_at')
     .eq('business_id', business.id)
@@ -33,7 +38,15 @@ export default async function CRMPage(
     .limit(50)
 
   if (searchParams.q) {
-    query = query.or(`name.ilike.%${searchParams.q}%,phone.ilike.%${searchParams.q}%,email.ilike.%${searchParams.q}%`)
+    // Characters that are structural in a PostgREST filter string cannot be part of a search term.
+    const q = searchParams.q.replace(/[,()%*\\]/g, ' ').trim()
+    // Barbershop mode: a number is found whatever its spelling ("50 300", "+216 50300200", "300200").
+    const digits = barbershop ? q.replace(/\D/g, '') : ''
+    if (q && digits.length >= 3) {
+      query = query.or(`name.ilike.%${q}%,phone_key.ilike.%${digits}%`)
+    } else if (q) {
+      query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%,email.ilike.%${q}%`)
+    }
   }
   if (searchParams.tag) {
     query = query.contains('tags', [searchParams.tag])
@@ -87,7 +100,7 @@ export default async function CRMPage(
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <form>
             <input name="q" defaultValue={searchParams.q} type="search"
-              placeholder={t('searchPlaceholder')}
+              placeholder={barbershop ? fr.clients.searchPlaceholder : t('searchPlaceholder')}
               className="w-full max-w-sm pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
           </form>
         </div>
@@ -122,7 +135,7 @@ export default async function CRMPage(
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       <div className="flex flex-col gap-0.5">
-                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {c.phone}</span>}
+                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {barbershop ? formatPhone(c.phone) : c.phone}</span>}
                         {c.email && <span className="flex items-center gap-1 text-xs"><Mail className="w-3 h-3" /> {c.email}</span>}
                       </div>
                     </td>

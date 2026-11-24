@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Pencil, Trash2, CalendarDays, DollarSign, Clock, UserCheck } from 'lucide-react'
 import { DatePicker } from '@/components/ui/date-picker'
+import { findClientByPhone } from '@/lib/client-identity'
+import { normalizePhone } from '@/lib/phone'
+import { fr, fmt } from '@/lib/barbershop-fr'
 
 interface Appointment {
   id: string
@@ -45,6 +48,8 @@ interface Props {
   timezone: string
   businessId: string
   telegramBotUsername: string | null
+  /** Barbershop mode: the phone number identifies the client (no duplicates). */
+  barbershop?: boolean
 }
 
 const statusColors: Record<string, string> = {
@@ -71,7 +76,7 @@ function validateBirthday(birthday: string): string | null {
   return null
 }
 
-export function ClientDetailView({ client: initial, appointments, currency, timezone, businessId, telegramBotUsername }: Props) {
+export function ClientDetailView({ client: initial, appointments, currency, timezone, businessId, telegramBotUsername, barbershop = false }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('clientDetail')
@@ -113,10 +118,19 @@ export function ClientDetailView({ client: initial, appointments, currency, time
     }
     setEditErrors({})
     setSaving(true)
+    if (barbershop && form.phone) {
+      // Another client already has this number: refuse, so one number never means two people.
+      const other = await findClientByPhone(supabase, businessId, form.phone, client.id)
+      if (other) {
+        setEditErrors({ phone: fmt(fr.clients.numberTaken, { name: other.name }) })
+        setSaving(false)
+        return
+      }
+    }
     const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean)
     const { data } = await supabase.from('clients').update({
-      name: form.name,
-      phone: form.phone || null,
+      name: form.name.trim() || client.name,
+      phone: (barbershop ? normalizePhone(form.phone) : null) ?? (form.phone || null),
       email: form.email || null,
       birthday: form.birthday || null,
       notes: form.notes || null,

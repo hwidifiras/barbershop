@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: client identity = normalised phone number (phase 3 prep)
+- **What changed:** one phone number = one client. New `lib/phone.ts` (`normalizePhone`, `samePhone`, `formatPhone`) turns every spelling (`50 300 200`, `503 00 200`, `+216 50 300 200`, `21650300200`, `0021650300200`) into `50300200`. Online booking, the walk-in sheet, POS "save as client" and the new-client form now find the client by that key and reuse the record instead of creating a duplicate (the new-client form shows "Ce numéro appartient déjà à …" with a link). In the client page, changing a number to one used by another client is refused. A booking no longer overwrites the name the barber stored. The Clients search finds a client by name or any part (3+ digits) of the number in any spelling, and shows numbers as `50 300 200`.
+- **Where:** `lib/phone.ts`, `lib/client-identity.ts`, `app/api/book/route.ts`, `app/(dashboard)/dashboard/today-view.tsx`, `app/(dashboard)/pos/*`, `app/(dashboard)/crm/page.tsx`, `crm/new/*`, `crm/[id]/*`, `lib/barbershop-fr.ts`, `lib/supabase/database.types.ts`
+- **Barbershop vs standard:** every behaviour change is gated by `isBarbershopMode`; other business types keep exact-text phone matching and the booking name update. The only shared change is the Clients search no longer breaks on `,` `(` `)` `%` `*` characters in the search box.
+- **Data/migrations:** `042_client_phone_key.sql` adds the function `normalize_phone(text)` and a computed, indexed column `clients.phone_key`. Additive only: no existing phone or client is modified or merged; the index is not unique because a shop may already hold duplicates. **Apply before deploying this code** (the code selects `phone_key`).
+- **Spec section(s):** 4.5
+- **Verified:** `tsc --noEmit` clean; eslint 0 errors; `npm run test:unit` 126 pass (6 new for the normaliser); `npm test` 16 pass; `check:i18n` OK. The SQL function was run on a throwaway local Postgres 16 with 14 spellings and gives the same keys as the TypeScript version.
+- **Notes / follow-ups:** CSV import (hidden in barbershop mode) still dedups on exact text. Duplicates that already exist are not merged (manual merge to come). Next: the "you already have an appointment this week" hint on the booking page and the "Possédez-vous déjà un rendez-vous ?" lookup (needs a rate-limited public endpoint and the privacy rules agreed with the owner).
+
 ### 2026-11-23: Audit fixes for phase 2 (branch `fix/barbershop-today-audit`)
 - **What changed:**
   1. **Auto-refresh:** the Today list re-syncs when the server sends new data, and refreshes every minute and on returning to the tab (not while the barber is saving). Online bookings and changes from another phone now appear without reloading.
