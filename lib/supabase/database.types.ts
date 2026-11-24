@@ -506,6 +506,39 @@ export type Database = {
           }
         ]
       }
+      client_ledger: {
+        Row: {
+          id: string
+          business_id: string
+          client_id: string
+          kind: string
+          amount: number
+          transaction_id: string | null
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          client_id: string
+          kind: string
+          amount: number
+          transaction_id?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          business_id?: string
+          client_id?: string
+          kind?: string
+          amount?: number
+          transaction_id?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           id: string
