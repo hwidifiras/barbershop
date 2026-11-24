@@ -7,13 +7,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, Phone, MessageCircle, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, Phone, Plus, X } from 'lucide-react'
 import { Header } from '@/components/layout/header'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
 import { isOverdue, localYmd } from '@/lib/barbershop-today'
 import { formatPhone, whatsappNumber } from '@/lib/phone'
 import { fr, fmt } from '@/lib/barbershop-fr'
+import type { DayHours } from '@/lib/booking-availability'
+import { NewAppointmentSheet, type NewApptService } from './new-appointment-sheet'
 
 const A = fr.agenda
 
@@ -40,6 +42,8 @@ interface Props {
   accent: string
   barbers: Barber[]
   closed: boolean
+  hours: DayHours[]
+  services: NewApptService[]
   initialAppts: AgendaAppointment[]
 }
 
@@ -56,7 +60,7 @@ const STATUS_STYLE: Record<string, string> = {
 const REFRESH_EVERY_MS = 60_000
 const SWIPE_MIN_PX = 70
 
-export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, initialAppts }: Props) {
+export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, hours, services, initialAppts }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const tz = business.timezone
@@ -70,6 +74,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showCancelled, setShowCancelled] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   // The server sends the day again after router.refresh() or when the day changes.
   useEffect(() => { setAppts(initialAppts) }, [initialAppts])
@@ -307,6 +312,23 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
           </button>
         )}
       </main>
+
+      {/* New appointment (day view only) */}
+      {view === 'day' && !opened && !creating && (
+        <button type="button" onClick={() => setCreating(true)}
+          className="fixed right-4 z-30 min-h-[56px] px-5 rounded-full text-white text-base font-bold shadow-lg inline-flex items-center gap-2"
+          style={{ background: '#0e0e0f', bottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+          <Plus className="w-5 h-5" /> {A.newAppt}
+        </button>
+      )}
+      {creating && (
+        <NewAppointmentSheet
+          business={business} ymd={ymd} today={today} barbers={barbers} services={services} hours={hours}
+          dayAppts={appts} defaultBarberId={barberId} dayLabel={dayLabel}
+          onClose={() => setCreating(false)}
+          onCreated={() => { setCreating(false); router.refresh() }}
+        />
+      )}
 
       {/* Appointment sheet */}
       {opened && (
