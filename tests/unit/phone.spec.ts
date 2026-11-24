@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizePhone, samePhone, formatPhone } from '@/lib/phone'
+import { normalizePhone, samePhone, formatPhone, lookupKey } from '@/lib/phone'
 
 describe('normalizePhone', () => {
   it('gives the same key for every way of typing a Tunisian number', () => {
@@ -44,5 +44,21 @@ describe('samePhone / formatPhone', () => {
     expect(formatPhone('+216 50300200')).toBe('50 300 200')
     expect(formatPhone('+33612345678')).toBe('33612345678')
     expect(formatPhone('')).toBe('')
+  })
+})
+
+describe('lookupKey', () => {
+  it('waits for the 8th digit of a Tunisian number, whatever the spelling', () => {
+    expect(lookupKey('5030020')).toBeNull()
+    expect(lookupKey('50 300 20')).toBeNull()
+    expect(lookupKey('50 300 200')).toBe('50300200')
+    expect(lookupKey('+216 50 300 200')).toBe('50300200')
+    expect(lookupKey('216 50 300 2')).toBeNull()
+  })
+
+  it('accepts complete international numbers and ignores junk', () => {
+    expect(lookupKey('+33 6 12 34 56 78')).toBe('33612345678')
+    expect(lookupKey('123456789')).toBeNull()
+    expect(lookupKey('')).toBeNull()
   })
 })
