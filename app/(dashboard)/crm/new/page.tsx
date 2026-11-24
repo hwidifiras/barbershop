@@ -6,6 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 import { NewClientForm } from './new-client-form'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 export default async function NewClientPage() {
   const t = await getTranslations('newClient')
@@ -27,7 +28,7 @@ export default async function NewClientPage() {
       />
       <main className="p-6 max-w-lg">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <NewClientForm businessId={business.id} />
+          <NewClientForm businessId={business.id} barbershop={isBarbershopMode(business)} />
         </div>
       </main>
     </>

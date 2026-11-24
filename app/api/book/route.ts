@@ -10,6 +10,7 @@ import DOMPurify from 'isomorphic-dompurify'
 import { createServiceClient } from '@/lib/supabase/service'
 import { rateLimit, getIp } from '@/lib/rate-limit'
 import { isBarbershopMode } from '@/lib/vertical'
+import { normalizePhone } from '@/lib/phone'
 import { resolveBooking, type ResolvedBooking } from '@/lib/barbershop-cart'
 import { computeEffectiveHours, checkSlotWithinHours, dayOfWeekFromDateString } from '@/lib/booking-availability'
 
@@ -180,6 +181,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Upsert client
+  const barbershop = isBarbershopMode(biz)
   let clientId: string | null = null
   let hasTelegram = false
   let hasViber = false
@@ -194,13 +196,29 @@ export async function POST(req: NextRequest) {
     type ClientMatch = { id: string; name: string; email: string | null; telegram_id: string | null; viber_user_id: string | null }
     let existing: ClientMatch | null = null
     if (phone) {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, name, email, telegram_id, viber_user_id')
-        .eq('business_id', businessId)
-        .eq('phone', phone)
-        .maybeSingle()
-      existing = data
+      if (barbershop) {
+        // Barbershop mode: the phone number IS the client, however it was typed (spaces, +216, ...).
+        const key = normalizePhone(phone)
+        if (key) {
+          const { data } = await supabase
+            .from('clients')
+            .select('id, name, email, telegram_id, viber_user_id')
+            .eq('business_id', businessId)
+            .eq('phone_key', key)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+          existing = data
+        }
+      } else {
+        const { data } = await supabase
+          .from('clients')
+          .select('id, name, email, telegram_id, viber_user_id')
+          .eq('business_id', businessId)
+          .eq('phone', phone)
+          .maybeSingle()
+        existing = data
+      }
     }
     if (!existing && email) {
       const { data } = await supabase
@@ -218,7 +236,9 @@ export async function POST(req: NextRequest) {
       hasViber = !!existing.viber_user_id
       // BUG-10: update both name and email if different from stored value
       const updates: { name?: string; email?: string } = {}
-      if (name && name !== existing.name) updates.name = name
+      // Barbershop mode: the barber owns the client's name (fixed from the Clients page); a booking
+      // typed with a different spelling must not overwrite it or it would undo the barber's fix.
+      if (!barbershop && name && name !== existing.name) updates.name = name
       if (email && email !== existing.email) updates.email = email
       if (Object.keys(updates).length > 0) {
         await supabase.from('clients').update(updates).eq('id', existing.id)
@@ -230,7 +250,7 @@ export async function POST(req: NextRequest) {
         .insert({
           business_id: businessId,
           name,
-          phone: phone || null,
+          phone: (barbershop ? normalizePhone(phone) : null) ?? (phone || null),
           email: email || null,
         })
         .select('id')

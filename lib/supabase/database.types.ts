@@ -268,6 +268,7 @@ export type Database = {
           business_id: string
           name: string
           phone: string | null
+          phone_key: string | null
           email: string | null
           notes: string | null
           tags: string[]

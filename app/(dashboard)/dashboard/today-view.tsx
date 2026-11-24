@@ -7,6 +7,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { findClientByPhone } from '@/lib/client-identity'
+import { normalizePhone } from '@/lib/phone'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, Copy, Loader2, Plus, X } from 'lucide-react'
 import { Header } from '@/components/layout/header'
@@ -240,11 +242,11 @@ export function TodayView({
       const phone = wiPhone.trim()
       if (name) {
         if (phone) {
-          const { data: found } = await supabase.from('clients').select('id').eq('business_id', business.id).eq('phone', phone).limit(1).maybeSingle()
+          const found = await findClientByPhone(supabase, business.id, phone)
           clientId = found?.id ?? null
         }
         if (!clientId) {
-          const { data: created, error: cErr } = await supabase.from('clients').insert({ business_id: business.id, name, phone: phone || null }).select('id').single()
+          const { data: created, error: cErr } = await supabase.from('clients').insert({ business_id: business.id, name, phone: normalizePhone(phone) ?? (phone || null) }).select('id').single()
           if (cErr || !created) throw new Error('client')
           clientId = created.id
         }

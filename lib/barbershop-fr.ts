@@ -254,6 +254,13 @@ export const fr = {
     errorPrice: 'Indiquez un prix valide.',
     errorDates: 'La date de fin doit être après la date de début.',
   },
+  clients: {
+    // The phone number identifies the client (docs/barbershop-mode/SPEC.md 4.5).
+    numberTaken: 'Ce numéro appartient déjà à {name}.',
+    openRecord: 'Ouvrir la fiche',
+    usedExisting: 'Ce numéro existe déjà : {name}. La fiche existante a été utilisée.',
+    searchPlaceholder: 'Nom ou numéro de téléphone',
+  },
 } as const
 
 /** Replace `{name}` placeholders. */

@@ -141,6 +141,10 @@ barbershop mode (still reachable via More or Settings where noted) · **Add** ne
 | Detail: history | **Change** to "Last cuts" (from existing appointments/transactions). |
 | Detail: Telegram/Viber invite links | **Hide** into a collapsed "Notifications" section. |
 | Birthday | **Keep** (drives the existing birthday message). |
+| **Identity = phone number** (decided 2026-11-24) | A client is **name + phone**; the **phone number identifies them**, so the same person never exists twice. Numbers are normalised: `50 300 200`, `503 00 200`, `50300200`, `+216 50 300 200`, `21650300200`, `0021650300200` are all the same client (Tunisian numbers kept as their 8 local digits; other countries keep their country code). Every path that creates or finds a client (online booking, walk-in, POS "save as client", new client form) matches on this key and reuses the existing record. A booking never overwrites the name stored by the barber. |
+| Fix a mistake | The barber can **edit the name** (and the number) on the client page; history stays attached. Changing a number to one that already belongs to another client is refused with a link to that client. |
+| Search | By **name or number**, any spelling or part of the number (3+ digits). |
+| Existing duplicates | Not merged automatically (the shop's data is theirs). A manual **merge** is a follow-up. The booking hint ("you already have an appointment this week") and "Possédez-vous déjà un rendez-vous ?" link are the next step and will reuse this key. |
 
 ### 4.6 Products (`/inventory`), only if the module is on
 

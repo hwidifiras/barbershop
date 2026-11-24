@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { findClientByPhone } from '@/lib/client-identity'
+import { normalizePhone } from '@/lib/phone'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -48,6 +50,8 @@ interface BookingContext {
 
 interface POSTerminalProps {
   businessId: string
+  /** Barbershop mode: the phone number identifies the client (no duplicates). */
+  barbershop?: boolean
   currency: string
   services: Service[]
   employees: Employee[]
@@ -55,7 +59,7 @@ interface POSTerminalProps {
   bookingContext?: BookingContext
 }
 
-export function POSTerminal({ businessId, currency, services: initialServices, employees: initialEmployees, clients: initialClients, bookingContext }: POSTerminalProps) {
+export function POSTerminal({ businessId, barbershop = false, currency, services: initialServices, employees: initialEmployees, clients: initialClients, bookingContext }: POSTerminalProps) {
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('pos')
@@ -299,12 +303,14 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
   async function saveWalkinAsClient() {
     if (!saveForm.name.trim()) return
     setSavingClient(true)
-    const { data: client } = await supabase
+    // Barbershop mode: a number that already exists is the same client; reuse that record.
+    const existing = barbershop && saveForm.phone ? await findClientByPhone(supabase, businessId, saveForm.phone) : null
+    const { data: client } = existing ? { data: { id: existing.id } } : await supabase
       .from('clients')
       .insert({
         business_id: businessId,
         name: saveForm.name.trim(),
-        phone: saveForm.phone || null,
+        phone: (barbershop ? normalizePhone(saveForm.phone) : null) ?? (saveForm.phone || null),
         email: saveForm.email || null,
         notes: saveForm.notes || null,
       })
@@ -315,7 +321,7 @@ export function POSTerminal({ businessId, currency, services: initialServices, e
       if (walkinTxId) {
         await supabase.from('transactions').update({ client_id: client.id }).eq('id', walkinTxId)
       }
-      setActiveClients((prev) => [...prev, { id: client.id, name: saveForm.name.trim(), phone: saveForm.phone || null }])
+      if (!existing) setActiveClients((prev) => [...prev, { id: client.id, name: saveForm.name.trim(), phone: saveForm.phone || null }])
     }
     setSavingClient(false)
     setShowSaveModal(false)
