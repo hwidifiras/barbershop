@@ -16,6 +16,7 @@ import { formatPhone, whatsappNumber } from '@/lib/phone'
 import { fr, fmt } from '@/lib/barbershop-fr'
 import type { DayHours } from '@/lib/booking-availability'
 import { NewAppointmentSheet, type NewApptService } from './new-appointment-sheet'
+import { PostponeSheet } from './postpone-sheet'
 
 const A = fr.agenda
 
@@ -76,6 +77,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
   const [error, setError] = useState<string | null>(null)
   const [showCancelled, setShowCancelled] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [postponeId, setPostponeId] = useState<string | null>(null)
 
   // The server sends the day again after router.refresh() or when the day changes.
   useEffect(() => { setAppts(initialAppts) }, [initialAppts])
@@ -144,6 +146,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
   )
   const active = forBarber.filter((a) => a.status !== 'cancelled').length
   const opened = appts.find((a) => a.id === openId) ?? null
+  const postponing = appts.find((a) => a.id === postponeId) ?? null
 
   const fmtDay = (d: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('fr-FR', { ...o, timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`))
   const byDay = useMemo(() => {
@@ -315,7 +318,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
       </main>
 
       {/* New appointment (day view only) */}
-      {view === 'day' && !opened && !creating && (
+      {view === 'day' && !opened && !creating && !postponing && (
         <button type="button" onClick={() => setCreating(true)}
           className="fixed right-4 z-30 min-h-[56px] px-5 rounded-full text-white text-base font-bold shadow-lg inline-flex items-center gap-2"
           style={{ background: '#0e0e0f', bottom: 'max(16px, env(safe-area-inset-bottom))' }}>
@@ -328,6 +331,15 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
           dayAppts={appts} defaultBarberId={barberId} dayLabel={dayLabel}
           onClose={() => setCreating(false)}
           onCreated={() => { setCreating(false); router.refresh() }}
+        />
+      )}
+
+      {postponing && (
+        <PostponeSheet
+          appt={{ id: postponing.id, starts_at: postponing.starts_at, ends_at: postponing.ends_at, employee_id: postponing.employee_id, clientName: clientOf(postponing) }}
+          ymdNow={today} timezone={tz} hours={hours} barbers={barbers}
+          onClose={() => setPostponeId(null)}
+          onDone={(d) => { setPostponeId(null); if (d === ymd) router.refresh(); else go('day', d) }}
         />
       )}
 
@@ -371,6 +383,10 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
               )}
               {!['paid', 'cancelled', 'no_show'].includes(opened.status) && (
                 <button type="button" onClick={() => charge(opened)} className="w-full min-h-[52px] rounded-xl border-2 text-base font-bold text-gray-900" style={{ borderColor: accent }}>{A.charge}</button>
+              )}
+              {['pending', 'confirmed'].includes(opened.status) && (
+                <button type="button" disabled={busy} onClick={() => { setPostponeId(opened.id); setOpenId(null) }}
+                  className="w-full min-h-[48px] rounded-xl border border-gray-300 text-sm font-semibold text-gray-800 disabled:opacity-50">{A.postpone.button}</button>
               )}
               {opened.status === 'pending' && (
                 <button type="button" disabled={busy} onClick={() => void setStatus(opened, 'confirmed')} className="w-full min-h-[48px] rounded-xl border border-gray-300 text-sm font-semibold text-gray-800 disabled:opacity-50">{A.confirm}</button>
