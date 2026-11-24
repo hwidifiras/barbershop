@@ -42,6 +42,7 @@ interface Props {
   accent: string
   barbers: Barber[]
   closed: boolean
+  owed: Record<string, number>
   hours: DayHours[]
   services: NewApptService[]
   initialAppts: AgendaAppointment[]
@@ -60,7 +61,7 @@ const STATUS_STYLE: Record<string, string> = {
 const REFRESH_EVERY_MS = 60_000
 const SWIPE_MIN_PX = 70
 
-export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, hours, services, initialAppts }: Props) {
+export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, owed, hours, services, initialAppts }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const tz = business.timezone
@@ -296,7 +297,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
                       <div className="text-[11px] text-gray-400 tabular-nums">{timeOf(a.ends_at)}</div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-gray-900 truncate">{clientOf(a)}</div>
+                      <div className="text-sm font-semibold text-gray-900 truncate">{clientOf(a)}{a.client_id && owed[a.client_id] > 0 && <span className="ml-2 text-xs font-bold text-orange-600">{fmt(fr.kridi.owes, { amount: money(owed[a.client_id]) })}</span>}</div>
                       <div className="text-xs text-gray-500 truncate">{summaryOf(a)}{!barberId && barberName(a.employee_id) ? ` · ${barberName(a.employee_id)}` : ''}</div>
                     </div>
                     <span className={`shrink-0 text-[11px] font-semibold rounded-full px-2 py-0.5 ${STATUS_STYLE[late ? 'overdue' : a.status] ?? 'bg-gray-100 text-gray-700'}`}>{label}</span>
@@ -348,6 +349,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
               <Row label={A.service} value={summaryOf(opened) || '—'} />
               {barberName(opened.employee_id) && <Row label={A.with} value={barberName(opened.employee_id)!} />}
               {opened.price != null && <Row label={A.price} value={money(Number(opened.price))} />}
+              {opened.client_id && owed[opened.client_id] > 0 && <Row label={fr.kridi.balance} value={fmt(fr.kridi.owes, { amount: money(owed[opened.client_id]) })} />}
               {opened.clients?.phone && <Row label={A.phone} value={formatPhone(opened.clients.phone)} />}
               <Row label="" value={opened.source === 'online' ? A.online : A.manual} muted />
               {opened.notes && <Row label={A.notes} value={opened.notes} />}

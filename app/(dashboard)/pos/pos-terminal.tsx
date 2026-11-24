@@ -75,7 +75,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
   const [discount, setDiscount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [activeTab, setActiveTab] = useState<'services' | 'cart'>('services')
+  const [activeTab, setActiveTab] = useState<'services' | 'cart'>(bookingContext ? 'cart' : 'services')
   const [receiptNumber, setReceiptNumber] = useState('')
   const [successAmount, setSuccessAmount] = useState(0)
   // bookingId to update appointment status after checkout
@@ -275,6 +275,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
           .from('transactions')
           .insert({
             business_id: businessId,
+            ...(barbershop ? { appointment_id: activeBookingId || null } : {}),
             client_id: selectedClient || null,
             employee_id: selectedEmployee || null,
             // Money really received; the full price stays in `items`. Without kridi this equals the total.
@@ -426,7 +427,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
                     onClick={() => setShowSaveModal(false)}
                     className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                   >
-                    Skip
+                    {barbershop ? fr.caisse.skip : 'Skip'}
                   </button>
                   <button
                     onClick={saveWalkinAsClient}

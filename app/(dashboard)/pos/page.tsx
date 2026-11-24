@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
 import { isBarbershopMode } from '@/lib/vertical'
+import { fr } from '@/lib/barbershop-fr'
 
 interface SearchParams {
   bookingId?: string
@@ -27,7 +28,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
 
   if (!business) redirect('/onboarding')
 
-  const [{ data: services }, { data: employees }, { data: clients }] = await Promise.all([
+  const [{ data: services }, { data: employees }, { data: clientsRaw }] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, price, duration_min, category')
@@ -48,6 +49,10 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
       .limit(200),
   ])
 
+  let clients = clientsRaw
+  let bookingNotice: string | null = null
+  const barbershop = isBarbershopMode(business)
+
   // ── Booking context: prefill POS from an appointment ──────────────────────
   let bookingContext: {
     bookingId: string
@@ -63,12 +68,20 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
   if (searchParams.bookingId) {
     const { data: appt } = await supabase
       .from('appointments')
-      .select('id, starts_at, price, items_summary, clients(name), services(name), employees(id, name)')
+      .select('id, starts_at, price, status, client_id, items_summary, clients(name), services(name), employees(id, name)')
       .eq('id', searchParams.bookingId)
       .eq('business_id', business.id) // security: only own business
       .maybeSingle()
 
-    if (appt) {
+    // Barbershop: an appointment that is already paid (or cancelled / absent) must not be charged twice.
+    if (appt && barbershop && ['paid', 'cancelled', 'no_show'].includes(appt.status)) {
+      bookingNotice = appt.status === 'paid' ? fr.caisse.alreadyPaid : fr.caisse.cancelledAppt
+    } else if (appt) {
+      // The client of this appointment must be in the picker even beyond the first 200 clients.
+      if (appt.client_id && !(clients ?? []).some((c) => c.id === appt.client_id)) {
+        const { data: extra } = await supabase.from('clients').select('id, name, phone').eq('id', appt.client_id).eq('business_id', business.id).maybeSingle()
+        if (extra) clients = [...(clients ?? []), extra]
+      }
       // Lines of a barbershop booking (supplements / offer). Standard bookings have none and
       // keep the original single-service prefill.
       const { data: apptItems } = await supabase
@@ -104,13 +117,14 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
         title={t('title')}
         actions={
           <Link href="/pos/history" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
-            <History className="w-4 h-4" /> Sales history
+            <History className="w-4 h-4" /> {barbershop ? fr.caisse.history : 'Sales history'}
           </Link>
         }
       />
+      {bookingNotice && <p role="alert" className="mx-4 mt-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm p-3">{bookingNotice}</p>}
       <POSTerminal
         businessId={business.id}
-        barbershop={isBarbershopMode(business)}
+        barbershop={barbershop}
         currency={business.currency}
         services={services ?? []}
         employees={employees ?? []}

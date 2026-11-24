@@ -11,6 +11,7 @@ import { getBusinessForOwner } from '@/lib/business'
 import { isBarbershopMode } from '@/lib/vertical'
 import { normalizePhone } from '@/lib/phone'
 import { KridiPanel } from './kridi-panel'
+import { balanceOf } from '@/lib/kridi'
 
 export default async function ClientDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -76,6 +77,7 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
         businessId={business.id}
         telegramBotUsername={telegramBotUsername}
         barbershop={barbershop}
+        owed={balanceOf(ledger ?? [])}
       />
     </>
   )
