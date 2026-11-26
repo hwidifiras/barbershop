@@ -1,6 +1,6 @@
 # Barbershop mode: status at a glance
 
-Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
+Last updated: 2026-11-26 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
 
 | Phase | What | State |
 |---|---|---|
@@ -14,10 +14,11 @@ Last updated: 2026-11-24 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 3c | Phone Agenda (Jour / Semaine switch, swipe, barber filter, appointment sheet with actions) | Done, live (no migration) |
 | 3d | Agenda: create an appointment from the phone ("Nouveau RDV") | Done, live (no migration) |
 | 3e | Caisse (cash) with kridi (partial or no payment) | Done, live (migration 043 applied) |
-| 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | In review (no migration) |
-| 4 | Settings reorganisation, onboarding presets, Products off by default | In review (no migration) |
-| 5 | Team access: barber logins and own schedule | In review (no migration) |
-| 6 | Arabic / RTL, then extras | In review (no migration) |
+| 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | Done, live (no migration) |
+| 3g | Agenda: "Reporter" (postpone an appointment) from the phone | Done, live (no migration) |
+| 4 | Settings reorganisation, onboarding presets, Products off by default | Not started |
+| 5 | Team access: barber logins and own schedule | Not started |
+| 6 | Arabic / RTL, then extras | Not started |
 
 ## How to try what is live
 1. Settings → Général → set **Type d'activité** to Barbershop, save, reload.

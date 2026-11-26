@@ -19,6 +19,12 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-26: STATUS.md corrected
+- **What changed:** 3f is live (PR #18), Reporter added as 3g (PR #21), phases 4, 5 and 6 marked not started (they were listed as "In review").
+- **Where:** `docs/barbershop-mode/STATUS.md`
+- **Barbershop vs standard:** documentation only.
+- **Data/migrations:** none
+
 ### 2026-11-26: labelled "Modifier" button on the client page (restores PR #12)
 - **What changed:** in barbershop mode the client page shows a labelled **Modifier** button (name, number, notes) instead of only a small pencil icon that was hard to find on a phone.
 - **Where:** `app/(dashboard)/crm/[id]/client-detail-view.tsx`, `lib/barbershop-fr.ts`
