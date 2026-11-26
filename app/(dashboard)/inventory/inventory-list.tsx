@@ -23,9 +23,11 @@ interface Props {
   items: Item[]
   currency: string
   initialFilter?: string
+  /** Barbershop mode shows name, price and stock only (SPEC 4.6). */
+  barbershop?: boolean
 }
 
-export function InventoryList({ items, currency, initialFilter }: Props) {
+export function InventoryList({ items, currency, initialFilter, barbershop = false }: Props) {
   const t = useTranslations('inventory')
   const locale = useLocale()
   const [query, setQuery] = useState(initialFilter ?? '')
@@ -77,11 +79,11 @@ export function InventoryList({ items, currency, initialFilter }: Props) {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase">
                 <th className="text-left px-4 py-3 font-medium">{t('table.name')}</th>
-                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">{t('table.category')}</th>
+                {!barbershop && <th className="text-left px-4 py-3 font-medium hidden md:table-cell">{t('table.category')}</th>}
                 <th className="text-right px-4 py-3 font-medium">{t('table.stock')}</th>
-                <th className="text-right px-4 py-3 font-medium hidden lg:table-cell">{t('table.cost')}</th>
-                <th className="text-right px-4 py-3 font-medium hidden lg:table-cell">{t('table.sellPrice')}</th>
-                <th className="text-center px-4 py-3 font-medium">{t('table.status')}</th>
+                {!barbershop && <th className="text-right px-4 py-3 font-medium hidden lg:table-cell">{t('table.cost')}</th>}
+                <th className={`text-right px-4 py-3 font-medium${barbershop ? '' : ' hidden lg:table-cell'}`}>{t('table.sellPrice')}</th>
+                {!barbershop && <th className="text-center px-4 py-3 font-medium">{t('table.status')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -93,25 +95,29 @@ export function InventoryList({ items, currency, initialFilter }: Props) {
                       <Link href={`/inventory/${item.id}`} className="font-medium text-gray-900 hover:text-blue-600">
                         {item.name}
                       </Link>
-                      {item.sku && <div className="text-xs text-gray-400">{item.sku}</div>}
+                      {!barbershop && item.sku && <div className="text-xs text-gray-400">{item.sku}</div>}
                     </td>
-                    <td className="px-4 py-3 hidden md:table-cell text-gray-500">{item.category ?? '—'}</td>
+                    {!barbershop && <td className="px-4 py-3 hidden md:table-cell text-gray-500">{item.category ?? '—'}</td>}
                     <td className="px-4 py-3 text-right font-medium">
                       <span className={isLow ? 'text-red-600' : 'text-gray-900'}>
                         {item.quantity} {item.unit}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-500">
-                      {item.cost_price != null ? formatCurrency(item.cost_price, currency, locale) : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-700">
+                    {!barbershop && (
+                      <td className="px-4 py-3 text-right hidden lg:table-cell text-gray-500">
+                        {item.cost_price != null ? formatCurrency(item.cost_price, currency, locale) : '—'}
+                      </td>
+                    )}
+                    <td className={`px-4 py-3 text-right text-gray-700${barbershop ? '' : ' hidden lg:table-cell'}`}>
                       {item.sell_price != null ? formatCurrency(item.sell_price, currency, locale) : '—'}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      {isLow
-                        ? <Badge variant="warning">{t('status.lowStock')}</Badge>
-                        : <Badge variant="success">{t('status.ok')}</Badge>}
-                    </td>
+                    {!barbershop && (
+                      <td className="px-4 py-3 text-center">
+                        {isLow
+                          ? <Badge variant="warning">{t('status.lowStock')}</Badge>
+                          : <Badge variant="success">{t('status.ok')}</Badge>}
+                      </td>
+                    )}
                   </tr>
                 )
               })}

@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Pencil, Trash2 } from 'lucide-react'
 import { UnitSelect } from '../unit-select'
 import { CategoryCombobox } from '../category-combobox'
+import { fr } from '@/lib/barbershop-fr'
 
 interface Movement {
   id: string
@@ -39,9 +40,10 @@ interface Props {
   timezone: string
   businessId: string
   categories: string[]
+  barbershop?: boolean
 }
 
-export function InventoryDetailView({ item: initial, movements: initialMovements, currency, timezone, businessId, categories }: Props) {
+export function InventoryDetailView({ item: initial, movements: initialMovements, currency, timezone, businessId, categories, barbershop = false }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const t = useTranslations('inventoryDetail')
@@ -50,6 +52,8 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
   const [item, setItem] = useState(initial)
   const [movements, setMovements] = useState(initialMovements)
   const [editing, setEditing] = useState(false)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const advanced = barbershop && !advancedOpen ? 'hidden' : undefined
   const [form, setForm] = useState({
     name: initial.name,
     sku: initial.sku ?? '',
@@ -201,7 +205,7 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
-                <div>
+                <div className={advanced}>
                   <label className="text-xs font-medium text-gray-500">{t('fields.sku')}</label>
                   <input type="text" value={form.sku}
                     onChange={(e) => { setForm((f) => ({ ...f, sku: e.target.value })); skuError && setSkuError('') }}
@@ -211,7 +215,7 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                   {skuError && <p className="mt-1 text-xs text-red-500">{skuError}</p>}
                 </div>
 
-                <div>
+                <div className={advanced}>
                   <label className="text-xs font-medium text-gray-500">{t('fields.category')}</label>
                   <div className="mt-1">
                     <CategoryCombobox
@@ -222,7 +226,7 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                   </div>
                 </div>
 
-                <div>
+                <div className={advanced}>
                   <label className="text-xs font-medium text-gray-500">{t('fields.unit')}</label>
                   <div className="mt-1">
                     <UnitSelect
@@ -237,13 +241,19 @@ export function InventoryDetailView({ item: initial, movements: initialMovements
                   { key: 'sell_price', label: t('fields.sellPrice'), type: 'number' },
                   { key: 'low_stock_threshold', label: t('fields.lowStockThreshold'), type: 'number' },
                 ] as { key: keyof typeof form; label: string; type: string }[]).map(({ key, label, type }) => (
-                  <div key={key}>
+                  <div key={key} className={key === 'sell_price' ? undefined : advanced}>
                     <label className="text-xs font-medium text-gray-500">{label}</label>
                     <input type={type} value={form[key]}
                       onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                       className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 ))}
+                {barbershop && (
+                  <button type="button" aria-expanded={advancedOpen} onClick={() => setAdvancedOpen((open) => !open)}
+                    className="min-h-[48px] text-sm font-medium text-gray-700 underline underline-offset-4">
+                    {advancedOpen ? fr.settingsPage.advancedHide : fr.settingsPage.advancedShow}
+                  </button>
+                )}
                 <div className="flex gap-2 pt-1">
                   <Button variant="outline" size="sm" onClick={() => setEditing(false)}>{t('cancelButton')}</Button>
                   <Button size="sm" onClick={saveItem} disabled={saving}>{saving ? '…' : t('saveButton')}</Button>

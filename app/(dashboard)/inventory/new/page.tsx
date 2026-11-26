@@ -7,6 +7,7 @@ import { NewInventoryForm } from './new-inventory-form'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 export default async function NewInventoryItemPage() {
   const supabase = await createClient()
@@ -37,7 +38,7 @@ export default async function NewInventoryItemPage() {
       />
       <main className="p-6 max-w-lg">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <NewInventoryForm categories={categories} />
+          <NewInventoryForm categories={categories} barbershop={isBarbershopMode(business)} />
         </div>
       </main>
     </>
