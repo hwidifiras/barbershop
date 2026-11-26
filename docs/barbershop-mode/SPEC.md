@@ -175,6 +175,7 @@ Keep the 3 steps (type → first service → notifications). In barbershop mode:
   Shave) with editable price and duration, instead of one blank form.
 - A new small question: "Do you sell products?" (sets the Products module).
 - Default hours template (e.g. Tue–Sat 09:00–19:00), editable later in Settings → Shop.
+- Currency **TND** and timezone **Africa/Tunis** by default (decided 2026-11-27), editable in Settings.
 
 ### 4.9 Public booking link (`/book/[slug]`): the client's experience
 

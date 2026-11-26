@@ -407,6 +407,18 @@ export const fr = {
     usedExisting: 'Ce numéro existe déjà : {name}. La fiche existante a été utilisée.',
     searchPlaceholder: 'Nom ou numéro de téléphone',
   },
+  onboarding: {
+    heading: 'Vos prestations',
+    subheading: 'Cochez ce que vous proposez et ajustez prix et durée. Modifiable ensuite dans les réglages.',
+    price: 'Prix (DT)',
+    duration: 'Durée (min)',
+    products: 'Vendez-vous des produits (pommade, huile, tondeuses…) ?',
+    productsHint: 'Ajoute le module Produits. Activable plus tard dans les réglages.',
+    hours: 'Horaires par défaut : mardi à samedi, 09:00 à 19:00.',
+    back: 'Retour',
+    skip: 'Passer',
+    next: 'Continuer',
+  },
 } as const
 
 /** Replace `{name}` placeholders. */
