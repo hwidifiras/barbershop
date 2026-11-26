@@ -5,6 +5,7 @@ import { completeOnboarding } from './actions'
 import { CheckCircle2, ChevronRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
+import { BarbershopServicesStep, initialStarterState, toStarterChoices } from './BarbershopServicesStep'
 
 type Tab = 0 | 1 | 2
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
@@ -40,6 +41,9 @@ export function OnboardingWizard({ initialSlug, initialName, isSaas, rootDomain 
   const [bizName, setBizName] = useState(initialName)
   const [bizType, setBizType] = useState('')
   const [service, setService] = useState({ name: '', price: '', duration_min: '60' })
+  const [starters, setStarters] = useState(initialStarterState)
+  const [sellsProducts, setSellsProducts] = useState(false)
+  const [skipStarters, setSkipStarters] = useState(false)
   const [slug, setSlug] = useState(initialSlug)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [slugStatus, setSlugStatus] = useState<SlugStatus>(
@@ -135,6 +139,9 @@ export function OnboardingWizard({ initialSlug, initialName, isSaas, rootDomain 
         serviceName: service.name,
         servicePrice: Number(service.price),
         serviceDuration: showDuration ? (Number(service.duration_min) || 60) : 0,
+        ...(bizType === 'barbershop'
+          ? { starterServices: skipStarters ? [] : toStarterChoices(starters), sellsProducts }
+          : {}),
         ...(isSaas ? { slug } : {}),
       })
     } catch (err) {
@@ -283,7 +290,19 @@ export function OnboardingWizard({ initialSlug, initialName, isSaas, rootDomain 
           )}
 
           {/* ── Step 1: First service ──────────────────────────────────────── */}
-          {step === 1 && (
+          {step === 1 && bizType === 'barbershop' && (
+            <BarbershopServicesStep
+              starters={starters}
+              onStartersChange={setStarters}
+              sellsProducts={sellsProducts}
+              onSellsProductsChange={setSellsProducts}
+              onBack={() => setStep(0)}
+              onSkip={() => { setSkipStarters(true); setStep(2) }}
+              onContinue={() => { setSkipStarters(false); setStep(2) }}
+            />
+          )}
+
+          {step === 1 && bizType !== 'barbershop' && (
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('step1.heading')}</h2>
               <p className="text-sm text-gray-500 mb-6">{t('step1.subheading')}</p>

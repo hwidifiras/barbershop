@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DOMPurify from 'isomorphic-dompurify'
+import { barbershopHourRows, barbershopModules, starterServiceRows, type StarterChoice } from '@/lib/barbershop-onboarding'
 
 function sanitize(s: string): string {
   return DOMPurify.sanitize(s, { ALLOWED_TAGS: [] }).trim()
@@ -15,6 +16,9 @@ export async function completeOnboarding(data: {
   servicePrice: number
   serviceDuration: number
   slug?: string
+  /** Barbershop only: ticked starter services and the "do you sell products?" answer. */
+  starterServices?: StarterChoice[]
+  sellsProducts?: boolean
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -29,7 +33,7 @@ export async function completeOnboarding(data: {
   // wrong" — refreshing sometimes clears it, sometimes not.
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, slug')
+    .select('id, slug, onboarding_completed')
     .eq('owner_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
@@ -52,9 +56,37 @@ export async function completeOnboarding(data: {
     }
   }
 
+  // Barbershop presets (docs/barbershop-mode/SPEC.md 4.8): first onboarding only, so a shop that
+  // is already set up is never overwritten. Hours and services are written before the shop is
+  // marked as onboarded, so a failure can simply be retried.
+  const barbershopPreset = data.bizType === 'barbershop' && !business.onboarding_completed
+
+  if (barbershopPreset) {
+    const { error: hoursError } = await supabase
+      .from('business_hours')
+      .upsert(barbershopHourRows(business.id), { onConflict: 'business_id,day_of_week' })
+    if (hoursError) throw new Error(hoursError.message)
+
+    const wanted = starterServiceRows(business.id, data.starterServices ?? [])
+    if (wanted.length) {
+      const { data: existing, error: readError } = await supabase
+        .from('services').select('name').eq('business_id', business.id)
+      if (readError) throw new Error(readError.message)
+      const taken = new Set((existing ?? []).map((s) => s.name))
+      const rows = wanted.filter((row) => !taken.has(row.name))
+      if (rows.length) {
+        const { error: servicesError } = await supabase.from('services').insert(rows)
+        if (servicesError) throw new Error(servicesError.message)
+      }
+    }
+  }
+
   const basePatch = {
     ...(data.bizType ? { type: data.bizType } : {}),
     ...(bizName ? { name: bizName } : {}),
+    ...(barbershopPreset
+      ? { enabled_modules: barbershopModules(data.sellsProducts === true), notification_language: 'fr' }
+      : {}),
     onboarding_completed: true,
   }
 
@@ -92,7 +124,7 @@ export async function completeOnboarding(data: {
     }
   }
 
-  if (serviceName && data.servicePrice) {
+  if (data.bizType !== 'barbershop' && serviceName && data.servicePrice) {
     await supabase.from('services').insert({
       business_id: business.id,
       name: serviceName,
