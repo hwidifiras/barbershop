@@ -304,6 +304,13 @@ export const fr = {
     dismiss: 'Masquer',
     go: 'Ouvrir',
   },
+  settingsPage: {
+    shopTab: 'Salon',
+    barbersTab: 'Barbiers',
+    advancedShow: 'Avancé',
+    advancedHide: 'Masquer les options avancées',
+    preset: 'Barbershop',
+  },
   settings: {
     cardTitle: 'Lien de réservation',
     cardHint: "Mettez ce lien dans la bio de votre Instagram, ou imprimez le QR code pour votre salon.",

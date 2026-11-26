@@ -9,6 +9,9 @@ import { Plus, Pencil, Trash2, Check, Loader2, CheckCircle2, AlertCircle, Users,
 import { useLocale, useTranslations } from 'next-intl'
 import { MODULES, ModuleKey } from '@/lib/modules'
 import { isBarbershopMode } from '@/lib/vertical'
+import { hideAdvanced, orderSettingsTabs } from '@/lib/barbershop-settings'
+import { barbershopModules } from '@/lib/barbershop-onboarding'
+import { fr } from '@/lib/barbershop-fr'
 import { BarbershopShopCard } from '@/components/settings/barbershop-shop-card'
 import { BarbershopServices, type ServiceRow, type OfferRow } from '@/components/settings/barbershop-services'
 
@@ -73,6 +76,17 @@ export function SettingsTabs({ business: initial, services: initServices, offers
     ? searchParams.get('tab')
     : 'general') as Tab
   const [tab, setTab] = useState<Tab>(initialTab)
+  // Barbershop mode: rarely used fields sit behind "Avancé" (SPEC 4.7). Always shown otherwise.
+  const barbershop = isBarbershopMode(initial)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const advancedHidden = hideAdvanced(barbershop, advancedOpen)
+  const adv = advancedHidden ? ' hidden' : ''
+  const advancedButton = barbershop && (
+    <button type="button" aria-expanded={advancedOpen} onClick={() => setAdvancedOpen((open) => !open)}
+      className="min-h-[48px] text-sm font-medium text-gray-700 underline underline-offset-4">
+      {advancedOpen ? fr.settingsPage.advancedHide : fr.settingsPage.advancedShow}
+    </button>
+  )
   const [webhookStatus, setWebhookStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
   const [webhookMsg, setWebhookMsg] = useState('')
   const [viberWebhookStatus, setViberWebhookStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
@@ -419,15 +433,15 @@ export function SettingsTabs({ business: initial, services: initServices, offers
   }
 
   const bookingsOn = enabledModules.includes('bookings')
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'general', label: t('tabs.general') },
+  const tabs: { key: Tab; label: string }[] = orderSettingsTabs<{ key: Tab; label: string }>([
+    { key: 'general', label: barbershop ? fr.settingsPage.shopTab : t('tabs.general') },
     ...(bookingsOn ? [{ key: 'services' as Tab, label: t('tabs.services') }] : []),
-    { key: 'employees', label: t('tabs.employees') },
+    { key: 'employees', label: barbershop ? fr.settingsPage.barbersTab : t('tabs.employees') },
     { key: 'notifications', label: t('tabs.notifications') },
     { key: 'billing', label: t('tabs.billing') },
     { key: 'modules', label: t('tabs.modules') },
     { key: 'account', label: t('tabs.account') },
-  ]
+  ], barbershop)
 
   const generalFields: { key: keyof Business; label: string; type: string }[] = [
     { key: 'name', label: t('general.fields.name'), type: 'text' },
@@ -543,14 +557,14 @@ export function SettingsTabs({ business: initial, services: initServices, offers
           <h2 className="font-semibold text-gray-900 mb-4">{t('general.heading')}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {generalFields.map(({ key, label, type }) => (
-              <div key={key}>
+              <div key={key} className={key === 'email' ? adv.trim() || undefined : undefined}>
                 <label className="text-xs font-medium text-gray-500">{label}</label>
                 <input type={type} value={(biz[key] as string) ?? ''}
                   onChange={(e) => setBiz((b) => ({ ...b, [key]: e.target.value }))}
                   className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             ))}
-            <div>
+            <div className={adv.trim() || undefined}>
               <label className="text-xs font-medium text-gray-500">{t('general.fields.timezone')}</label>
               <select value={biz.timezone ?? 'UTC'} onChange={(e) => setBiz((b) => ({ ...b, timezone: e.target.value }))}
                 className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -559,7 +573,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
                 ))}
               </select>
             </div>
-            <div>
+            <div className={adv.trim() || undefined}>
               <label className="text-xs font-medium text-gray-500">{t('general.fields.currency')}</label>
               <select value={currencySelectValue}
                 onChange={(e) => {
@@ -588,7 +602,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               )}
             </div>
           </div>
-          <div className="pt-2">
+          <div className={`pt-2${adv}`}>
             <label className="text-xs font-medium text-gray-500">{t('general.typeLabel')}</label>
             <select value={biz.type ?? ''} onChange={(e) => setBiz((b) => ({ ...b, type: e.target.value }))}
               className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -598,7 +612,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               ))}
             </select>
           </div>
-          <div className="pt-2">
+          <div className={`pt-2${adv}`}>
             <label className="text-xs font-medium text-gray-500">{t('general.fields.slug')}</label>
             <input type="text" value={biz.slug ?? ''}
               onChange={(e) => {
@@ -664,7 +678,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
             )}
           </div>
 
-          <div className="pt-2">
+          <div className={`pt-2${adv}`}>
             <label className="text-xs font-medium text-gray-500">{t('general.notificationLanguageLabel')}</label>
             <div className="flex gap-2 mt-1">
               {(['en', 'es', 'pt', 'fr'] as const).map((lang) => (
@@ -684,12 +698,13 @@ export function SettingsTabs({ business: initial, services: initServices, offers
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('general.notificationLanguageHint')}</p>
           </div>
-          <div className="pt-2">
+          <div className={barbershop ? 'hidden' : 'pt-2'}>
             <div className="text-xs font-medium text-gray-500 mb-1">{t('general.bookingUrlLabel')}</div>
             <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-blue-600 select-all">
               {bookingUrl}
             </div>
           </div>
+          {advancedButton}
           <div className="flex items-center gap-3 pt-2">
             <Button onClick={saveBusiness} disabled={saving || !!slugError}>
               {saving ? t('general.saving') : saved ? <><Check className="w-4 h-4 mr-1" />{t('general.saved')}</> : t('general.saveButton')}
@@ -909,9 +924,9 @@ export function SettingsTabs({ business: initial, services: initServices, offers
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase">
                     <th className="text-left px-4 py-3 font-medium">{t('employees.table.name')}</th>
-                    <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">{t('employees.table.role')}</th>
-                    <th className="text-left px-4 py-3 font-medium hidden md:table-cell">{t('employees.table.contact')}</th>
-                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">{t('employees.table.phone')}</th>
+                    {!barbershop && <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">{t('employees.table.role')}</th>}
+                    {!barbershop && <th className="text-left px-4 py-3 font-medium hidden md:table-cell">{t('employees.table.contact')}</th>}
+                    <th className={`text-left px-4 py-3 font-medium ${barbershop ? '' : 'hidden lg:table-cell'}`}>{t('employees.table.phone')}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -919,9 +934,9 @@ export function SettingsTabs({ business: initial, services: initServices, offers
                   {employees.map((e) => (
                     <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50 last:border-0">
                       <td className="px-4 py-3 font-medium text-gray-900">{e.name}</td>
-                      <td className="px-4 py-3 text-gray-500 hidden sm:table-cell capitalize">{e.role}</td>
-                      <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{e.email ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{e.phone ?? '—'}</td>
+                      {!barbershop && <td className="px-4 py-3 text-gray-500 hidden sm:table-cell capitalize">{e.role}</td>}
+                      {!barbershop && <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{e.email ?? '—'}</td>}
+                      <td className={`px-4 py-3 text-gray-500 ${barbershop ? '' : 'hidden lg:table-cell'}`}>{e.phone ?? '—'}</td>
                       <td className="px-4 py-3 text-right">
                         {confirmDeleteEmpId === e.id ? (
                           <div className="flex justify-end items-center gap-2">
@@ -951,7 +966,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
                 { key: 'email', label: t('employees.fields.email'), type: 'email' },
                 { key: 'phone', label: t('employees.fields.phone'), type: 'tel' },
               ] as { key: keyof Employee; label: string; type: string }[]).map(({ key, label, type }) => (
-                <div key={key}>
+                <div key={key} className={key === 'role' || key === 'email' ? adv.trim() || undefined : undefined}>
                   <label className="text-xs font-medium text-gray-500">{label}</label>
                   <input type={type} value={(empForm[key] as string) ?? ''}
                     onChange={(e) => setEmpForm((f) => ({ ...f, [key]: e.target.value }))}
@@ -959,6 +974,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
                 </div>
               ))}
             </div>
+            {advancedButton}
             <div className="flex gap-2 mt-4">
               {editingEmp && <Button variant="outline" onClick={() => { setEmpForm({}); setEditingEmp(null) }}>{t('employees.cancelButton')}</Button>}
               <Button onClick={saveEmployee} disabled={!empForm.name}>
@@ -972,11 +988,11 @@ export function SettingsTabs({ business: initial, services: initServices, offers
       {/* Notifications */}
       {tab === 'notifications' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
-            <h2 className="font-semibold text-gray-900">{t('notifications.heading')}</h2>
+          <div className={`bg-white rounded-xl border border-gray-200 p-6 ${barbershop ? 'flex flex-col gap-6' : 'space-y-6'}`}>
+            <h2 className={`font-semibold text-gray-900${barbershop ? ' order-1' : ''}`}>{t('notifications.heading')}</h2>
 
             {/* Email */}
-            <div>
+            <div className={barbershop ? `order-6${adv}` : undefined}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm font-medium text-gray-900">{t('notifications.email.label')}</span>
                 {(biz.email_provider === 'smtp' && biz.smtp_host && biz.smtp_user && biz.smtp_pass && biz.smtp_from) ||
@@ -1051,10 +1067,10 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               )}
             </div>
 
-            <hr className="border-gray-100" />
+            <hr className={barbershop ? 'hidden' : 'border-gray-100'} />
 
             {/* Telegram */}
-            <div>
+            <div className={barbershop ? 'order-4' : undefined}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-gray-900">{t('notifications.telegram.label')}</span>
                 {biz.telegram_chat_id
@@ -1093,10 +1109,10 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               {ownerLinkBlock('telegram')}
             </div>
 
-            <hr className="border-gray-100" />
+            <hr className={barbershop ? 'hidden' : 'border-gray-100'} />
 
             {/* Viber */}
-            <div>
+            <div className={barbershop ? `order-7${adv}` : undefined}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-gray-900">{t('notifications.viber.label')}</span>
                 {initial.viber_chat_id
@@ -1135,10 +1151,10 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               {ownerLinkBlock('viber')}
             </div>
 
-            <hr className="border-gray-100" />
+            <hr className={barbershop ? 'hidden' : 'border-gray-100'} />
 
             {/* WhatsApp */}
-            <div>
+            <div className={barbershop ? 'order-2' : undefined}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-gray-900">{t('notifications.whatsapp.label')}</span>
                 {biz.meta_whatsapp_phone_number_id && biz.meta_whatsapp_access_token
@@ -1203,10 +1219,10 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               </div>
             )}
 
-            <hr className="border-gray-100" />
+            <hr className={barbershop ? 'hidden' : 'border-gray-100'} />
 
             {/* WhatsApp Templates */}
-            <div>
+            <div className={barbershop ? 'order-3' : undefined}>
               <h3 className="text-sm font-medium text-gray-900 mb-1">{t('notifications.waTemplates.heading')}</h3>
               <p className="text-xs text-gray-500 mb-3">{t('notifications.waTemplates.description')}</p>
               <div className="space-y-3">
@@ -1241,7 +1257,8 @@ export function SettingsTabs({ business: initial, services: initServices, offers
               </div>
             </div>
 
-            <Button onClick={saveBusiness} disabled={saving}>
+            {barbershop && <div className="order-5">{advancedButton}</div>}
+            <Button className={barbershop ? 'order-8 self-start' : undefined} onClick={saveBusiness} disabled={saving}>
               {saving ? t('notifications.saving') : saved ? t('notifications.saved') : t('notifications.save')}
             </Button>
           </div>
@@ -1288,6 +1305,12 @@ export function SettingsTabs({ business: initial, services: initServices, offers
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{t('modules.presetsLabel')}</p>
               <div className="flex flex-wrap gap-2">
+                {barbershop && (
+                  <button type="button" onClick={() => setEnabledModules(barbershopModules(false))}
+                    className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:text-blue-700 transition-colors">
+                    {fr.settingsPage.preset}
+                  </button>
+                )}
                 {[
                   { labelKey: 'modules.presets.salon' as const, modules: ['bookings','crm','pos','inventory','notifications'] },
                   { labelKey: 'modules.presets.shop'  as const, modules: ['inventory','pos','notifications'] },
