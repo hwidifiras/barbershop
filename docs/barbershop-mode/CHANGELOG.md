@@ -20,13 +20,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 ## Log
 
 ### 2026-11-27: barbershop onboarding presets, Products off by default (phase 4a)
-- **What changed:** when Barbershop is picked at signup, step 2 offers five starter services to tick (editable price and duration) and asks "Vendez-vous des produits ?". Finishing sets the modules (Products only if answered yes), hours Tuesday to Saturday 09:00-19:00 and French notifications.
+- **What changed:** when Barbershop is picked at signup, step 2 offers five starter services to tick (editable price and duration) and asks "Vendez-vous des produits ?". Finishing sets the modules (Products only if answered yes), hours Tuesday to Saturday 09:00-19:00, French notifications, currency TND and timezone Africa/Tunis.
 - **Where:** `app/onboarding/*`, `lib/barbershop-onboarding.ts` (+ `tests/unit/barbershop-onboarding.spec.ts`), `lib/barbershop-fr.ts`
 - **Barbershop vs standard:** only when the picked type is barbershop and the shop is not yet onboarded; other types keep the single blank service form, and existing shops are not changed.
 - **Data/migrations:** none
 - **Spec section(s):** 4.8, 4.6, 7
 - **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser or on a phone.
-- **Notes / follow-ups:** starter prices are placeholders; a new shop still gets currency USD and timezone UTC (changeable in Settings).
+- **Notes / follow-ups:** starter prices are placeholders. Currency and timezone are changeable in Settings.
 
 ### 2026-11-26: STATUS.md corrected
 - **What changed:** 3f is live (PR #18), Reporter added as 3g (PR #21), phases 4, 5 and 6 marked not started (they were listed as "In review").

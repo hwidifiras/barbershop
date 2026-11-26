@@ -46,6 +46,9 @@ export function starterServiceRows(businessId: string, choices: StarterChoice[])
   })
 }
 
+/** A new barbershop starts in Tunisian dinars on Tunis time (changeable in Settings). */
+export const BARBERSHOP_LOCALE = { currency: 'TND', timezone: 'Africa/Tunis' } as const
+
 /** Products are opt-in for a barbershop. */
 export function barbershopModules(sellsProducts: boolean): string[] {
   const modules = ['bookings', 'crm', 'pos', 'notifications']

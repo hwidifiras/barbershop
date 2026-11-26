@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DOMPurify from 'isomorphic-dompurify'
-import { barbershopHourRows, barbershopModules, starterServiceRows, type StarterChoice } from '@/lib/barbershop-onboarding'
+import { BARBERSHOP_LOCALE, barbershopHourRows, barbershopModules, starterServiceRows, type StarterChoice } from '@/lib/barbershop-onboarding'
 
 function sanitize(s: string): string {
   return DOMPurify.sanitize(s, { ALLOWED_TAGS: [] }).trim()
@@ -85,7 +85,11 @@ export async function completeOnboarding(data: {
     ...(data.bizType ? { type: data.bizType } : {}),
     ...(bizName ? { name: bizName } : {}),
     ...(barbershopPreset
-      ? { enabled_modules: barbershopModules(data.sellsProducts === true), notification_language: 'fr' }
+      ? {
+          enabled_modules: barbershopModules(data.sellsProducts === true),
+          notification_language: 'fr',
+          ...BARBERSHOP_LOCALE,
+        }
       : {}),
     onboarding_completed: true,
   }

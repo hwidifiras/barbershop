@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { barbershopHourRows, barbershopModules, starterServiceRows } from '@/lib/barbershop-onboarding'
+import { BARBERSHOP_LOCALE, barbershopHourRows, barbershopModules, starterServiceRows } from '@/lib/barbershop-onboarding'
+
+describe('BARBERSHOP_LOCALE', () => {
+  it('is Tunisian dinars on Tunis time', () => {
+    expect(BARBERSHOP_LOCALE).toEqual({ currency: 'TND', timezone: 'Africa/Tunis' })
+  })
+})
 
 describe('barbershopModules', () => {
   it('leaves Products off unless the shop sells them', () => {
