@@ -23,11 +23,12 @@ interface Props {
   currency: string
   initialFilter?: string
   initialTab?: string
+  barbershop?: boolean
 }
 
 type Tab = 'items' | 'sales'
 
-export function InventoryTabs({ items, currency, initialFilter, initialTab }: Props) {
+export function InventoryTabs({ items, currency, initialFilter, initialTab, barbershop = false }: Props) {
   const t = useTranslations('inventory')
   const [activeTab, setActiveTab] = useState<Tab>(initialTab === 'sales' ? 'sales' : 'items')
 
@@ -51,7 +52,7 @@ export function InventoryTabs({ items, currency, initialFilter, initialTab }: Pr
       </div>
 
       {activeTab === 'items' ? (
-        <InventoryList items={items} currency={currency} initialFilter={initialFilter} />
+        <InventoryList items={items} currency={currency} initialFilter={initialFilter} barbershop={barbershop} />
       ) : (
         <SalesTab />
       )}

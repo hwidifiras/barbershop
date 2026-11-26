@@ -11,6 +11,7 @@ import { InventoryMoreMenu } from '@/components/inventory/inventory-more-menu'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 export default async function InventoryPage(
   props: {
@@ -62,6 +63,7 @@ export default async function InventoryPage(
         <InventoryTabs
           items={items ?? []}
           currency={business.currency}
+          barbershop={isBarbershopMode(business)}
           initialFilter={searchParams.filter}
           initialTab={searchParams.tab}
         />

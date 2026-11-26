@@ -432,6 +432,20 @@ export function SettingsTabs({ business: initial, services: initServices, offers
     router.refresh()
   }
 
+  const shopCard = (section: 'shop' | 'barbers' | 'mode') => {
+    const active = employees.filter((e) => e.is_active)
+    return (
+      <BarbershopShopCard
+        key={`${section}-${active.map((e) => e.id).join()}`}
+        section={section}
+        business={{ id: initial.id, slug: biz.slug, online_booking_enabled: initial.online_booking_enabled ?? true }}
+        barbers={active.map((e) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url ?? null }))}
+        modeOn={barbershop}
+        onAvatarChange={(id, url) => setEmployees((list) => list.map((e) => (e.id === id ? { ...e, avatar_url: url } : e)))}
+      />
+    )
+  }
+
   const bookingsOn = enabledModules.includes('bookings')
   const tabs: { key: Tab; label: string }[] = orderSettingsTabs<{ key: Tab; label: string }>([
     { key: 'general', label: barbershop ? fr.settingsPage.shopTab : t('tabs.general') },
@@ -546,13 +560,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
         <div className="space-y-6">
         {/* Barbershop mode (docs/barbershop-mode/SPEC.md): shown only for barbershops. The card stays
             rendered when the mode is off so the shop can switch it back on. */}
-        {(initial.type === 'barbershop' || isBarbershopMode(initial)) && (
-          <BarbershopShopCard
-            business={{ id: initial.id, slug: biz.slug, online_booking_enabled: initial.online_booking_enabled ?? true }}
-            barbers={employees.filter((e) => e.is_active).map((e) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url ?? null }))}
-            modeOn={isBarbershopMode(initial)}
-          />
-        )}
+        {(initial.type === 'barbershop' || barbershop) && shopCard('shop')}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-900 mb-4">{t('general.heading')}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -916,6 +924,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
       {/* Employees */}
       {tab === 'employees' && (
         <div className="space-y-4">
+          {barbershop && shopCard('barbers')}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {employees.length === 0 ? (
               <div className="py-10 text-center text-gray-500 text-sm">{t('employees.empty')}</div>
@@ -1296,6 +1305,7 @@ export function SettingsTabs({ business: initial, services: initServices, offers
       {/* Modules */}
       {tab === 'modules' && (
         <div className="space-y-4">
+          {barbershop && shopCard('mode')}
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
             <div>
               <h2 className="font-semibold text-gray-900">{t('modules.heading')}</h2>

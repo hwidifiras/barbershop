@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
 
 export default async function InventoryItemPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -59,6 +60,7 @@ export default async function InventoryItemPage(props: { params: Promise<{ id: s
         timezone={business.timezone}
         businessId={business.id}
         categories={categories}
+        barbershop={isBarbershopMode(business)}
       />
     </>
   )

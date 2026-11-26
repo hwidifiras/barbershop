@@ -18,6 +18,9 @@ interface Props {
   business: { id: string; slug: string; online_booking_enabled: boolean }
   barbers: CardBarber[]
   modeOn: boolean
+  /** Which part to show: link and online booking (Salon), barber photos and links (Barbiers), the mode switch (Modules). */
+  section: 'shop' | 'barbers' | 'mode'
+  onAvatarChange?: (id: string, url: string | null) => void
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -47,7 +50,7 @@ function Toggle({ checked, onChange, disabled, label }: { checked: boolean; onCh
   )
 }
 
-export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn }: Props) {
+export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn, section, onAvatarChange }: Props) {
   const supabase = createClient()
   const router = useRouter()
   const [origin, setOrigin] = useState('')
@@ -84,6 +87,7 @@ export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn }
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? 'error')
       setBarbers((bs) => bs.map((b) => (b.id === id ? { ...b, avatar_url: data.avatar_url } : b)))
+      onAvatarChange?.(id, data.avatar_url)
     } catch { setMsg({ kind: 'err', text: S.photoError }) }
     setBusy(null)
   }
@@ -94,6 +98,7 @@ export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn }
       const res = await fetch(`/api/employees/${id}/avatar`, { method: 'DELETE' })
       if (!res.ok) throw new Error('error')
       setBarbers((bs) => bs.map((b) => (b.id === id ? { ...b, avatar_url: null } : b)))
+      onAvatarChange?.(id, null)
     } catch { setMsg({ kind: 'err', text: S.photoError }) }
     setBusy(null)
   }
@@ -110,9 +115,52 @@ export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn }
     </div>
   )
 
+  const status = msg && <p className={`text-xs mt-2 ${msg.kind === 'err' ? 'text-red-600' : 'text-gray-500'}`} role="status">{msg.text}</p>
+
   // Escape hatch: when the mode is off, only the switch to turn it back on is shown.
-  if (!mode) {
-    return <section className="bg-white rounded-xl border border-gray-200 p-5 mb-4">{modeRow}{msg && <p className="text-xs mt-2 text-gray-500">{msg.text}</p>}</section>
+  if (!mode || section === 'mode') {
+    return <section className="bg-white rounded-xl border border-gray-200 p-5 mb-4">{modeRow}{status}</section>
+  }
+
+  if (section === 'barbers') {
+    if (barbers.length === 0) return null
+    return (
+      <section className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-sm font-medium text-gray-900">{S.barberLinkTitle}</div>
+          <p className="text-xs text-gray-500 mt-0.5 mb-3">{S.barberLinkHint} {S.photoTypes}</p>
+          <ul className="space-y-3">
+            {barbers.map((b) => {
+              const url = link ? `${link}?b=${b.id}` : ''
+              const uploading = busy === `photo-${b.id}`
+              return (
+                <li key={b.id} className="flex items-center gap-3">
+                  {b.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center shrink-0">{b.name.trim()[0]?.toUpperCase()}</div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-gray-900 truncate">{b.name}</div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                      <label className="text-xs font-medium text-blue-600 hover:underline cursor-pointer">
+                        {uploading ? <span className="inline-flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {S.photoUploading}</span> : (b.avatar_url ? S.changePhoto : S.addPhoto)}
+                        <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={uploading}
+                          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void uploadPhoto(b.id, f) }} />
+                      </label>
+                      {b.avatar_url && !uploading && (
+                        <button type="button" className="text-xs text-gray-500 hover:underline" onClick={() => void removePhoto(b.id)}>{S.removePhoto}</button>
+                      )}
+                    </div>
+                  </div>
+                  {url && <CopyButton text={url} />}
+                </li>
+              )
+            })}
+          </ul>
+          {status}
+      </section>
+    )
   }
 
   return (
@@ -149,45 +197,7 @@ export function BarbershopShopCard({ business, barbers: initialBarbers, modeOn }
         }} />
       </div>
 
-      {barbers.length > 0 && (
-        <div className="pt-4 mt-4 border-t border-gray-100">
-          <div className="text-sm font-medium text-gray-900">{S.barberLinkTitle}</div>
-          <p className="text-xs text-gray-500 mt-0.5 mb-3">{S.barberLinkHint} {S.photoTypes}</p>
-          <ul className="space-y-3">
-            {barbers.map((b) => {
-              const url = link ? `${link}?b=${b.id}` : ''
-              const uploading = busy === `photo-${b.id}`
-              return (
-                <li key={b.id} className="flex items-center gap-3">
-                  {b.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center shrink-0">{b.name.trim()[0]?.toUpperCase()}</div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-gray-900 truncate">{b.name}</div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-                      <label className="text-xs font-medium text-blue-600 hover:underline cursor-pointer">
-                        {uploading ? <span className="inline-flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {S.photoUploading}</span> : (b.avatar_url ? S.changePhoto : S.addPhoto)}
-                        <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={uploading}
-                          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void uploadPhoto(b.id, f) }} />
-                      </label>
-                      {b.avatar_url && !uploading && (
-                        <button type="button" className="text-xs text-gray-500 hover:underline" onClick={() => void removePhoto(b.id)}>{S.removePhoto}</button>
-                      )}
-                    </div>
-                  </div>
-                  {url && <CopyButton text={url} />}
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
-
-      {modeRow}
-      {msg && <p className={`text-xs mt-2 ${msg.kind === 'err' ? 'text-red-600' : 'text-gray-500'}`} role="status">{msg.text}</p>}
+      {status}
     </section>
   )
 }

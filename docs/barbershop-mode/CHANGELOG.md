@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: Products screens, barber photos and mode switch (phase 4c)
+- **What changed:** products list shows name, stock and price; new and edit product show name, price (and stock when new) first, the rest behind "Avancé". Barber photos and personal links moved to Barbiers; the "Mode barbershop" switch moved to Modules (when the mode is off it stays on General so it can be turned back on).
+- **Where:** `app/(dashboard)/inventory/*`, `app/(dashboard)/settings/settings-tabs.tsx`, `components/settings/barbershop-shop-card.tsx`
+- **Barbershop vs standard:** every change is behind `isBarbershopMode`; other types keep the same screens.
+- **Data/migrations:** none
+- **Spec section(s):** 4.6, 4.7
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser or on a phone.
+
 ### 2026-11-27: Settings reorganised for barbershops (phase 4b)
 - **What changed:** tabs are Salon, Barbiers, Prestations, Notifications, Modules, Facturation, Compte. Behind "Avancé": business email, timezone, currency, type, web address and notification language (Salon); role and email (Barbiers); email sending and Viber (Notifications), with WhatsApp and Telegram first. Modules gets a "Barbershop" preset.
 - **Where:** `app/(dashboard)/settings/settings-tabs.tsx`, `lib/barbershop-settings.ts` (+ `tests/unit/barbershop-settings.spec.ts`), `lib/barbershop-fr.ts`
