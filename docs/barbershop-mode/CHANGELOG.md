@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-24: Reporter (postpone) an appointment from the phone Agenda
+- **What changed:** a "Reporter" button in the appointment sheet (pending / confirmed only). It opens a sheet: day (next 21 days), barber, a free time. The appointment keeps its client, services, price and length; start, end and barber change. The Agenda then jumps to the new day. Existing 24h / 1h reminder log entries for that appointment are cleared so the new time gets its own reminders. The client is not messaged automatically.
+- **Where:** `app/(dashboard)/booking/postpone-sheet.tsx` (new), `agenda-view.tsx`, `lib/barbershop-fr.ts`.
+- **Barbershop vs standard:** only in the barbershop phone Agenda; the desktop calendar is unchanged.
+- **Data/migrations:** none (the existing slot trigger also checks updates).
+- **Verified:** tsc, eslint, check:i18n, 141 unit tests.
+- **Notes / follow-ups:** optional WhatsApp/email to the client about the new time; the Today screen's next-client card has no Reporter button yet.
+
 ### 2026-11-24: Caisse pilot hardening (after tracing booking to payment in code)
 - **What changed:** (1) the Caisse opens on the cart/total when started from an appointment (it opened on the service grid); (2) the sale is linked to its appointment (`transactions.appointment_id`) and the Caisse refuses an appointment that is already paid, cancelled or absent (no double charge from a back button); (3) the appointment's client is always in the client picker (the list is capped at 200); (4) a client who owes cannot be deleted (the ledger would be deleted with them); (5) "Doit X DT" shows in the Agenda list and appointment sheet; (6) the two English leftovers in the barbershop Caisse ("Sales history", "Skip") are French.
 - **Where:** `pos/page.tsx`, `pos/pos-terminal.tsx`, `crm/[id]/*`, `booking/barber-agenda.tsx`, `booking/agenda-view.tsx`, `lib/barbershop-fr.ts`.
