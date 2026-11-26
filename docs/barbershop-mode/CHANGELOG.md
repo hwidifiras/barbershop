@@ -19,6 +19,15 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: Settings reorganised for barbershops (phase 4b)
+- **What changed:** tabs are Salon, Barbiers, Prestations, Notifications, Modules, Facturation, Compte. Behind "Avancé": business email, timezone, currency, type, web address and notification language (Salon); role and email (Barbiers); email sending and Viber (Notifications), with WhatsApp and Telegram first. Modules gets a "Barbershop" preset.
+- **Where:** `app/(dashboard)/settings/settings-tabs.tsx`, `lib/barbershop-settings.ts` (+ `tests/unit/barbershop-settings.spec.ts`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** every change is behind `isBarbershopMode`; other types keep the same order, classes and fields.
+- **Data/migrations:** none
+- **Spec section(s):** 4.7
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser or on a phone.
+- **Notes / follow-ups:** barber photos and personal links are still on the Salon tab, and the "Mode barbershop" switch is still in the Salon card; the spec places them under Barbiers and Modules.
+
 ### 2026-11-27: barbershop onboarding presets, Products off by default (phase 4a)
 - **What changed:** when Barbershop is picked at signup, step 2 offers five starter services to tick (editable price and duration) and asks "Vendez-vous des produits ?". Finishing sets the modules (Products only if answered yes), hours Tuesday to Saturday 09:00-19:00, French notifications, currency TND and timezone Africa/Tunis.
 - **Where:** `app/onboarding/*`, `lib/barbershop-onboarding.ts` (+ `tests/unit/barbershop-onboarding.spec.ts`), `lib/barbershop-fr.ts`
