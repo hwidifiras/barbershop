@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-26: labelled "Modifier" button on the client page (restores PR #12)
+- **What changed:** in barbershop mode the client page shows a labelled **Modifier** button (name, number, notes) instead of only a small pencil icon that was hard to find on a phone.
+- **Where:** `app/(dashboard)/crm/[id]/client-detail-view.tsx`, `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** gated by the existing `barbershop` prop; other types keep the pencil icon.
+- **Data/migrations:** none
+- **Spec section(s):** 4.5
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, unit tests. Not checked on a phone.
+
 ### 2026-11-24: Reporter (postpone) an appointment from the phone Agenda
 - **What changed:** a "Reporter" button in the appointment sheet (pending / confirmed only). It opens a sheet: day (next 21 days), barber, a free time. The appointment keeps its client, services, price and length; start, end and barber change. The Agenda then jumps to the new day. Existing 24h / 1h reminder log entries for that appointment are cleared so the new time gets its own reminders. The client is not messaged automatically.
 - **Where:** `app/(dashboard)/booking/postpone-sheet.tsx` (new), `agenda-view.tsx`, `lib/barbershop-fr.ts`.
