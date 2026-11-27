@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CrmImportButton } from '@/components/clients/crm-import-button'
 import { formatCurrency, formatInBusinessTimezone } from '@/lib/utils'
-import { Plus, Search, Phone, Mail } from 'lucide-react'
+import { CalendarPlus, MessageCircle, Plus, Search, Phone, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
@@ -147,25 +147,58 @@ export default async function CRMPage(
         title={t('title')}
         actions={
           <div className="flex gap-2">
-            <CrmImportButton />
+            {/* Barbershop: importing is a computer task, kept off the phone header (SPEC 4.5). */}
+            {barbershop ? <div className="hidden md:block"><CrmImportButton /></div> : <CrmImportButton />}
             <Link href="/crm/new">
               <Button size="sm"><Plus className="w-4 h-4 mr-1" /> {t('addClient')}</Button>
             </Link>
           </div>
         }
       />
-      <main className="p-6">
+      <main className={barbershop ? 'p-4 md:p-6' : 'p-6'}>
         {barbershop && <div className="mb-3 max-w-sm"><KridiTabs active="all" /></div>}
         <div className="mb-4 relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <form>
             <input name="q" defaultValue={searchParams.q} type="search"
               placeholder={barbershop ? fr.clients.searchPlaceholder : t('searchPlaceholder')}
-              className="w-full max-w-sm pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+              className={`w-full max-w-sm pl-9 pr-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${barbershop ? 'min-h-[48px] text-base' : 'py-2 text-sm'}`} />
           </form>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {barbershop && !!clients?.length && (
+          <ul className="md:hidden space-y-2">
+            {clients.map((c) => {
+              const wa = whatsappNumber(c.phone)
+              const stats = statsMap[c.id]
+              const action = 'min-h-[48px] rounded-xl border border-gray-300 flex items-center justify-center gap-2 text-sm font-semibold text-gray-800'
+              return (
+                <li key={c.id} className="rounded-xl bg-white border border-gray-200 p-3">
+                  <Link href={`/crm/${c.id}`} className="block min-h-[44px]">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-gray-900 truncate">{c.name}</span>
+                      {owed.has(c.id) && <span className="shrink-0 text-xs font-semibold text-orange-600">{fmt(fr.kridi.owes, { amount: formatCurrency(owed.get(c.id)!.amount, business.currency, 'fr-FR') })}</span>}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {[
+                        c.phone ? formatPhone(c.phone) : null,
+                        stats?.last_visit_at ? fmt(fr.clients.lastVisit, { date: formatInBusinessTimezone(stats.last_visit_at, business.timezone, 'date', 'fr') }) : null,
+                        stats?.lastService ?? null,
+                      ].filter(Boolean).join(' · ')}
+                    </div>
+                  </Link>
+                  <div className="mt-2 flex gap-2">
+                    {c.phone && <a href={`tel:${c.phone.replace(/[^\d+]/g, '')}`} className={`flex-1 ${action}`}><Phone className="w-4 h-4" />{fr.kridi.call}</a>}
+                    {wa && <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" className={`flex-1 ${action}`}><MessageCircle className="w-4 h-4" />{fr.kridi.whatsapp}</a>}
+                    <Link href={`/booking?client=${c.id}`} className={`flex-1 ${action}`}><CalendarPlus className="w-4 h-4" />{fr.clients.book}</Link>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        <div className={`bg-white rounded-xl border border-gray-200 overflow-hidden${barbershop && clients?.length ? ' hidden md:block' : ''}`}>
           {clients?.length === 0 ? (
             <div className="py-16 text-center text-gray-500">
               <div className="text-4xl mb-3">{t('empty.icon')}</div>

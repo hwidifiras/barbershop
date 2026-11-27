@@ -78,6 +78,16 @@ function validateBirthday(birthday: string): string | null {
   return null
 }
 
+function Foldable({ folded, title, children }: { folded: boolean; title: string; children: React.ReactNode }) {
+  if (!folded) return <>{children}</>
+  return (
+    <details>
+      <summary className="min-h-[44px] flex items-center cursor-pointer text-sm font-medium text-gray-700">{title}</summary>
+      {children}
+    </details>
+  )
+}
+
 export function ClientDetailView({ client: initial, appointments, currency, timezone, businessId, telegramBotUsername, barbershop = false, owed = 0 }: Props) {
   const supabase = createClient()
   const router = useRouter()
@@ -153,6 +163,10 @@ export function ClientDetailView({ client: initial, appointments, currency, time
     window.location.href = '/crm'
   }
 
+  // Barbershop mode (SPEC 4.5): what was done, and what is coming, shown separately.
+  const upcoming = barbershop ? appointments.filter((a) => ['pending', 'confirmed'].includes(a.status)) : []
+  const history = barbershop ? appointments.filter((a) => ['completed', 'paid'].includes(a.status)) : appointments
+
   const stats = [
     { label: t('stats.totalVisits'), value: String(client.total_visits), icon: CalendarDays, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: t('stats.totalSpent'), value: formatCurrency(client.total_spent, currency, locale), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
@@ -162,6 +176,23 @@ export function ClientDetailView({ client: initial, appointments, currency, time
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
+      {barbershop && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-gray-900">{fr.clients.cutNotes}</h2>
+              <button type="button" onClick={() => setEditing(true)} className="min-h-[44px] px-3 text-sm font-medium text-gray-700 underline underline-offset-4">{fr.clients.edit}</button>
+            </div>
+            <p className={`whitespace-pre-line text-base ${client.notes ? 'text-gray-900' : 'text-gray-400'}`}>{client.notes || fr.clients.noCutNotes}</p>
+            {upcoming.map((a) => (
+              <p key={a.id} className="mt-2 text-sm text-gray-600">
+                {fr.clients.upcoming} : {formatInBusinessTimezone(a.starts_at, timezone, 'date', locale)} · {formatInBusinessTimezone(a.starts_at, timezone, 'time', locale)}{a.services?.name ? ` · ${a.services.name}` : ''}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
@@ -290,7 +321,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                     className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">{t('fields.notes')}</label>
+                  <label className="text-xs font-medium text-gray-500">{barbershop ? fr.clients.cutNotes : t('fields.notes')}</label>
                   <textarea value={form.notes}
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                     rows={3} placeholder={t('fields.notesPlaceholder')}
@@ -304,7 +335,7 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                 </div>
 
                 {/* Messenger connection status — read-only, set via bot /link command */}
-                <div className="pt-3 border-t border-gray-100 space-y-1.5">
+                <div className={barbershop ? 'hidden' : 'pt-3 border-t border-gray-100 space-y-1.5'}>
                   <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('fields.messengers')}</p>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Telegram</span>
@@ -369,7 +400,8 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                   </div>
                 )}
 
-                {/* Messenger connection status */}
+                {/* Messenger connection status. Barbershop mode folds it away (SPEC 4.5). */}
+                <Foldable folded={barbershop} title={fr.clients.notifications}>
                 <div className="pt-2 border-t border-gray-100 space-y-1.5">
                   <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('fields.messengers')}</p>
                   <div className="flex items-center justify-between text-xs">
@@ -398,8 +430,9 @@ export function ClientDetailView({ client: initial, appointments, currency, time
                       : <span className="text-gray-400">{t('fields.notConnected')}</span>}
                   </div>
                 </div>
+                </Foldable>
 
-                {client.notes && (
+                {!barbershop && client.notes && (
                   <div className="mt-3 p-3 bg-gray-50 rounded-lg text-gray-600 text-xs leading-relaxed">
                     {client.notes}
                   </div>
@@ -412,14 +445,14 @@ export function ClientDetailView({ client: initial, appointments, currency, time
         {/* Visit history */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t('appointments.heading')}</CardTitle>
+            <CardTitle className="text-base">{barbershop ? fr.clients.lastCuts : t('appointments.heading')}</CardTitle>
           </CardHeader>
           <CardContent>
-            {appointments.length === 0 ? (
+            {history.length === 0 ? (
               <p className="text-sm text-gray-400 py-4 text-center">{t('appointments.empty')}</p>
             ) : (
               <div className="space-y-3">
-                {appointments.map((a) => (
+                {history.map((a) => (
                   <div key={a.id} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
                     <div>
                       <div className="text-sm font-medium text-gray-900">

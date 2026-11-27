@@ -15,8 +15,8 @@ Last updated: 2026-11-26 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [
 | 3d | Agenda: create an appointment from the phone ("Nouveau RDV") | Done, live (no migration) |
 | 3e | Caisse (cash) with kridi (partial or no payment) | Done, live (migration 043 applied) |
 | 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | Done, live (no migration) |
-| 3g | Agenda: "Reporter" (postpone an appointment) from the phone | Done, live (no migration) |
-| 4 | Settings reorganisation, onboarding presets, Products off by default | In review: 4a and 4b live, 4c (products, photos, mode switch) in review |
+| 3g | Agenda: "Reporter" (postpone an appointment) from the phone | Done, live, tested on a phone (no migration) |
+| 4 | Settings reorganisation, onboarding presets, Products off by default | Done, live |
 | 5 | Team access: barber logins and own schedule | Not started |
 | 6 | Arabic / RTL, then extras | Not started |
 
