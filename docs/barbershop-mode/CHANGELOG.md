@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: fix endless redirect for accounts without a business
+- **What changed:** a signed-in user with no business (added from the Supabase dashboard, not through /register) looped dashboard → onboarding → login → dashboard. Onboarding now creates the business and the owner employee, then shows the wizard.
+- **Where:** `app/onboarding/page.tsx`, `lib/create-business.ts` (+ `tests/unit/ensure-owner-business.spec.ts`)
+- **Barbershop vs standard:** shared bug fix, applies to every business type.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not yet reproduced or retested in a browser.
+
 ### 2026-11-27: Products screens, barber photos and mode switch (phase 4c)
 - **What changed:** products list shows name, stock and price; new and edit product show name, price (and stock when new) first, the rest behind "Avancé". Barber photos and personal links moved to Barbiers; the "Mode barbershop" switch moved to Modules (when the mode is off it stays on General so it can be turned back on).
 - **Where:** `app/(dashboard)/inventory/*`, `app/(dashboard)/settings/settings-tabs.tsx`, `components/settings/barbershop-shop-card.tsx`

@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { slugify } from '@/lib/utils'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -121,4 +122,35 @@ export async function insertOwnerAsEmployee(
     is_active: true,
   })
   if (error) console.error('[create-business] failed to auto-create owner employee:', error.message)
+}
+
+/**
+ * Gives a signed-in user who has no business one, with themselves as first barber/employee.
+ *
+ * Accounts added from the Supabase dashboard (or an invite) never pass through /register or the
+ * confirmation callback, so they arrive with no business row. Without this they loop forever:
+ * dashboard → onboarding → login → dashboard.
+ */
+export async function ensureOwnerBusiness(
+  admin: SupabaseClient,
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> | null }
+): Promise<{ id: string; slug: string } | null> {
+  const name =
+    (user.user_metadata?.business_name as string | undefined) ||
+    (user.user_metadata?.full_name as string | undefined) ||
+    user.email?.split('@')[0] ||
+    'My Business'
+  const slug = slugify(name) || `shop-${user.id.slice(0, 8)}`
+
+  const business = await getOrCreateBusiness(admin, { owner_id: user.id, name, slug })
+  if (!business) return null
+
+  // Two requests can arrive together: only add the owner if nobody is there yet.
+  const { count } = await admin
+    .from('employees')
+    .select('id', { count: 'exact', head: true })
+    .eq('business_id', business.id)
+  if (!count) await insertOwnerAsEmployee(admin, business.id, user)
+
+  return business
 }
