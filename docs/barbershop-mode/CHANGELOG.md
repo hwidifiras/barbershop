@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: one-tap WhatsApp reminders on Today (SPEC 4.2)
+- **What changed:** Today has a foldable "Rappels pour demain" list. Each of tomorrow's bookings with a known client has a WhatsApp button that opens a French message already written; the row is then marked "Ouvert". Moving the appointment clears the mark. Also fixed: "Reporter" tried to clear sent reminders from the browser, which has no access to `notification_log`, so it silently did nothing; it now goes through the server.
+- **Where:** `app/(dashboard)/dashboard/{reminders-card.tsx,reminder-actions.ts,barber-today.tsx,today-view.tsx}`, `app/(dashboard)/booking/postpone-sheet.tsx`, `lib/barbershop-reminders.ts` (+ `tests/unit/barbershop-reminders.spec.ts`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** Today and the postpone sheet exist only in barbershop mode.
+- **Data/migrations:** none. Marks are `notification_log` rows (type `reminder_manual`, channel `whatsapp`), written by a server action after checking the appointment belongs to the caller's shop.
+- **Verified:** `tsc --noEmit`, eslint (existing warnings only), check:i18n, node and unit tests, and the card on a 375px screen with made-up data. Not checked: loading and saving marks against the real database.
+- **Notes / follow-ups:** nothing is sent automatically, and "Ouvert" only means WhatsApp was opened. Automatic sending still needs a scheduler and a WhatsApp Business account.
+
 ### 2026-11-27: Caisse on the phone (SPEC 4.4)
 - **What changed:** bigger service tiles with the most sold first; barbers chosen by tapping a chip; clients searchable by name or number (also beyond the first 200); sales history is a card list on phones with filters folded.
 - **Where:** `app/(dashboard)/pos/*`, `lib/barbershop-pos.ts` (+ `tests/unit/barbershop-pos.spec.ts`), `lib/barbershop-fr.ts`

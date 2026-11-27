@@ -12,6 +12,7 @@ import { computeBarberSlots, minutesInTimezone } from '@/lib/barbershop-slots'
 import { addDaysYmd, dayRangeIso, zonedDateTime } from '@/lib/barbershop-today'
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { whatsappNumber } from '@/lib/phone'
+import { clearSentReminders } from '../dashboard/reminder-actions'
 
 const P = fr.agenda.postpone
 
@@ -95,7 +96,8 @@ export function PostponeSheet({ appt, ymdNow, timezone, hours, barbers, onClose,
       return
     }
     // Reminders are sent once per appointment; clear them so the new time gets its own reminders.
-    await supabase.from('notification_log').delete().eq('ref_id', appt.id).in('type', ['reminder_24h', 'reminder_1h'])
+    // Goes through the server: signed-in users have no access to notification_log.
+    await clearSentReminders(appt.id).catch(() => {})
     setSaving(false)
     // Nothing is sent automatically: the barber taps to open WhatsApp with the message written.
     const wa = whatsappNumber(appt.clientPhone)
