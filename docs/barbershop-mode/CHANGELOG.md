@@ -19,6 +19,14 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: Caisse on the phone (SPEC 4.4)
+- **What changed:** bigger service tiles with the most sold first; barbers chosen by tapping a chip; clients searchable by name or number (also beyond the first 200); sales history is a card list on phones with filters folded.
+- **Where:** `app/(dashboard)/pos/*`, `lib/barbershop-pos.ts` (+ `tests/unit/barbershop-pos.spec.ts`), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** every change is behind the barbershop check.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser or on a phone.
+- **Notes / follow-ups:** the cart is still a tab, not a bottom sheet, and the barber is not preselected from the login (needs phase 5).
+
 ### 2026-11-27: reminders name every service; postpone message and button on Today
 - **What changed:** scheduled reminders and thank-you messages use the full booking label ("Coupe + Barbe"). After "Reporter", a button opens WhatsApp with the new time written (nothing is sent automatically). The next-client card on Today has "Reporter".
 - **Where:** `app/api/cron/notify/route.ts`, `booking/postpone-sheet.tsx`, `booking/agenda-view.tsx`, `dashboard/today-view.tsx`, `lib/barbershop-fr.ts`
