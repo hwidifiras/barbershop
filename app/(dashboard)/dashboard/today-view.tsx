@@ -22,6 +22,8 @@ import {
 } from '@/lib/barbershop-today'
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { PostponeSheet } from '../booking/postpone-sheet'
+import { RemindersCard } from './reminders-card'
+import type { ReminderAppt } from '@/lib/barbershop-reminders'
 
 const T = fr.today
 
@@ -51,6 +53,9 @@ interface Props {
   revenueToday: number
   kridiToday?: number
   lowStock: number
+  reminders: ReminderAppt[]
+  remindedIds: string[]
+  tomorrowLabel: string
 }
 
 const APPT_SELECT =
@@ -70,6 +75,7 @@ const REFRESH_EVERY_MS = 60_000
 
 export function TodayView({
   business, ymd, nowMs, accent, barbers, services, hours, hasHours, initialAppts, revenueToday, kridiToday = 0, lowStock,
+  reminders, remindedIds, tomorrowLabel,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -451,6 +457,11 @@ export function TodayView({
             </button>
           )}
         </section>
+
+        <RemindersCard
+          appts={reminders.filter((a) => !barberId || a.employee_id === barberId)}
+          remindedIds={remindedIds} day={tomorrowLabel} shopName={business.name} timezone={tz}
+        />
 
         {(() => {
           const target = appts.find((a) => a.id === postponeId)

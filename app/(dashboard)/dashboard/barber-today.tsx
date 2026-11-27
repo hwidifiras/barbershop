@@ -2,7 +2,9 @@
 // shop's local day and hands it to the interactive TodayView. The standard dashboard is not touched.
 
 import { createClient } from '@/lib/supabase/server'
-import { dayRangeIso, localYmd } from '@/lib/barbershop-today'
+import { addDaysYmd, dayRangeIso, localYmd } from '@/lib/barbershop-today'
+import { createServiceClient } from '@/lib/supabase/service'
+import { REMINDER_TYPE, remindable, reminderRef, type ReminderAppt } from '@/lib/barbershop-reminders'
 import { accentFor } from '@/lib/barbershop-theme'
 import { TodayView, type TodayAppointment } from './today-view'
 
@@ -46,6 +48,24 @@ export async function BarberToday({ business }: { business: BusinessRow }) {
   const kridiToday = ledgerToday.filter((l) => l.kind === 'credit').reduce((t, l) => t + Number(l.amount), 0)
   const lowStock = (stockRes.data ?? []).filter((i) => Number(i.quantity) <= Number(i.low_stock_threshold)).length
 
+  // Tomorrow's bookings for the one-tap reminders, and which of them were already opened.
+  const tomorrow = addDaysYmd(ymd, 1)
+  const next = dayRangeIso(tomorrow, tz)
+  const { data: tomorrowRows } = await supabase
+    .from('appointments')
+    .select('id, starts_at, status, employee_id, items_summary, clients(name, phone), services(name)')
+    .eq('business_id', business.id).gte('starts_at', next.from).lt('starts_at', next.to)
+  const reminders = remindable((tomorrowRows ?? []) as unknown as ReminderAppt[])
+  const refs = new Map(reminders.map((a) => [reminderRef(a.id, a.starts_at), a.id]))
+  // notification_log is readable by the server only; limited to this shop and these bookings.
+  const { data: marks } = refs.size
+    ? await createServiceClient().from('notification_log').select('ref_id')
+        .eq('business_id', business.id).eq('type', REMINDER_TYPE).in('ref_id', [...refs.keys()])
+    : { data: [] as { ref_id: string }[] }
+  const remindedIds = (marks ?? []).map((m) => refs.get(m.ref_id)).filter((id): id is string => !!id)
+  const tomorrowLabel = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    .format(new Date(`${tomorrow}T12:00:00Z`))
+
   return (
     <TodayView
       business={{ id: business.id, name: business.name, slug: business.slug, currency: business.currency, timezone: tz }}
@@ -60,6 +80,9 @@ export async function BarberToday({ business }: { business: BusinessRow }) {
       revenueToday={revenueToday}
       kridiToday={kridiToday}
       lowStock={lowStock}
+      reminders={reminders}
+      remindedIds={remindedIds}
+      tomorrowLabel={tomorrowLabel}
     />
   )
 }
