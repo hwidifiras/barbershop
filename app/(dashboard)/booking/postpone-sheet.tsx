@@ -11,12 +11,14 @@ import { computeEffectiveHours, type DayHours } from '@/lib/booking-availability
 import { computeBarberSlots, minutesInTimezone } from '@/lib/barbershop-slots'
 import { addDaysYmd, dayRangeIso, zonedDateTime } from '@/lib/barbershop-today'
 import { fr, fmt } from '@/lib/barbershop-fr'
+import { whatsappNumber } from '@/lib/phone'
 
 const P = fr.agenda.postpone
 
 interface Barber { id: string; name: string }
 export interface PostponeTarget {
   id: string; starts_at: string; ends_at: string; employee_id: string | null; clientName: string
+  clientPhone?: string | null
 }
 interface Busy { id: string; starts_at: string; ends_at: string; status: string; employee_id: string | null }
 
@@ -40,12 +42,16 @@ export function PostponeSheet({ appt, ymdNow, timezone, hours, barbers, onClose,
   const [loaded, setLoaded] = useState<{ ymd: string; rows: Busy[] } | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Set once moved, when the client has a number to tell them on.
+  const [moved, setMoved] = useState<{ ymd: string; url: string } | null>(null)
+  // Closing after a move still has to refresh the screen behind.
+  const close = () => (moved ? onDone(moved.ymd) : onClose())
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  })
 
   // The day's other appointments, to know which times are free.
   useEffect(() => {
@@ -91,13 +97,17 @@ export function PostponeSheet({ appt, ymdNow, timezone, hours, barbers, onClose,
     // Reminders are sent once per appointment; clear them so the new time gets its own reminders.
     await supabase.from('notification_log').delete().eq('ref_id', appt.id).in('type', ['reminder_24h', 'reminder_1h'])
     setSaving(false)
-    onDone(ymd)
+    // Nothing is sent automatically: the barber taps to open WhatsApp with the message written.
+    const wa = whatsappNumber(appt.clientPhone)
+    if (!wa) { onDone(ymd); return }
+    const text = fmt(P.message, { name: appt.clientName, day: fmtDay(ymd, { weekday: 'long', day: 'numeric', month: 'long' }), time: timeOk })
+    setMoved({ ymd, url: `https://wa.me/${wa}?text=${encodeURIComponent(text)}` })
   }
 
   const chip = (on: boolean) => `shrink-0 min-h-[44px] rounded-full border px-4 text-sm font-medium ${on ? 'bg-[#0e0e0f] text-white border-[#0e0e0f]' : 'bg-white text-gray-700 border-gray-300'}`
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" onClick={close}>
       <div role="dialog" aria-modal="true" aria-label={P.title} onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-white rounded-t-2xl p-4"
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
@@ -106,9 +116,16 @@ export function PostponeSheet({ appt, ymdNow, timezone, hours, barbers, onClose,
             <h2 className="text-lg font-bold text-gray-900">{P.title}</h2>
             <div className="text-sm text-gray-500 truncate">{appt.clientName} · {fmt(P.current, { when })}</div>
           </div>
-          <button type="button" onClick={onClose} aria-label={fr.agenda.close} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500"><X className="w-6 h-6" /></button>
+          <button type="button" onClick={close} aria-label={fr.agenda.close} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500"><X className="w-6 h-6" /></button>
         </div>
 
+        {moved ? (
+          <div className="mt-4 space-y-2">
+            <p role="status" className="rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-900">{P.moved}</p>
+            <a href={moved.url} target="_blank" rel="noopener noreferrer" className="w-full min-h-[56px] rounded-xl bg-[#0e0e0f] text-white text-base font-bold inline-flex items-center justify-center">{fmt(P.tell, { name: appt.clientName })}</a>
+            <button type="button" onClick={close} className="w-full min-h-[48px] rounded-xl border border-gray-300 text-sm font-semibold text-gray-800">{P.finished}</button>
+          </div>
+        ) : (<>
         <div className="mt-4 text-xs font-medium text-gray-500">{P.day}</div>
         <div className="mt-1 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
           {days.map((d) => {
@@ -157,6 +174,7 @@ export function PostponeSheet({ appt, ymdNow, timezone, hours, barbers, onClose,
             ? (ymd === originalYmd ? fmt(P.confirm, { time: timeOk }) : fmt(P.confirmDay, { day: fmtDay(ymd, { weekday: 'long', day: 'numeric', month: 'long' }), time: timeOk }))
             : P.button}
         </button>
+        </>)}
       </div>
     </div>
   )

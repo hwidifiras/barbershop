@@ -21,6 +21,7 @@ import {
   countDoneRemaining, formatMinutes, isOverdue, nextFreeStart, pickNextAppointment, zonedDateTime, type MinuteRange,
 } from '@/lib/barbershop-today'
 import { fr, fmt } from '@/lib/barbershop-fr'
+import { PostponeSheet } from '../booking/postpone-sheet'
 
 const T = fr.today
 
@@ -87,6 +88,7 @@ export function TodayView({
   const [linkShared, setLinkShared] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const [showCancelled, setShowCancelled] = useState(false)
+  const [postponeId, setPostponeId] = useState<string | null>(null)
 
   // ── keep the screen up to date ────────────────────────────────────────
   // The server re-sends the day's bookings after router.refresh(); copy them into state so an
@@ -387,8 +389,14 @@ export function TodayView({
               <button type="button" onClick={() => charge(next.appt)}
                 className="min-h-[52px] rounded-xl bg-white/10 text-white font-semibold text-base">{T.charge}</button>
             </div>
-            <button type="button" disabled={busy === next.appt.id} onClick={() => void setStatus(next.appt.id, 'no_show')}
-              className="mt-2 w-full min-h-[44px] rounded-xl text-sm text-white/60 hover:text-white">{T.noShow}</button>
+            <div className="mt-2 flex gap-2">
+              {['pending', 'confirmed'].includes(next.appt.status) && (
+                <button type="button" onClick={() => setPostponeId(next.appt.id)}
+                  className="flex-1 min-h-[44px] rounded-xl text-sm text-white/80 hover:text-white">{fr.agenda.postpone.button}</button>
+              )}
+              <button type="button" disabled={busy === next.appt.id} onClick={() => void setStatus(next.appt.id, 'no_show')}
+                className="flex-1 min-h-[44px] rounded-xl text-sm text-white/60 hover:text-white">{T.noShow}</button>
+            </div>
           </section>
         ) : forBarber.some((a) => a.status !== 'cancelled') && overdue.length === 0 ? (
           <p className="rounded-xl bg-white border border-gray-200 p-4 text-sm text-gray-600">{T.nothingLeft}</p>
@@ -443,6 +451,19 @@ export function TodayView({
             </button>
           )}
         </section>
+
+        {(() => {
+          const target = appts.find((a) => a.id === postponeId)
+          if (!target) return null
+          return (
+            <PostponeSheet
+              appt={{ id: target.id, starts_at: target.starts_at, ends_at: target.ends_at, employee_id: target.employee_id, clientName: clientOf(target), clientPhone: target.clients?.phone }}
+              ymdNow={ymd} timezone={tz} hours={hours} barbers={barbers}
+              onClose={() => setPostponeId(null)}
+              onDone={() => { setPostponeId(null); router.refresh() }}
+            />
+          )
+        })()}
 
         {/* Checklist */}
         {showChecklist && (
