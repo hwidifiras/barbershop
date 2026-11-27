@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: no error on the first visit when the business is created
+- **What changed:** the first visit by an account without a business showed "Something went wrong"; a reload worked. The page re-ran the same query after creating the row, and Next returned the memoized empty result. It now reads the new row by id.
+- **Where:** `app/onboarding/page.tsx`
+- **Barbershop vs standard:** shared bug fix.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests; error seen in production logs. Not retested in a browser.
+
 ### 2026-11-27: fix endless redirect for accounts without a business
 - **What changed:** a signed-in user with no business (added from the Supabase dashboard, not through /register) looped dashboard → onboarding → login → dashboard. Onboarding now creates the business and the owner employee, then shows the wizard.
 - **Where:** `app/onboarding/page.tsx`, `lib/create-business.ts` (+ `tests/unit/ensure-owner-business.spec.ts`)
