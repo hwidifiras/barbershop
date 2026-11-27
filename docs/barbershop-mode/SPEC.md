@@ -1,7 +1,7 @@
 # Barbershop mode: product spec
 
-Status: **draft for approval** (nothing in this document is built yet)
-Owner: product (hwidifiras) · Last updated: 2026-11-23
+Status: **approved; phases 0-4 live** (see [`STATUS.md`](./STATUS.md) for what is built)
+Owner: product (hwidifiras) · Last updated: 2026-11-27
 Companion file: [`CHANGELOG.md`](./CHANGELOG.md), the log of every change shipped under this spec.
 
 ---
@@ -320,6 +320,31 @@ Not included (decided): the 💺 chair emoji and the "available barber" badge we
 - Caisse: cash only. "Montant reçu" defaults to the total; the remainder becomes kridi; "Tout en kridi" sets it to 0. Needs a connection.
 - `transactions.amount` = money really received; the full price stays in `items`. The day's takings therefore count only cash in hand (repayments included once 3f lands).
 - Out of scope: interest, due dates, limits, automatic reminders, per-barber debts and roles.
+
+### 4.14 Browser notifications: "Nouveau RDV" on the barber's phone (barbershop only)
+
+Decided 2026-11-27: the first client's barber uses an iPhone; other barbers may use Android. Free, no
+WhatsApp account or SMS needed.
+
+- **What is sent:** a notification when a client books **online** ("Nouveau RDV — Ahmed · Coupe + Barbe /
+  Demain à 10:30 avec Firas"). Tapping it opens the Agenda on that day. Bookings the barber makes himself
+  are not notified. Nothing is sent to clients.
+- **Turning it on:** Settings → Notifications → "Notifications sur ce téléphone" → "Activer les
+  notifications". A test notification is sent at once. Each phone is turned on separately; "Désactiver sur
+  ce téléphone" turns it off. Today shows a small banner until the phone is set up ("Plus tard" hides it
+  for 7 days).
+- **Android (Chrome):** works from the browser directly.
+- **iPhone:** Safari only allows it from the **home-screen app**. The card shows the steps (Partager →
+  "Sur l'écran d'accueil" → open from the icon → Activer). The home-screen app carries the shop's name and
+  opens on Today.
+- **Blocked:** if the person refused, the card explains how to allow it in the phone's settings.
+- **Data:** `push_subscriptions` (migration 044), one row per phone, server-only (no direct access for
+  signed-in users). `employee_id` stays empty for now (the device receives every booking); phase 5 fills it
+  so a barber only hears about his own bookings. Dead subscriptions are deleted when the push service
+  answers 404/410.
+- **Keys:** `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` (secret) on the Vercel project. Without
+  them the card says notifications are not available and nothing is sent.
+- **Later:** an evening summary ("Demain : 6 RDV") needs a scheduler; per-barber delivery comes with phase 5.
 
 ## 5. What stays standard for everyone else
 

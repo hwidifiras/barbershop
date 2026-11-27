@@ -54,3 +54,40 @@ const serwist = new Serwist({
 })
 
 serwist.addEventListeners()
+
+// Browser notifications (barbershop mode, docs/barbershop-mode/SPEC.md 4.14). The server sends
+// { title, body, url, tag } (lib/barbershop-push.ts). Every push must show a notification: Safari on
+// iPhone revokes the permission of a site that receives pushes without showing one.
+self.addEventListener('push', (event) => {
+  let data: { title?: string; body?: string; url?: string; tag?: string } = {}
+  try {
+    data = event.data?.json() ?? {}
+  } catch {
+    data = { body: event.data?.text() }
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Nouveau RDV', {
+      body: data.body ?? '',
+      tag: data.tag,
+      icon: '/android-chrome-192x192.png',
+      badge: '/favicon-48x48.png',
+      data: { url: data.url || '/dashboard' },
+    }),
+  )
+})
+
+// Tap: reuse an open window of the app (and move it to the right page), else open one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = new URL((event.notification.data as { url?: string } | null)?.url || '/dashboard', self.location.origin).href
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const w of windows) {
+      if (new URL(w.url).origin === self.location.origin) {
+        await w.focus()
+        return void (await w.navigate(target).catch(() => null))
+      }
+    }
+    await self.clients.openWindow(target)
+  })())
+})

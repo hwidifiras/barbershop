@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { Sidebar } from '@/components/layout/sidebar'
@@ -6,24 +5,33 @@ import { getAuthUser } from '@/lib/auth-user'
 import { BarberShell } from '@/components/layout/barber-shell'
 import { isBarbershopMode } from '@/lib/vertical'
 import { accentFor } from '@/lib/barbershop-theme'
+import { getBusinessForOwner } from '@/lib/business'
+import type { Metadata } from 'next'
+
+// Barbershop mode (SPEC 4.14): the phone's home-screen app is named after the shop and opens on
+// Today (needed on iPhone, where notifications only work from the home-screen app).
+export async function generateMetadata(): Promise<Metadata> {
+  const user = await getAuthUser()
+  if (!user) return {}
+  const business = await getBusinessForOwner(user.id)
+  if (!business || !isBarbershopMode(business)) return {}
+  return {
+    manifest: `/barbershop.webmanifest?n=${encodeURIComponent(business.name)}`,
+    appleWebApp: { capable: true, title: business.name, statusBarStyle: 'default' },
+  }
+}
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
   const user = await getAuthUser()
 
   if (!user) redirect('/login')
 
-  const { data: business } = await supabase
-    .from('businesses')
-    .select('id, name, slug, plan, type, barbershop_mode, logo_url, brand_color, enabled_modules')
-    .eq('owner_id', user.id)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  // Same memoised query as generateMetadata above: one database round trip for both.
+  const business = await getBusinessForOwner(user.id)
 
   if (!business) redirect('/onboarding')
 

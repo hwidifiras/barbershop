@@ -17,6 +17,8 @@ Latest handoff: [`HANDOFF.md`](./HANDOFF.md) (2026-11-27) · Full plan: [`SPEC.m
 | 3f | Clients on phone: balance, "Encaisser un paiement", "Effacer la dette", Kridi list, "Doit X DT" badge | Done, live (no migration) |
 | 3g | Agenda: "Reporter" (postpone an appointment) from the phone | Done, live, tested on a phone (no migration) |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Done, live |
+| 4+ | Phone polish (#29-#31), one-tap WhatsApp reminders (#32), sign-in fixes (#27, #28) | Done, live, not yet checked on a phone |
+| 4.14 | "Nouveau RDV" browser notifications (iPhone home-screen app + Android) | In review (migration 044 + Vercel keys needed) |
 | 5 | Team access: barber logins and own schedule | Not started |
 | 6 | Arabic / RTL, then extras | Not started |
 

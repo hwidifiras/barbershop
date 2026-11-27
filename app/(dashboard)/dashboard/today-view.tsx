@@ -23,6 +23,7 @@ import {
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { PostponeSheet } from '../booking/postpone-sheet'
 import { RemindersCard } from './reminders-card'
+import { PushBanner } from '@/components/settings/push-card'
 import type { ReminderAppt } from '@/lib/barbershop-reminders'
 
 const T = fr.today
@@ -337,6 +338,8 @@ export function TodayView({
       <Header title={T.title} />
       <main className="p-4 md:p-6 space-y-4 max-w-3xl pb-28">
         {error && <p role="alert" className="text-sm rounded-lg border border-red-200 bg-red-50 text-red-700 px-3 py-2">{error}</p>}
+
+        <PushBanner />
 
         {/* Barber filter */}
         {barbers.length > 1 && (
