@@ -38,9 +38,10 @@ interface Props {
   dayLabel: string
   onClose: () => void
   onCreated: () => void
+  initialClient?: { id: string; name: string; phone: string | null } | null
 }
 
-export function NewAppointmentSheet({ business, ymd, today, barbers, services, hours, dayAppts, defaultBarberId, dayLabel, onClose, onCreated }: Props) {
+export function NewAppointmentSheet({ business, ymd, today, barbers, services, hours, dayAppts, defaultBarberId, dayLabel, onClose, onCreated, initialClient = null }: Props) {
   const supabase = useMemo(() => createClient(), [])
   const tz = business.timezone
   const money = (n: number) => formatCurrency(n, business.currency, 'fr-FR')
@@ -59,7 +60,7 @@ export function NewAppointmentSheet({ business, ymd, today, barbers, services, h
   const [extras, setExtras] = useState<string[]>([])
   const [barberId, setBarberId] = useState(defaultBarberId || (barbers.length === 1 ? barbers[0].id : ''))
   const [time, setTime] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState(initialClient?.phone ?? '')
   const [name, setName] = useState('')
   const [found, setFound] = useState<{ key: string; id: string; name: string } | null>(null)
   const [saving, setSaving] = useState(false)
@@ -109,7 +110,9 @@ export function NewAppointmentSheet({ business, ymd, today, barbers, services, h
     return () => { cancelled = true }
   }, [phoneKey, supabase, business.id])
   // Only a result for the number currently typed counts.
-  const known = found && found.key === phoneKey ? { id: found.id, name: found.name } : null
+  // A client chosen beforehand stays chosen until the number is changed.
+  const preset = initialClient && phone === (initialClient.phone ?? '') ? { id: initialClient.id, name: initialClient.name } : null
+  const known = preset ?? (found && found.key === phoneKey ? { id: found.id, name: found.name } : null)
 
   const canSave = !!svc && !!barberId && !!timeOk && !saving && !dayClosed
 

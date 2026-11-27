@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: Clients on the phone (SPEC 4.5)
+- **What changed:** the phone client list is cards with Call, WhatsApp and "Réserver" (opens the Agenda for that client); the import button is computers only. New client asks name and phone, the rest behind "Plus de détails". The client page shows "Notes de coupe" and coming appointments on top, "Dernières coupes" for done visits, and folds notification links away.
+- **Where:** `app/(dashboard)/crm/*`, `app/(dashboard)/booking/*`, `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** every change is behind the barbershop check.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser or on a phone.
+
 ### 2026-11-27: no error on the first visit when the business is created
 - **What changed:** the first visit by an account without a business showed "Something went wrong"; a reload worked. The page re-ran the same query after creating the row, and Next returned the memoized empty result. It now reads the new row by id.
 - **Where:** `app/onboarding/page.tsx`

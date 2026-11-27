@@ -14,7 +14,7 @@ interface BusinessRow {
 const SELECT =
   'id, starts_at, ends_at, status, price, items_summary, notes, source, employee_id, service_id, client_id, clients(id, name, phone), services(id, name)'
 
-export async function BarberAgenda({ business, dayParam, viewParam }: { business: BusinessRow; dayParam?: string; viewParam?: string }) {
+export async function BarberAgenda({ business, dayParam, viewParam, clientParam }: { business: BusinessRow; dayParam?: string; viewParam?: string; clientParam?: string }) {
   const supabase = await createClient()
   const tz = business.timezone ?? 'UTC'
   const nowMs = Date.now()
@@ -56,8 +56,14 @@ export async function BarberAgenda({ business, dayParam, viewParam }: { business
     for (const [id, list] of byClient) { const b = balanceOf(list); if (b > 0) owed[id] = b }
   }
 
+  // Arriving from a client's "Réserver" button. The business filter keeps other shops' ids out.
+  const { data: bookFor } = clientParam
+    ? await supabase.from('clients').select('id, name, phone').eq('business_id', business.id).eq('id', clientParam).maybeSingle()
+    : { data: null }
+
   return (
     <AgendaView
+      bookFor={bookFor}
       business={{ id: business.id, currency: business.currency, timezone: tz }}
       ymd={ymd}
       today={today}

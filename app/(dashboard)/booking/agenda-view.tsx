@@ -47,6 +47,8 @@ interface Props {
   hours: DayHours[]
   services: NewApptService[]
   initialAppts: AgendaAppointment[]
+  /** Set when the barber tapped "Réserver" on a client: new appointments are for them. */
+  bookFor?: { id: string; name: string; phone: string | null } | null
 }
 
 const STATUS_STYLE: Record<string, string> = {
@@ -62,7 +64,7 @@ const STATUS_STYLE: Record<string, string> = {
 const REFRESH_EVERY_MS = 60_000
 const SWIPE_MIN_PX = 70
 
-export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, owed, hours, services, initialAppts }: Props) {
+export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekDays, prevWeekYmd, nextWeekYmd, nowMs, accent, barbers, closed, owed, hours, services, initialAppts, bookFor = null }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const tz = business.timezone
@@ -116,6 +118,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
     const q = new URLSearchParams()
     if (v === 'week') q.set('v', 'week')
     if (d !== today) q.set('d', d)
+    if (bookFor) q.set('client', bookFor.id)
     const qs = q.toString()
     router.push(qs ? `/booking?${qs}` : '/booking')
   }
@@ -325,12 +328,20 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
           <Plus className="w-5 h-5" /> {A.newAppt}
         </button>
       )}
+      {bookFor && !creating && (
+        <div className="fixed inset-x-3 bottom-40 z-30 flex items-center gap-2 rounded-xl border border-gray-300 bg-white p-3 shadow-lg">
+          <p className="min-w-0 flex-1 text-sm text-gray-900">{fmt(A.create.bookingFor, { name: bookFor.name })}</p>
+          <button type="button" onClick={() => router.replace('/booking')} aria-label={A.close} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500"><X className="w-5 h-5" /></button>
+        </div>
+      )}
+
       {creating && (
         <NewAppointmentSheet
+          initialClient={bookFor}
           business={business} ymd={ymd} today={today} barbers={barbers} services={services} hours={hours}
           dayAppts={appts} defaultBarberId={barberId} dayLabel={dayLabel}
           onClose={() => setCreating(false)}
-          onCreated={() => { setCreating(false); router.refresh() }}
+          onCreated={() => { setCreating(false); if (bookFor) router.replace(ymd === today ? '/booking' : `/booking?d=${ymd}`); router.refresh() }}
         />
       )}
 

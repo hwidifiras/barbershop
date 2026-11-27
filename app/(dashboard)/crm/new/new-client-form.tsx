@@ -47,6 +47,7 @@ export function NewClientForm({ businessId, barbershop = false }: Props) {
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ phone?: string; birthday?: string }>({})
   const [duplicate, setDuplicate] = useState<{ id: string; name: string } | null>(null)
+  const [more, setMore] = useState(false)
 
   function blurPhone() {
     const e = validatePhone(form.phone, validationT('phoneInvalid'))
@@ -66,6 +67,7 @@ export function NewClientForm({ businessId, barbershop = false }: Props) {
     const bdErr = validateBirthday(form.birthday, validationT('dateInvalid'))
     if (phoneErr || bdErr) {
       setErrors({ phone: phoneErr ?? undefined, birthday: bdErr ?? undefined })
+      if (bdErr) setMore(true)
       return
     }
 
@@ -98,39 +100,9 @@ export function NewClientForm({ businessId, barbershop = false }: Props) {
     window.location.href = client ? `/crm/${client.id}` : '/crm'
   }
 
-  return (
-    <form onSubmit={submit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fields.name')}</label>
-        <input
-          type="text"
-          required
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder={t('fields.namePlaceholder')}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fields.phone')}</label>
-        <input
-          type="tel"
-          value={form.phone}
-          onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-          onBlur={blurPhone}
-          placeholder={t('fields.phonePlaceholder')}
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-400' : 'border-gray-200'}`}
-        />
-        {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
-        {duplicate && (
-          <p className="text-xs text-red-600 mt-1">
-            {fmt(fr.clients.numberTaken, { name: duplicate.name })}{' '}
-            <Link href={`/crm/${duplicate.id}`} className="underline font-medium">{fr.clients.openRecord}</Link>
-          </p>
-        )}
-      </div>
-
+  // Everything after name and phone. Barbershop mode keeps it behind "Plus de détails" (SPEC 4.5).
+  const details = (
+    <>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('fields.email')}</label>
         <input
@@ -192,6 +164,51 @@ export function NewClientForm({ businessId, barbershop = false }: Props) {
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
       </div>
+    </>
+  )
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fields.name')}</label>
+        <input
+          type="text"
+          required
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder={t('fields.namePlaceholder')}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fields.phone')}</label>
+        <input
+          type="tel"
+          value={form.phone}
+          onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+          onBlur={blurPhone}
+          placeholder={t('fields.phonePlaceholder')}
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-400' : 'border-gray-200'}`}
+        />
+        {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+        {duplicate && (
+          <p className="text-xs text-red-600 mt-1">
+            {fmt(fr.clients.numberTaken, { name: duplicate.name })}{' '}
+            <Link href={`/crm/${duplicate.id}`} className="underline font-medium">{fr.clients.openRecord}</Link>
+          </p>
+        )}
+      </div>
+
+      {barbershop ? (
+        <>
+          <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)}
+            className="min-h-[48px] text-sm font-medium text-gray-700 underline underline-offset-4">
+            {more ? fr.clients.lessDetails : fr.clients.moreDetails}
+          </button>
+          <div className={more ? 'space-y-4' : 'hidden'}>{details}</div>
+        </>
+      ) : details}
 
       <div className="flex gap-3 pt-2">
         <Link
