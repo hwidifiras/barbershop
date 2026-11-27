@@ -10,6 +10,7 @@ import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
 import { isBarbershopMode } from '@/lib/vertical'
 import { fr } from '@/lib/barbershop-fr'
+import { sortByUse } from '@/lib/barbershop-pos'
 
 interface SearchParams {
   bookingId?: string
@@ -37,7 +38,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
       .order('name'),
     supabase
       .from('employees')
-      .select('id, name')
+      .select('id, name, avatar_url')
       .eq('business_id', business.id)
       .eq('is_active', true)
       .order('name'),
@@ -111,6 +112,12 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
 
   const t = await getTranslations('pos')
 
+  // Barbershop: the services sold most come first (last 200 sales).
+  const { data: recentSales } = barbershop
+    ? await supabase.from('transactions').select('items').eq('business_id', business.id).eq('status', 'completed')
+        .order('created_at', { ascending: false }).limit(200)
+    : { data: null }
+
   return (
     <>
       <Header
@@ -126,7 +133,7 @@ export default async function POSPage(props: { searchParams: Promise<SearchParam
         businessId={business.id}
         barbershop={barbershop}
         currency={business.currency}
-        services={services ?? []}
+        services={barbershop ? sortByUse(services ?? [], recentSales ?? []) : services ?? []}
         employees={employees ?? []}
         clients={clients ?? []}
         bookingContext={bookingContext}

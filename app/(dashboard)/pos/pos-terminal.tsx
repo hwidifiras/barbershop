@@ -7,6 +7,7 @@ import { findClientByPhone } from '@/lib/client-identity'
 import { normalizePhone } from '@/lib/phone'
 import { balanceOf, splitPayment } from '@/lib/kridi'
 import { fr, fmt } from '@/lib/barbershop-fr'
+import { matchesClient } from '@/lib/barbershop-pos'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -35,7 +36,7 @@ import {
 } from '@/lib/offline-db'
 
 interface Service { id: string; name: string; price: number; duration_min: number; category: string | null }
-interface Employee { id: string; name: string }
+interface Employee { id: string; name: string; avatar_url?: string | null }
 interface Client { id: string; name: string; phone: string | null }
 interface CartItem { service: Service; qty: number }
 type PaymentMethod = 'cash' | 'card' | 'transfer'
@@ -71,6 +72,7 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState('')
   const [selectedClient, setSelectedClient] = useState('')
+  const [clientQuery, setClientQuery] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [discount, setDiscount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -232,6 +234,26 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
   const kridiAllowed = !!clientForKridi && !!clientForKridi.name?.trim() && !!normalizePhone(clientForKridi.phone) && isOnline
   const split = splitPayment(total, kridiAllowed ? receivedInput : '')
   const categories = Array.from(new Set(activeServices.map((s) => s.category ?? 'Other')))
+
+  // Barbershop: search beyond the first 200 clients by name or number.
+  useEffect(() => {
+    const q = clientQuery.replace(/[,()%*\\]/g, ' ').trim()
+    if (!barbershop || q.length < 3 || !isOnline) return
+    let cancelled = false
+    const digits = q.replace(/\D/g, '').replace(/^(00216|216(?=\d{3}))/, '')
+    const filter = digits.length >= 3 ? `name.ilike.%${q}%,phone_key.ilike.%${digits}%` : `name.ilike.%${q}%`
+    supabase.from('clients').select('id, name, phone').eq('business_id', businessId).or(filter).limit(20)
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        setActiveClients((list) => [...list, ...(data as Client[]).filter((c) => !list.some((x) => x.id === c.id))])
+      })
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientQuery, barbershop, isOnline, businessId])
+  const shownClients = barbershop && clientQuery.trim()
+    ? activeClients.filter((c) => c.id === selectedClient || matchesClient(c, clientQuery))
+    : activeClients
+  const serviceCategories = barbershop ? [''] : categories
 
   // What the selected client already owes (barbershop), shown next to the client.
   useEffect(() => {
@@ -514,17 +536,17 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
         {/* ── Service grid ──────────────────────────────────────────────── */}
         <div className={`flex-1 p-6 overflow-y-auto ${activeTab !== 'services' ? 'hidden md:block' : ''}`}>
           <div className="space-y-6">
-            {categories.map((cat) => (
+            {serviceCategories.map((cat) => (
               <div key={cat}>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{cat}</h3>
+                {cat && <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{cat}</h3>}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {activeServices.filter((s) => (s.category ?? 'Other') === cat).map((s) => (
+                  {activeServices.filter((s) => barbershop || (s.category ?? 'Other') === cat).map((s) => (
                     <button
                       key={s.id}
                       onClick={() => addToCart(s)}
-                      className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all"
+                      className={`text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all${barbershop ? ' min-h-[112px] active:bg-gray-100' : ''}`}
                     >
-                      <div className="font-medium text-gray-900 text-sm mb-1">{s.name}</div>
+                      <div className={`font-medium text-gray-900 mb-1 ${barbershop ? 'text-base' : 'text-sm'}`}>{s.name}</div>
                       <div className="text-blue-600 font-semibold">{formatCurrency(s.price, currency, locale)}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{s.duration_min} min</div>
                     </button>
@@ -555,13 +577,18 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <div>
               <label className="text-xs font-medium text-gray-500 uppercase">{t('clientLabel')}</label>
+              {barbershop && (
+                <input type="search" value={clientQuery} onChange={(e) => setClientQuery(e.target.value)}
+                  placeholder={fr.clients.searchPlaceholder} aria-label={fr.clients.searchPlaceholder} autoComplete="off"
+                  className="w-full mt-1 min-h-[48px] border border-gray-200 rounded-lg px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              )}
               <select
                 value={selectedClient}
                 onChange={(e) => setSelectedClient(e.target.value)}
                 className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">{t('walkIn')}</option>
-                {activeClients.map((c) => (
+                {shownClients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}{c.phone ? ` · ${c.phone}` : ''}
                   </option>
@@ -573,7 +600,31 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
               <p className="text-sm font-semibold text-orange-600">{fmt(fr.caisse.owes, { amount: formatCurrency(owedNow, currency, locale) })}</p>
             )}
 
-            {activeEmployees.length > 0 && (
+            {barbershop && activeEmployees.length > 0 && (
+              <div>
+                <div className="text-xs font-medium text-gray-500 uppercase">{t('employeeLabel')}</div>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {activeEmployees.map((e) => {
+                    const on = selectedEmployee === e.id
+                    return (
+                      // Tapping the chosen barber again clears the choice.
+                      <button key={e.id} type="button" aria-pressed={on} onClick={() => setSelectedEmployee(on ? '' : e.id)}
+                        className={`min-h-[48px] inline-flex items-center gap-2 rounded-full border pl-1.5 pr-4 text-sm font-medium ${on ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300'}`}>
+                        {e.avatar_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={e.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                        ) : (
+                          <span className="w-9 h-9 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-semibold">{e.name.trim()[0]?.toUpperCase()}</span>
+                        )}
+                        {e.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {!barbershop && activeEmployees.length > 0 && (
               <div>
                 <label className="text-xs font-medium text-gray-500 uppercase">{t('employeeLabel')}</label>
                 <select

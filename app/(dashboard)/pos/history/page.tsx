@@ -7,6 +7,8 @@ import { HistoryFilters } from './history-filters'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth-user'
 import { getBusinessForOwner } from '@/lib/business'
+import { isBarbershopMode } from '@/lib/vertical'
+import { fr } from '@/lib/barbershop-fr'
 
 export default async function TransactionHistoryPage(
   props: {
@@ -21,6 +23,7 @@ export default async function TransactionHistoryPage(
 
   const business = await getBusinessForOwner(user!.id)
   if (!business) redirect('/onboarding')
+  const barbershop = isBarbershopMode(business)
 
   let query = supabase
     .from('transactions')
@@ -81,15 +84,26 @@ export default async function TransactionHistoryPage(
   return (
     <>
       <Header title={t('title')} />
-      <main className="p-6 space-y-4">
-        {/* Filters */}
-        <HistoryFilters
-          from={searchParams.from ?? ''}
-          to={searchParams.to ?? ''}
-          method={searchParams.method ?? ''}
-          client={searchParams.client ?? ''}
-          methods={methods}
-        />
+      <main className={barbershop ? 'p-4 md:p-6 space-y-4' : 'p-6 space-y-4'}>
+        {/* Filters. Barbershop mode folds them away unless one is in use (SPEC 4.4). */}
+        {(() => {
+          const filters = (
+            <HistoryFilters
+              from={searchParams.from ?? ''}
+              to={searchParams.to ?? ''}
+              method={searchParams.method ?? ''}
+              client={searchParams.client ?? ''}
+              methods={methods}
+            />
+          )
+          if (!barbershop) return filters
+          return (
+            <details open={!!(searchParams.from || searchParams.to || searchParams.method || searchParams.client)}>
+              <summary className="min-h-[48px] flex items-center cursor-pointer text-sm font-semibold text-gray-800">{fr.caisse.filters}</summary>
+              {filters}
+            </details>
+          )
+        })()}
 
         {/* Total */}
         {transactions && transactions.length > 0 && (
@@ -100,8 +114,31 @@ export default async function TransactionHistoryPage(
           </div>
         )}
 
+        {barbershop && !!transactions?.length && (
+          <ul className="md:hidden space-y-2">
+            {transactions.map((tx) => {
+              const items = (Array.isArray(tx.items) ? tx.items : []) as { name?: string }[]
+              const client = tx.clients as { id: string; name: string } | null
+              const employee = tx.employees as { name: string } | null
+              return (
+                <li key={tx.id} className="rounded-xl bg-white border border-gray-200 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-gray-900 truncate">{client?.name ?? t('walkIn')}</span>
+                    <span className="shrink-0 font-bold tabular-nums text-gray-900">{formatCurrency(tx.amount, business.currency, 'fr-FR')}</span>
+                  </div>
+                  <div className="text-sm text-gray-600 truncate">{items.map((i) => i.name).filter(Boolean).join(' + ') || '—'}</div>
+                  <div className="text-xs text-gray-500">
+                    {formatInBusinessTimezone(tx.created_at, business.timezone, 'date', 'fr')} · {formatInBusinessTimezone(tx.created_at, business.timezone, 'time', 'fr')}
+                    {employee?.name ? ` · ${employee.name}` : ''}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
         {/* Table */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className={`bg-white rounded-xl border border-gray-200 overflow-hidden${barbershop && transactions?.length ? ' hidden md:block' : ''}`}>
           {!transactions || transactions.length === 0 ? (
             <div className="py-16 text-center text-gray-500">
               <div className="text-4xl mb-3">🧾</div>

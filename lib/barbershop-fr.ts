@@ -239,6 +239,7 @@ export const fr = {
     kridiDone: 'En kridi : {amount}',
     errorKridi: 'Impossible d’enregistrer le kridi. Réessayez.',
     history: 'Historique',
+    filters: 'Filtres',
     skip: 'Passer',
     alreadyPaid: 'Ce rendez-vous est déjà encaissé.',
     cancelledAppt: 'Ce rendez-vous est annulé ou absent : rien à encaisser.',
