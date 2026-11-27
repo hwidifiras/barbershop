@@ -1,6 +1,6 @@
 # Barbershop mode: status at a glance
 
-Last updated: 2026-11-26 · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
+Latest handoff: [`HANDOFF.md`](./HANDOFF.md) (2026-11-27) · Full plan: [`SPEC.md`](./SPEC.md) · Every change: [`CHANGELOG.md`](./CHANGELOG.md)
 
 | Phase | What | State |
 |---|---|---|
