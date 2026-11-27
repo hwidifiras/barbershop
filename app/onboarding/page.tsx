@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { ensureOwnerBusiness } from '@/lib/create-business'
 import { redirect } from 'next/navigation'
 import { OnboardingWizard } from './OnboardingWizard'
 
@@ -7,7 +9,7 @@ export default async function OnboardingPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: business } = await supabase
+  const findBusiness = () => supabase
     .from('businesses')
     .select('id, slug, name, onboarding_completed')
     .eq('owner_id', user.id)
@@ -15,7 +17,21 @@ export default async function OnboardingPage() {
     .limit(1)
     .maybeSingle()
 
-  if (!business) redirect('/login')
+  let { data: business, error } = await findBusiness()
+  if (error) throw new Error(error.message)
+
+  // Signed in but no business yet (account added outside /register): create it here. Redirecting
+  // to /login would bounce straight back to the dashboard and loop.
+  if (!business) {
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    if (await ensureOwnerBusiness(admin, user)) ({ data: business, error } = await findBusiness())
+  }
+
+  // Fail visibly rather than redirect: any redirect from here would loop.
+  if (!business) throw new Error('Could not set up your business. Please sign out and try again.')
 
   // Guard: already onboarded → go straight to dashboard
   if (business.onboarding_completed) {
