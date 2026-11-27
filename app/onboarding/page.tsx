@@ -9,15 +9,13 @@ export default async function OnboardingPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const findBusiness = () => supabase
+  let { data: business, error } = await supabase
     .from('businesses')
     .select('id, slug, name, onboarding_completed')
     .eq('owner_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
-
-  let { data: business, error } = await findBusiness()
   if (error) throw new Error(error.message)
 
   // Signed in but no business yet (account added outside /register): create it here. Redirecting
@@ -27,7 +25,16 @@ export default async function OnboardingPage() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
-    if (await ensureOwnerBusiness(admin, user)) ({ data: business, error } = await findBusiness())
+    const created = await ensureOwnerBusiness(admin, user)
+    // Read the new row by id. Repeating the query above would not work: Next memoizes identical
+    // GET requests within one render, so it would return the same empty answer.
+    if (created) {
+      ({ data: business, error } = await admin
+        .from('businesses')
+        .select('id, slug, name, onboarding_completed')
+        .eq('id', created.id)
+        .single())
+    }
   }
 
   // Fail visibly rather than redirect: any redirect from here would loop.
