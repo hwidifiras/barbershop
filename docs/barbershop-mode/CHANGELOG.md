@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-27: reminders name every service; postpone message and button on Today
+- **What changed:** scheduled reminders and thank-you messages use the full booking label ("Coupe + Barbe"). After "Reporter", a button opens WhatsApp with the new time written (nothing is sent automatically). The next-client card on Today has "Reporter".
+- **Where:** `app/api/cron/notify/route.ts`, `booking/postpone-sheet.tsx`, `booking/agenda-view.tsx`, `dashboard/today-view.tsx`, `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** the label comes from `items_summary`, which only barbershop bookings with several services set; the rest is barbershop screens.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node and unit tests. Not checked in a browser; no reminder was actually sent.
+
 ### 2026-11-27: Clients on the phone (SPEC 4.5)
 - **What changed:** the phone client list is cards with Call, WhatsApp and "Réserver" (opens the Agenda for that client); the import button is computers only. New client asks name and phone, the rest behind "Plus de détails". The client page shows "Notes de coupe" and coming appointments on top, "Dernières coupes" for done visits, and folds notification links away.
 - **Where:** `app/(dashboard)/crm/*`, `app/(dashboard)/booking/*`, `lib/barbershop-fr.ts`

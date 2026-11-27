@@ -65,6 +65,12 @@ function notificationIntlLocale(locale: string): string {
   }
 }
 
+/** What was booked: "Coupe + Barbe" when there are supplements or an offer, else the service. */
+function serviceLabel(a: { items_summary: string | null; services: unknown }): { name: string } | null {
+  if (a.items_summary) return { name: a.items_summary }
+  return a.services as { name: string } | null
+}
+
 export async function GET(req: NextRequest) {
   // Принимаем секрет только через заголовок Authorization: Bearer {secret}
   // Query-параметр ?secret= намеренно убран — он виден в логах серверов и прокси.
@@ -103,7 +109,7 @@ export async function GET(req: NextRequest) {
 
   const { data: appts24, error: err24 } = await supabase
     .from('appointments')
-    .select('id, starts_at, business_id, services(name), employees(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
+    .select('id, starts_at, business_id, items_summary, services(name), employees(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
     .gte('starts_at', from24)
     .lte('starts_at', to24)
     .eq('status', 'confirmed')
@@ -122,7 +128,7 @@ export async function GET(req: NextRequest) {
       .select('name, address, timezone, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
       .eq('id', a.business_id).single()
 
-    const service  = a.services  as unknown as { name: string } | null
+    const service  = serviceLabel(a)
     const employee = a.employees as unknown as { name: string } | null
     const tz = biz?.timezone ?? 'UTC'
     const locale = biz?.notification_language ?? 'en'
@@ -177,7 +183,7 @@ export async function GET(req: NextRequest) {
 
   const { data: appts1h, error: err1h } = await supabase
     .from('appointments')
-    .select('id, starts_at, business_id, services(name), employees(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
+    .select('id, starts_at, business_id, items_summary, services(name), employees(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
     .gte('starts_at', from1h)
     .lte('starts_at', to1h)
     .eq('status', 'confirmed')
@@ -196,7 +202,7 @@ export async function GET(req: NextRequest) {
       .select('name, address, timezone, notification_language, telegram_bot_token, telegram_chat_id, viber_bot_token, viber_chat_id, meta_whatsapp_phone_number_id, meta_whatsapp_access_token')
       .eq('id', a.business_id).single()
 
-    const service  = a.services  as unknown as { name: string } | null
+    const service  = serviceLabel(a)
     const employee = a.employees as unknown as { name: string } | null
     const tz = biz?.timezone ?? 'UTC'
     const locale = biz?.notification_language ?? 'en'
@@ -251,7 +257,7 @@ export async function GET(req: NextRequest) {
 
   const { data: completed, error: errTy } = await supabase
     .from('appointments')
-    .select('id, business_id, services(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
+    .select('id, business_id, items_summary, services(name), clients(name, email, whatsapp_number, viber_user_id, telegram_id)')
     .eq('status', 'completed')
     .gte('ends_at', twoHoursAgo)
     .lte('ends_at', now.toISOString())
@@ -267,7 +273,7 @@ export async function GET(req: NextRequest) {
 
     const locale = biz?.notification_language ?? 'en'
     const client  = a.clients  as unknown as { name: string; email: string | null; whatsapp_number: string | null; viber_user_id: string | null; telegram_id: string | null } | null
-    const service = a.services as unknown as { name: string } | null
+    const service = serviceLabel(a)
     const bookingUrl = biz?.slug ? `${APP_URL}/book/${biz.slug}` : undefined
     const waCredentials = biz?.meta_whatsapp_phone_number_id && biz?.meta_whatsapp_access_token
       ? { phoneNumberId: biz.meta_whatsapp_phone_number_id, accessToken: biz.meta_whatsapp_access_token }

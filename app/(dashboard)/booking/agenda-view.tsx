@@ -347,7 +347,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
 
       {postponing && (
         <PostponeSheet
-          appt={{ id: postponing.id, starts_at: postponing.starts_at, ends_at: postponing.ends_at, employee_id: postponing.employee_id, clientName: clientOf(postponing) }}
+          appt={{ id: postponing.id, starts_at: postponing.starts_at, ends_at: postponing.ends_at, employee_id: postponing.employee_id, clientName: clientOf(postponing), clientPhone: postponing.clients?.phone }}
           ymdNow={today} timezone={tz} hours={hours} barbers={barbers}
           onClose={() => setPostponeId(null)}
           onDone={(d) => { setPostponeId(null); if (d === ymd) router.refresh(); else go('day', d) }}
