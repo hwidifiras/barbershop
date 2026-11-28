@@ -539,6 +539,45 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          id: string
+          business_id: string
+          user_id: string
+          employee_id: string | null
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent: string | null
+          created_at: string
+          last_success_at: string | null
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          user_id: string
+          employee_id?: string | null
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent?: string | null
+          created_at?: string
+          last_success_at?: string | null
+        }
+        Update: {
+          id?: string
+          business_id?: string
+          user_id?: string
+          employee_id?: string | null
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          user_agent?: string | null
+          created_at?: string
+          last_success_at?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           id: string

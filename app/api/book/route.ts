@@ -4,7 +4,9 @@
  * Replaces direct Supabase client calls from booking-form.tsx.
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
+import { sendPushToBusiness } from '@/lib/push'
+import { newBookingPayload } from '@/lib/barbershop-push'
 import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -341,6 +343,25 @@ export async function POST(req: NextRequest) {
   }).catch((err) => {
     console.error('[api/book] email/confirm fetch error:', err)
   })
+
+  // Barbershop mode (SPEC 4.14): "Nouveau RDV" on the barber's phone. Runs after the response, so the
+  // client never waits for it. The barber is read back because "Premier disponible" is assigned by the
+  // database, not by this request.
+  if (barbershop) {
+    after(async () => {
+      const { data: booked } = await supabase
+        .from('appointments').select('employee_id, employees(name)').eq('id', appt.id).maybeSingle()
+      const barber = (booked?.employees as unknown as { name: string } | null)?.name ?? null
+      await sendPushToBusiness(businessId, newBookingPayload({
+        appointmentId: appt.id,
+        clientName: name,
+        summary: resolved?.ok ? resolved.summary : null,
+        startsAt,
+        timezone,
+        barberName: barber,
+      }), { employeeId: booked?.employee_id ?? null })
+    })
+  }
 
   return NextResponse.json({ appointmentId: appt.id, clientId, hasTelegram, hasViber })
 }

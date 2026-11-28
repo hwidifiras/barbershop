@@ -14,6 +14,7 @@ import { barbershopModules } from '@/lib/barbershop-onboarding'
 import { fr } from '@/lib/barbershop-fr'
 import { BarbershopShopCard } from '@/components/settings/barbershop-shop-card'
 import { BarbershopServices, type ServiceRow, type OfferRow } from '@/components/settings/barbershop-services'
+import { PushCard } from '@/components/settings/push-card'
 
 const clean = (s: string, max = 500) => s?.trim().slice(0, max) ?? ''
 
@@ -997,6 +998,8 @@ export function SettingsTabs({ business: initial, services: initServices, offers
       {/* Notifications */}
       {tab === 'notifications' && (
         <div className="space-y-4">
+          {/* Barbershop mode (SPEC 4.14): browser notifications on this phone, before the messaging channels. */}
+          {barbershop && <PushCard />}
           <div className={`bg-white rounded-xl border border-gray-200 p-6 ${barbershop ? 'flex flex-col gap-6' : 'space-y-6'}`}>
             <h2 className={`font-semibold text-gray-900${barbershop ? ' order-1' : ''}`}>{t('notifications.heading')}</h2>
 
