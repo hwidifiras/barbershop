@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-28: the app is now "H J'aime"
+- **What changed:** new name and logo, chosen by the owner (direction 2 of three: a bold H whose crossbar is a brass heart). Browser tab title, installed-app name, home-screen and notification icons, favicon, login/sign-up logo, French tagline ("Agenda, caisse et clients pour barbiers"), "Propulsé par H J'aime" on the booking page, and the French interface texts that said "Pronto". The installed app (generic manifest) now opens on `/dashboard`.
+- **Where:** `public/` icons (rendered from `public/icons/icon.svg`), `public/site.webmanifest`, `public/manifest.json`, `components/brand/hjaime-logo.tsx`, `app/(auth)/layout.tsx`, `app/layout.tsx`, `app/book/[slug]/barber-booking.tsx`, `app/offline/page.tsx`, `messages/fr.json`
+- **Barbershop vs standard:** the name and icons are the deployment's brand, so every business type on this site sees them; the standard screens' layout and features are unchanged. Not renamed yet (nobody sees them today): email templates, Telegram/Viber bot texts, the calendar-link text, the landing pages and the English/Spanish/Italian/Portuguese texts. The MIT licence line keeps "Pronto".
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint, check:i18n, node (18) and unit (176) tests, production build; login page on a Pixel 7 screen shows the new logo and name; tab title and manifest checked.
+
 ### 2026-11-28: floating buttons above the tab bar, Clients header fixed (SPEC 4.1, 4.5)
 - **What changed:** "Nouveau RDV" on the Agenda sat on top of the bottom tab bar (Clients and Plus could not be tapped); it now sits above the bar like "Client sans RDV" on Today. On the Clients phone screen "Ajouter un client" moved out of the header into the same floating spot ("Nouveau client"); computers keep the header button. Root cause of the squashed header: on long pages the shared header shrank below its 56px height inside the scrolling column; it no longer shrinks (shared fix, all pages). Phone side padding of the header is 16px instead of 24px.
 - **Where:** `components/layout/header.tsx`, `lib/barbershop-theme.ts` (`FAB_POSITION`, one place for the three floating buttons), `app/(dashboard)/booking/agenda-view.tsx`, `app/(dashboard)/crm/page.tsx`, `app/(dashboard)/dashboard/today-view.tsx`, `lib/barbershop-fr.ts`

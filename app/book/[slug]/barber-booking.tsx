@@ -601,7 +601,7 @@ export function BarberBooking({ business, services, offers, barbers, workingHour
         )}
       </main>
 
-      <footer className={styles.footer}>{L.poweredBy} Pronto</footer>
+      <footer className={styles.footer}>{L.poweredBy} H J&apos;aime</footer>
     </div>
   )
 }

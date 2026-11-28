@@ -1,15 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Background rounded square -->
-  <rect width="512" height="512" rx="96" fill="#2563eb"/>
-  <!-- Letter P — bold, centered -->
-  <text
-    x="256"
-    y="336"
-    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    font-size="360"
-    font-weight="800"
-    fill="white"
-    text-anchor="middle"
-    dominant-baseline="auto"
-  >P</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><title>H J'aime</title><rect width="100" height="100" rx="22" fill="#0e0e0f"/><rect x="25" y="23" width="13" height="54" rx="3" fill="#f3efe6"/><rect x="62" y="23" width="13" height="54" rx="3" fill="#f3efe6"/><path d="M50 61 C41.5 55.5 38.6 50.8 41.2 46.6 C43.4 43.4 47.6 43.6 50 47 C52.4 43.6 56.6 43.4 58.8 46.6 C61.4 50.8 58.5 55.5 50 61 Z" fill="#c9a24b"/></svg>

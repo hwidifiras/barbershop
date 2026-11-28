@@ -11,7 +11,7 @@ const FALLBACK_MESSAGES = enMessages as Awaited<ReturnType<typeof getMessages>>
 
 
 export const metadata: Metadata = {
-  title: 'Pronto — Business Management for Service SMBs',
+  title: "H J'aime — Agenda, caisse et clients pour barbiers",
   description:
     'Self-hosted POS, CRM, Inventory & Omnichannel Notifications. Your data, your server. Zero commission. One command install.',
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pronto',
+    title: "H J'aime",
   },
   formatDetection: {
     telephone: false,
