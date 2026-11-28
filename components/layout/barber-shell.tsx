@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
-import { Banknote, CalendarDays, Check, Copy, LogOut, Menu, Package, Settings, Sun, Users, X, type LucideIcon } from 'lucide-react'
+import { Wallet, CalendarDays, Check, Copy, LogOut, Menu, Package, Settings, Sun, Users, X, type LucideIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { fr } from '@/lib/barbershop-fr'
 
@@ -53,10 +53,12 @@ export function BarberShell({ businessName, logoUrl, slug, inventoryOn, accent }
   const tabs: Tab[] = [
     { href: '/dashboard', label: N.today, icon: Sun },
     { href: '/booking', label: N.calendar, icon: CalendarDays },
-    { href: '/pos', label: N.charge, icon: Banknote },
+    { href: '/recettes', label: N.charge, icon: Wallet },
     { href: '/crm', label: N.clients, icon: Users },
   ]
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+    // The payment screen (/pos) is a step of Recettes, not a tab of its own (SPEC 4.15).
+    || (href === '/recettes' && (pathname === '/pos' || pathname.startsWith('/pos/')))
   const moreActive = isActive('/settings') || isActive('/inventory')
 
   async function copyLink() {

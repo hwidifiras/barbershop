@@ -19,6 +19,13 @@ phase, how it was verified, and confirmation that non-barbershop types are unaff
 
 ## Log
 
+### 2026-11-28: "Recettes" replaces the Caisse tab (SPEC 4.15)
+- **What changed:** the bottom menu's Caisse tab is now Recettes: takings for today, the week or the month (money received incl. kridi repaid, sales, average per client, kridi given), total kridi owed with a link to the Kridi list, per barber, top services, the period's sales and a link to the full history. "Vente sans RDV" opens the payment screen for a sale with no visit. After "Encaisser" from Today or the Agenda, the payment screen's main button goes back there.
+- **Where:** `app/(dashboard)/recettes/{page.tsx,recettes-view.tsx}`, `lib/barbershop-takings.ts` (+ `tests/unit/barbershop-takings.spec.ts`), `components/layout/barber-shell.tsx`, `app/(dashboard)/pos/pos-terminal.tsx`, `app/(dashboard)/dashboard/today-view.tsx`, `app/(dashboard)/booking/agenda-view.tsx`, `proxy.ts` (`/recettes` is a signed-in page), `lib/barbershop-fr.ts`
+- **Barbershop vs standard:** menu and page are barbershop only; `/recettes` sends standard businesses to their sales history. The payment screen's after-payment buttons change only in barbershop mode.
+- **Data/migrations:** none
+- **Verified:** `tsc --noEmit`, eslint (no new warnings), check:i18n, node (18) and unit (186, 10 new) tests, production build. Recettes view with sample sales and empty, at Pixel 7 size with the real menu: no sideways scroll, totals match the sample (15+10+20+12 sold + 5 repaid = 62). Not checked against the real database (needs a signed-in session).
+
 ### 2026-11-28: the app is now "H J'aime"
 - **What changed:** new name and logo, chosen by the owner (direction 2 of three: a bold H whose crossbar is a brass heart). Browser tab title, installed-app name, home-screen and notification icons, favicon, login/sign-up logo, French tagline ("Agenda, caisse et clients pour barbiers"), "Propulsé par H J'aime" on the booking page, and the French interface texts that said "Pronto". The installed app (generic manifest) now opens on `/dashboard`.
 - **Where:** `public/` icons (rendered from `public/icons/icon.svg`), `public/site.webmanifest`, `public/manifest.json`, `components/brand/hjaime-logo.tsx`, `app/(auth)/layout.tsx`, `app/layout.tsx`, `app/book/[slug]/barber-booking.tsx`, `app/offline/page.tsx`, `messages/fr.json`

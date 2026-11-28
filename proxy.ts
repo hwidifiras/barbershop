@@ -69,7 +69,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Protected routes — redirect unauthenticated users to login
-  const protectedPaths = ['/dashboard', '/pos', '/crm', '/inventory', '/booking', '/settings']
+  const protectedPaths = ['/dashboard', '/pos', '/crm', '/inventory', '/booking', '/settings', '/recettes']
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
 
   if (isProtected && !user) {
