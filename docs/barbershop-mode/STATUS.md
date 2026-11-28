@@ -18,6 +18,7 @@ Latest handoff: [`HANDOFF.md`](./HANDOFF.md) (2026-11-27) · Full plan: [`SPEC.m
 | 3g | Agenda: "Reporter" (postpone an appointment) from the phone | Done, live, tested on a phone (no migration) |
 | 4 | Settings reorganisation, onboarding presets, Products off by default | Done, live |
 | 4+ | Phone polish (#29-#31), one-tap WhatsApp reminders (#32), sign-in fixes (#27, #28) | Done, live, not yet checked on a phone |
+| 4.15 | "Recettes" tab replaces Caisse (takings by day/week/month, per barber, kridi owed) | Live (PR #37) |
 | 4.14 | "Nouveau RDV" browser notifications (iPhone home-screen app + Android) | Live (PR #34, migration 044 applied); to check on a real iPhone |
 | 5 | Team access: barber logins and own schedule | Not started |
 | 6 | Arabic / RTL, then extras | Not started |

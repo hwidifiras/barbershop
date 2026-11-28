@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { findClientByPhone } from '@/lib/client-identity'
 import { normalizePhone } from '@/lib/phone'
@@ -65,6 +65,8 @@ interface POSTerminalProps {
 export function POSTerminal({ businessId, barbershop = false, currency, services: initialServices, employees: initialEmployees, clients: initialClients, bookingContext }: POSTerminalProps) {
   const supabase = createClient()
   const router = useRouter()
+  // Where "Encaisser" was tapped (today / agenda), to go back there after the payment.
+  const from = useSearchParams().get('from')
   const t = useTranslations('pos')
   const locale = useLocale()
 
@@ -405,7 +407,17 @@ export function POSTerminal({ businessId, barbershop = false, currency, services
               <p className="text-2xl font-bold text-gray-900 mb-1">{formatCurrency(successAmount, currency, locale)}</p>
               {successKridi > 0 && <p className="text-sm font-semibold text-orange-600 mb-1">{fmt(fr.caisse.kridiDone, { amount: formatCurrency(successKridi, currency, locale) })}</p>}
               <div className="mb-5" />
-              <Button onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full">{t('success.newSale')}</Button>
+              {barbershop ? (
+                // Barbershop (SPEC 4.15): paying is a step after a visit, so the main button goes back there.
+                <div className="space-y-2">
+                  <Button onClick={() => router.push(from === 'today' ? '/dashboard' : from === 'agenda' ? '/booking' : '/recettes')} className="w-full min-h-[48px]">
+                    {from === 'today' ? fr.recettes.backToday : from === 'agenda' ? fr.recettes.backAgenda : fr.recettes.seeTakings}
+                  </Button>
+                  <Button variant="outline" onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full min-h-[48px]">{t('success.newSale')}</Button>
+                </div>
+              ) : (
+                <Button onClick={() => { setSuccess(false); setShowSaveModal(false) }} className="w-full">{t('success.newSale')}</Button>
+              )}
             </CardContent>
           </Card>
 

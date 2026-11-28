@@ -346,6 +346,24 @@ WhatsApp account or SMS needed.
   them the card says notifications are not available and nothing is sent.
 - **Later:** an evening summary ("Demain : 6 RDV") needs a scheduler; per-barber delivery comes with phase 5.
 
+### 4.15 Recettes replaces the Caisse tab (barbershop only)
+
+Decided 2026-11-28 with the owner: charging is a step after a visit, not a place of its own, so the tab
+becomes a page about the money.
+
+- **Bottom menu:** Aujourd'hui · Agenda · **Recettes** · Clients · Plus. The payment screen (`/pos`)
+  still exists and highlights Recettes while open.
+- **Paying:** "Encaisser" on a visit (Today or Agenda) opens the payment screen filled in. After paying,
+  the main button goes back where the barber came from ("Retour à Aujourd'hui" / "Retour à l'agenda").
+- **Recettes page:** Aujourd'hui / Semaine (Monday to Sunday) / Mois; "Encaissé" = sales' paid part +
+  kridi repaid (same rule as Today); sales count, average full price per sale (paid + kridi), kridi given;
+  "On vous doit X" (all open kridi) linking to the Kridi list; per barber (2+ barbers) with a bar; top 5
+  services; the period's sales (30 latest) and "Voir tout l'historique" (`/pos/history`).
+- **"Vente sans RDV":** floating button opening the empty payment screen, for products or a charge with
+  no visit.
+- No database change. Standard businesses: `/recettes` redirects to the sales history; their menu is
+  unchanged.
+
 ## 5. What stays standard for everyone else
 
 All screens listed in section 4 keep their current code path for non-barbershop types.

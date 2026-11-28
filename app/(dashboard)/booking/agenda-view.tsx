@@ -183,6 +183,7 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
     if (a.client_id) p.set('clientId', a.client_id)
     if (a.service_id) p.set('serviceId', a.service_id)
     if (a.employee_id) p.set('staffId', a.employee_id)
+    p.set('from', 'agenda')
     router.push(`/pos?${p.toString()}`)
   }
 
