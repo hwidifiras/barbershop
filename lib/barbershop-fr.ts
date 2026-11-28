@@ -466,6 +466,7 @@ export const fr = {
     notifications: 'Notifications',
     usedExisting: 'Ce numéro existe déjà : {name}. La fiche existante a été utilisée.',
     searchPlaceholder: 'Nom ou numéro de téléphone',
+    newClient: 'Nouveau client',
   },
   onboarding: {
     heading: 'Vos prestations',

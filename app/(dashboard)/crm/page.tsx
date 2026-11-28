@@ -14,6 +14,7 @@ import { isBarbershopMode } from '@/lib/vertical'
 import { fr, fmt } from '@/lib/barbershop-fr'
 import { formatPhone, whatsappNumber } from '@/lib/phone'
 import { balanceOf } from '@/lib/kridi'
+import { FAB_POSITION } from '@/lib/barbershop-theme'
 
 export default async function CRMPage(
   props: {
@@ -146,16 +147,24 @@ export default async function CRMPage(
       <Header
         title={t('title')}
         actions={
-          <div className="flex gap-2">
-            {/* Barbershop: importing is a computer task, kept off the phone header (SPEC 4.5). */}
-            {barbershop ? <div className="hidden md:block"><CrmImportButton /></div> : <CrmImportButton />}
+          // Barbershop phone: the header keeps only the title, like the other screens; adding a client is the
+          // floating button below and importing is a computer task (SPEC 4.5). Computers keep this row.
+          <div className={barbershop ? 'hidden md:flex gap-2' : 'flex gap-2'}>
+            <CrmImportButton />
             <Link href="/crm/new">
               <Button size="sm"><Plus className="w-4 h-4 mr-1" /> {t('addClient')}</Button>
             </Link>
           </div>
         }
       />
-      <main className={barbershop ? 'p-4 md:p-6' : 'p-6'}>
+      {barbershop && (
+        // Same place as "Nouveau RDV" (Agenda) and "Client sans RDV" (Today): above the tab bar, never over it.
+        <Link href="/crm/new"
+          className={`${FAB_POSITION} md:hidden min-h-[56px] px-5 rounded-full bg-[#0e0e0f] text-white text-base font-bold shadow-xl inline-flex items-center gap-2`}>
+          <Plus className="w-5 h-5" /> {fr.clients.newClient}
+        </Link>
+      )}
+      <main className={barbershop ? 'p-4 pb-28 md:p-6' : 'p-6'}>
         {barbershop && <div className="mb-3 max-w-sm"><KridiTabs active="all" /></div>}
         <div className="mb-4 relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

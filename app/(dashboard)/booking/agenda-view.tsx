@@ -17,6 +17,7 @@ import { fr, fmt } from '@/lib/barbershop-fr'
 import type { DayHours } from '@/lib/booking-availability'
 import { NewAppointmentSheet, type NewApptService } from './new-appointment-sheet'
 import { PostponeSheet } from './postpone-sheet'
+import { FAB_POSITION } from '@/lib/barbershop-theme'
 
 const A = fr.agenda
 
@@ -323,8 +324,8 @@ export function AgendaView({ business, ymd, today, prevYmd, nextYmd, view, weekD
       {/* New appointment (day view only) */}
       {view === 'day' && !opened && !creating && !postponing && (
         <button type="button" onClick={() => setCreating(true)}
-          className="fixed right-4 z-30 min-h-[56px] px-5 rounded-full text-white text-base font-bold shadow-lg inline-flex items-center gap-2"
-          style={{ background: '#0e0e0f', bottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+          className={`${FAB_POSITION} min-h-[56px] px-5 rounded-full text-white text-base font-bold shadow-xl inline-flex items-center gap-2`}
+          style={{ background: '#0e0e0f' }}>
           <Plus className="w-5 h-5" /> {A.newAppt}
         </button>
       )}

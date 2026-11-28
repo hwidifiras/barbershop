@@ -21,3 +21,10 @@ export function accentFor(brandColor: string | null | undefined): string {
   if (l === null || l < 0.18) return BRASS
   return brandColor.startsWith('#') ? brandColor : `#${brandColor}`
 }
+
+/**
+ * Where the big floating action button sits on a barbershop phone screen ("Client sans RDV" on Today,
+ * "Nouveau RDV" on the Agenda, "Nouveau client" on Clients): above the bottom tab bar (4.25rem plus the
+ * phone's safe area) and below it in stacking order (the bar is z-30), so it can never cover the tabs.
+ */
+export const FAB_POSITION = 'fixed right-4 md:right-6 z-20 bottom-[calc(4.25rem+env(safe-area-inset-bottom)+0.75rem)] md:bottom-6'
