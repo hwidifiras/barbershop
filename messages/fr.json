@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Pronto — Gestion d'entreprise pour les professionnels des services",
+    "title": "H J'aime — Agenda, caisse et clients pour barbiers",
     "description": "Caisse, CRM, inventaire et notifications omnicanales en auto-hébergement. Vos données, votre serveur. Zéro commission. Installation en une commande."
   },
   "brand": {
-    "name": "Pronto",
-    "tagline": "Gestion d'entreprise · Zéro commission"
+    "name": "H J'aime",
+    "tagline": "Agenda, caisse et clients pour barbiers"
   },
   "nav": {
     "pricing": "Tarifs",
@@ -122,7 +122,7 @@
     }
   },
   "onboarding": {
-    "logo": "Pronto",
+    "logo": "H J'aime",
     "intro": "Configurons votre entreprise en 3 étapes",
     "steps": {
       "businessType": "Type d'activité",
@@ -147,7 +147,7 @@
       "bizNamePlaceholder": "Salon de Maya",
       "businessTypeLabel": "Type d'activité",
       "continue": "Continuer",
-      "slugLabel": "Votre adresse Pronto",
+      "slugLabel": "Votre adresse H J'aime",
       "slugHint": "Lettres minuscules, chiffres et tirets · 3 à 30 caractères",
       "slugChecking": "Vérification…",
       "slugAvailable": "Disponible ✓",
@@ -167,7 +167,7 @@
       "continue": "Continuer"
     },
     "checklist": {
-      "title": "Bien démarrer avec Pronto",
+      "title": "Bien démarrer avec H J'aime",
       "progress": "{done} sur {total} terminé(s)",
       "step1": "Profil de l'entreprise créé",
       "step2": "Ajouter votre premier service",
@@ -334,7 +334,7 @@
     "moreActions": "Plus d'actions",
     "import": {
       "title": "Importer des produits",
-      "uploadHint": "Vous avez déjà une liste de prix fournisseur au format Excel ou CSV ? Importez-la directement : Pronto détectera automatiquement les colonnes.",
+      "uploadHint": "Vous avez déjà une liste de prix fournisseur au format Excel ou CSV ? Importez-la directement : H J'aime détectera automatiquement les colonnes.",
       "dropzone": "Déposez le fichier ici ou cliquez pour parcourir",
       "dropzoneFormats": ".xlsx  ·  .xls  ·  .csv",
       "orSeparator": "ou",
@@ -523,7 +523,7 @@
       "currentPlan": "Offre actuelle",
       "successMessage": "Abonnement activé ! Merci d'avoir choisi une offre supérieure.",
       "errorMessage": "Une erreur s'est produite. Veuillez réessayer ou contacter l'assistance.",
-      "selfHostedDescription": "Vous utilisez la version auto-hébergée de Pronto. Toutes les fonctionnalités sont disponibles sans abonnement.",
+      "selfHostedDescription": "Vous utilisez la version auto-hébergée de H J'aime. Toutes les fonctionnalités sont disponibles sans abonnement.",
       "selfHostedHeading": "Auto-hébergé — Toutes les fonctionnalités sont débloquées",
       "selfHostedFeaturesDescription": "Toutes les fonctionnalités des offres Pro et Agency sont disponibles gratuitement.",
       "selfHostedManageHint": "Gérez votre instance avec Docker Compose."
@@ -952,7 +952,7 @@
   },
   "feedback": {
     "heading": "Donnez votre avis",
-    "subheading": "Aidez-nous à améliorer Pronto",
+    "subheading": "Aidez-nous à améliorer H J'aime",
     "placeholder": "Que souhaitez-vous nous dire ?",
     "placeholderGood": "Qu'appréciez-vous le plus ?",
     "placeholderBad": "Qu'est-ce qui ne fonctionne pas correctement ?",
@@ -960,7 +960,7 @@
     "submit": "Envoyer",
     "sending": "Envoi en cours…",
     "thanks": "Merci pour votre retour !",
-    "thanksSub": "Votre avis nous aide à améliorer Pronto.",
+    "thanksSub": "Votre avis nous aide à améliorer H J'aime.",
     "close": "Fermer"
   },
   "clientDetail": {

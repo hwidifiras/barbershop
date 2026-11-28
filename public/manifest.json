@@ -1,13 +1,13 @@
 {
-  "name": "Pronto — Business Management",
-  "short_name": "Pronto",
-  "description": "POS · CRM · Inventory · Booking for service businesses",
-  "start_url": "/",
+  "name": "H J'aime",
+  "short_name": "H J'aime",
+  "description": "Agenda, caisse et clients pour barbiers",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0e0e0f",
+  "theme_color": "#0e0e0f",
   "orientation": "any",
-  "lang": "en",
+  "lang": "fr",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -34,23 +34,41 @@
       "short_name": "POS",
       "description": "Quick checkout — complete a sale in 3 clicks",
       "url": "/pos",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Booking Calendar",
       "short_name": "Book",
       "description": "View and manage appointments",
       "url": "/booking",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Clients",
       "short_name": "CRM",
       "description": "Client list and history",
       "url": "/crm",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "screenshots": []
 }
