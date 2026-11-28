@@ -24,6 +24,7 @@ import { fr, fmt } from '@/lib/barbershop-fr'
 import { PostponeSheet } from '../booking/postpone-sheet'
 import { RemindersCard } from './reminders-card'
 import { PushBanner } from '@/components/settings/push-card'
+import { FAB_POSITION } from '@/lib/barbershop-theme'
 import type { ReminderAppt } from '@/lib/barbershop-reminders'
 
 const T = fr.today
@@ -513,7 +514,7 @@ export function TodayView({
 
       {/* Walk-in button */}
       <button type="button" onClick={openSheet}
-        className="fixed right-4 md:right-6 z-20 bottom-[calc(4.25rem+env(safe-area-inset-bottom)+0.75rem)] md:bottom-6 inline-flex items-center gap-2 h-14 px-5 rounded-full bg-[var(--accent)] text-[#111] font-bold shadow-xl">
+        className={`${FAB_POSITION} inline-flex items-center gap-2 h-14 px-5 rounded-full bg-[var(--accent)] text-[#111] font-bold shadow-xl`}>
         <Plus className="w-5 h-5" /> {T.walkInButton}
       </button>
 

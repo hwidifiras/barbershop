@@ -30,7 +30,9 @@ export function Header({ title, actions }: HeaderProps) {
   }, [actions])
 
   return (
-    <header className="h-14 border-b border-gray-200 bg-white flex items-center px-6 gap-4 sticky top-0 z-10">
+    // shrink-0: the header is a child of the layout's scrolling flex column; without it a long page (the
+    // client list) squeezed the header below its 56px height and its buttons spilled over the border.
+    <header className="h-14 shrink-0 border-b border-gray-200 bg-white flex items-center px-4 md:px-6 gap-4 sticky top-0 z-10">
       <h1 className="text-base font-semibold text-gray-900 flex-1">{title}</h1>
       {actions && (
         <div className="relative min-w-0">
